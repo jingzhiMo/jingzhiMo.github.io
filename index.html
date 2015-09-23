@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Hexo</title>
+  <title>主页</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="还在找工作的苦逼">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
+<meta property="og:title" content="主页">
 <meta property="og:url" content="http://yoursite.com/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="主页">
 <meta property="og:description" content="还在找工作的苦逼">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="主页">
 <meta name="twitter:description" content="还在找工作的苦逼">
   
-    <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
+    <link rel="alternative" href="/atom.xml" title="主页" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.png">
@@ -52,11 +52,6 @@
 							<div class="ribbon"></div>
 						</div>
 						
-						<div class="icon-wrap icon-link hide" data-idx="2">
-							<div class="loopback_l"></div>
-							<div class="loopback_r"></div>
-						</div>
-						
 						
 						<div class="icon-wrap icon-me hide" data-idx="3">
 							<div class="user"></div>
@@ -71,8 +66,6 @@
 					<ul class="tips-inner">
 						<li>菜单</li>
 						<li>标签</li>
-						
-						<li>友情链接</li>
 						
 						
 						<li>关于我</li>
@@ -99,7 +92,7 @@
 							
 								<a class="github" target="_blank" href="http://jingzhimo.github.io" title="github">github</a>
 					        
-								<a class="mail" target="_blank" href="/mojingzhi.mail@gmail.com" title="mail">mail</a>
+								<a class="mail" target="_blank" href="mailto:mojingzhi.mail@gmail.com" title="mail">mail</a>
 					        
 						</div>
 					</nav>
@@ -108,36 +101,18 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/入门/" style="font-size: 10px;">入门</a>
+						<a href="/tags/html5/" style="font-size: 10px;">html5</a> <a href="/tags/入门/" style="font-size: 10px;">入门</a>
 					</div>
 				</section>
 				
 				
 				
-				<section class="switch-part switch-part3">
-					<div id="js-friends">
-					
-			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">奥巴马的博客</a>
-			        
-			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">卡卡的美丽传说</a>
-			        
-			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">本泽马的博客</a>
-			        
-			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">吉格斯的博客</a>
-			        
-			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">习大大大不同</a>
-			        
-			          <a target="_blank" class="main-nav-link switch-friends-link" href="http://localhost:4000/">托蒂的博客</a>
-			        
-			        </div>
-				</section>
-				
 
 				
 				
-				<section class="switch-part switch-part4">
+				<section class="switch-part switch-part3">
 				
-					<div id="js-aboutme">我是谁，我从哪里来，我到哪里去？我就是我，是颜色不一样的吃货…</div>
+					<div id="js-aboutme">还在苦逼的找工作...</div>
 				</section>
 				
 			</div>
@@ -175,7 +150,7 @@
 					
 						<a class="github" target="_blank" href="http://jingzhimo.github.io" title="github">github</a>
 			        
-						<a class="mail" target="_blank" href="/mojingzhi.mail@gmail.com" title="mail">mail</a>
+						<a class="mail" target="_blank" href="mailto:mojingzhi.mail@gmail.com" title="mail">mail</a>
 			        
 				</div>
 			</nav>
@@ -183,6 +158,73 @@
 	</div>
 </nav>
       <div class="body-wrap">
+  
+    <article id="post-h5-h4的一些区别" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/09/23/h5-h4的一些区别/" class="article-date">
+  	<time datetime="2015-09-23T14:10:11.000Z" itemprop="datePublished">2015-09-23</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/09/23/h5-h4的一些区别/">h5-h4的一些区别</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="html5和html4的一些区别">html5和html4的一些区别</h1><p>上次去面试阿里的时候，被问到关于h5与h4的一些区别，= =！没有怎么总结过，只是记得多少说多少，额~</p>
+<p>下面只是简单列几点出来，主要是从 <em>HTML5 程序设计(第2版)</em> 这本书看到的</p>
+<h2 id="新的DOCYPE和字符集">新的DOCYPE和字符集</h2><p>H5: </p>
+<pre><code><span class="doctype">&lt;!DOCTYPE HTML&gt;</span>
+</code></pre><p>H4: </p>
+<pre><code><span class="doctype">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"&gt;</span>
+</code></pre><p>H4的简直没法记住…都是CTRL+C,CTRL+V…</p>
+<h2 id="新增语义化标签">新增语义化标签</h2><p>h5增加了很多的标签，其中语义化标签占有一定的比重。虽然语义化标记不会马上感受到什么好处，但是它可以简化HTML页面设计，并且将来搜索引擎在抓取和索引网页的时候，也会利用到这些元素的优势。下面两个链接是对语义化的一些解析</p>
+<p><a href="http://www.html5jscss.com/html5-semantics-section.html">语义化标签一</a></p>
+<p><a href="http://www.html5jscss.com/html5-semantics-rich.html">语义化标签二</a></p>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/html5/">html5</a></li></ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a  href="/2015/09/23/h5-h4的一些区别/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
   
     <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
   
