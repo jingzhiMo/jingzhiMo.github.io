@@ -159,6 +159,77 @@
 </nav>
       <div class="body-wrap">
   
+    <article id="post-ES6的一些特性(三)" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/10/08/ES6的一些特性(三)/" class="article-date">
+  	<time datetime="2015-10-08T14:05:05.000Z" itemprop="datePublished">2015-10-08</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/10/08/ES6的一些特性(三)/">ES6的一些特性(三)</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Class">Class</h2><p>ES6之前，并没有类的定义，但是可以通过<code>prototype</code>来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过<code>class</code>关键字可以定义类</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Point</span> </span>{
+    constuctor(x, y) {
+        <span class="keyword">this</span>.x = x;
+        <span class="keyword">this</span>.y = y;
+    }
+    toString() {
+        <span class="keyword">return</span> <span class="string">'('</span> + <span class="keyword">this</span>.x + <span class="string">', '</span> <span class="keyword">this</span>.y + <span class="string">')'</span>;
+    }
+}
+</code></pre><p><code>constructor</code>方法是类的默认方法，通过<code>new</code>命令生成对象实例时，自动调用该方法。一个类必须有constructor方法，如果没有显式定义，一个空的constructor方法会被默认添加。</p>
+<pre><code><span class="comment">// 生成实例对象</span>
+var point = <span class="keyword">new</span> Point(<span class="number">1</span>,<span class="number">3</span>);
+</code></pre><p>需要注意的是，类里面的方法不需要使用<code>function</code>关键字来定义，每个方法之间也不需要用逗号分开，如果使用了逗号，反而会报错</p>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ES6/">ES6</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Javascript/">Javascript</a></li></ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a  href="/2015/10/08/ES6的一些特性(三)/#more">more >></a>
+        </p>
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+  
     <article id="post-ES6的一些新特性(二)" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">

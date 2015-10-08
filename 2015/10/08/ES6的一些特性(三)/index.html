@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>ES6的一些特性(三) | 主页</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
+class Point {
+    constuctor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    toString() {">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ES6的一些特性(三)">
+<meta property="og:url" content="http://yoursite.com/2015/10/08/ES6的一些特性(三)/index.html">
+<meta property="og:site_name" content="主页">
+<meta property="og:description" content="ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
+class Point {
+    constuctor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    toString() {">
+<meta property="og:updated_time" content="2015-10-08T14:06:12.093Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ES6的一些特性(三)">
+<meta name="twitter:description" content="ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
+class Point {
+    constuctor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    toString() {">
+  
+    <link rel="alternative" href="/atom.xml" title="主页" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/image/kakaxi.jpg" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Mo Jingzhi</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/jingzhiMo" title="github">github</a>
+					        
+								<a class="mail" target="_blank" href="mailto:mojingzhi.mail@gmail.com" title="mail">mail</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/ES6/" style="font-size: 20px;">ES6</a> <a href="/tags/Javascript/" style="font-size: 20px;">Javascript</a> <a href="/tags/html5/" style="font-size: 10px;">html5</a> <a href="/tags/入门/" style="font-size: 10px;">入门</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+				
+				<section class="switch-part switch-part3">
+				
+					<div id="js-aboutme">找工作、找工作、找工作...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">Mo Jingzhi</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/image/kakaxi.jpg" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">Mo Jingzhi</h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/jingzhiMo" title="github">github</a>
+			        
+						<a class="mail" target="_blank" href="mailto:mojingzhi.mail@gmail.com" title="mail">mail</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-ES6的一些特性(三)" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/10/08/ES6的一些特性(三)/" class="article-date">
+  	<time datetime="2015-10-08T14:05:05.000Z" itemprop="datePublished">2015-10-08</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      ES6的一些特性(三)
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ES6/">ES6</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Javascript/">Javascript</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Class">Class</h2><p>ES6之前，并没有类的定义，但是可以通过<code>prototype</code>来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过<code>class</code>关键字可以定义类</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Point</span> </span>{
+    constuctor(x, y) {
+        <span class="keyword">this</span>.x = x;
+        <span class="keyword">this</span>.y = y;
+    }
+    toString() {
+        <span class="keyword">return</span> <span class="string">'('</span> + <span class="keyword">this</span>.x + <span class="string">', '</span> <span class="keyword">this</span>.y + <span class="string">')'</span>;
+    }
+}
+</code></pre><p><code>constructor</code>方法是类的默认方法，通过<code>new</code>命令生成对象实例时，自动调用该方法。一个类必须有constructor方法，如果没有显式定义，一个空的constructor方法会被默认添加。</p>
+<pre><code><span class="comment">// 生成实例对象</span>
+var point = <span class="keyword">new</span> Point(<span class="number">1</span>,<span class="number">3</span>);
+</code></pre><p>需要注意的是，类里面的方法不需要使用<code>function</code>关键字来定义，每个方法之间也不需要用逗号分开，如果使用了逗号，反而会报错</p>
+<a id="more"></a>
+<p>类之间的继承可以通过关键字<code>extends</code>来实现，使用刚才的<code>Point</code>类，然后子类<code>ColorPoint</code>继承它</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">ColorPoint</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Point</span> {</span>
+    constructor(x, y, color) {
+        <span class="keyword">super</span>(x, y);
+        <span class="keyword">this</span>.color = color;
+    }
+    toString() {
+        <span class="keyword">return</span> <span class="keyword">this</span>.color + ',' + <span class="keyword">super</span>.toString();
+    }
+}
+</code></pre><p>在这个<code>toString</code>的方法当中，使用了<code>super</code>.这里的是调用父类的实例对象的this，类似新建实例对象的时候，传过去的参数<code>x,y</code>就生成了父类的实例对象</p>
+<pre><code><span class="comment">// 创建子类的实例对象</span>
+<span class="keyword">var</span> cp = <span class="keyword">new</span> ColorPoint(<span class="number">1</span>, <span class="number">2</span>, <span class="string">'#ccc'</span>);
+cp.toString(); <span class="comment">// #ccc,(1, 2)</span>
+</code></pre><h2 id="Module的基本用法">Module的基本用法</h2><p>在ES6之前，我们在javascript实现模块化需要遵循<code>CommonJS</code>和<code>AMD</code>规范；但是ES6的模块功能有可能取代这两个规范，成为通用的模块解决方案。</p>
+<p>与<code>CommonJS</code>和<code>AMD</code>规范类似，ES6把独立的文件作为模块，模块之间不能够引用到其他模块定义的变量，除非使用了<code>export</code>关键字暴露出去，才可以给外部模块使用，例如：</p>
+<pre><code><span class="comment">// profile.js</span>
+<span class="comment">// 第一种方法暴露变量</span>
+<span class="literal">export</span> <span class="keyword">var</span> firstname = <span class="string">'David'</span>;
+<span class="literal">export</span> <span class="keyword">var</span> lastname = <span class="string">'Belle'</span>;
+<span class="literal">export</span> <span class="keyword">var</span> year = <span class="number">1973</span>;
+<span class="comment">// 第二种方法暴露变量</span>
+<span class="keyword">var</span> firstnamet = <span class="string">'David'</span>;
+<span class="keyword">var</span> lastname = <span class="string">'Belle'</span>;
+<span class="keyword">var</span> year = <span class="number">1973</span>;
+<span class="literal">export</span> {firstname, lastname, year};
+</code></pre><p>说了暴露变量之后，再看一下怎么导入变量</p>
+<pre><code><span class="comment">// 第一种方法导入</span>
+<span class="keyword">import</span> {firstname, lastname, year} <span class="keyword">from</span> <span class="string">'./profile'</span>;
+
+<span class="comment">// 导入变量的名字需要与暴露变量的名字相同，如果想在导入的时候该名，就要使用as关键字</span>
+<span class="keyword">import</span> {firstname <span class="keyword">as</span> first, lastname <span class="keyword">as</span> last, year} <span class="keyword">from</span> <span class="string">'./profile'</span>;
+
+<span class="comment">// 第二种方法导入，使用module关键字，整体导入</span>
+<span class="built_in">module</span> profile from <span class="string">'./profile'</span>;
+<span class="built_in">console</span>.log(profile.firstname);
+<span class="comment">// ...</span>
+/? 与第一种方法不同的是，这种导入方法是暴露的变量都放在一个对象的属性或者方法，使用的时候，就使用这个对象的属性或者方法
+</code></pre><p>如果有时候实在不想为了在导入变量的时候，指定变量的名称，可以在暴露变量的时候，使用<code>export defualt</code>语句，把变量成为这个模块的默认变量。很显然，一个模块只能有一个默认的变量，例如：</p>
+<pre><code><span class="comment">// foo.js</span>
+<span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>{
+    <span class="built_in">console</span>.log(<span class="string">'foo'</span>);
+}
+</code></pre><p>上面的代码的foo方法，被称为该模块的默认方法，其他模块进行调用的时候，直接这样：</p>
+<pre><code><span class="comment">// import-foo.js</span>
+<span class="keyword">import</span> fn <span class="keyword">from</span> <span class="string">'./foo.js'</span>;
+fn(); <span class="comment">// 'foo'</span>
+</code></pre><h2 id="遍历器(Iterator)和for…of循环">遍历器(Iterator)和for…of循环</h2><h3 id="遍历器，又叫迭代器(Iterator)，是一种协议-">遍历器，又叫迭代器(Iterator)，是一种协议.</h3><p>任何对象只要部署这个协议，就可以完成遍历操作。这个协议规定，部署了<code>next</code>方法的对象，就具备遍历器的功能。next方法必须返回一个包含<code>value</code>和<code>done</code>两个属性的对象。value属性表示当前遍历位置的值，done属性表示遍历是否结束，是一个布尔值。下面制作一个遍历器：</p>
+<pre><code><span class="function"><span class="keyword">function</span> <span class="title">makeIterator</span>(<span class="params">array</span>)</span>{
+    <span class="keyword">var</span> nextIndex = <span class="number">0</span>;
+
+    <span class="keyword">return</span> {
+       next: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>{
+           <span class="keyword">return</span> nextIndex &lt; array.length ?
+               {value: array[nextIndex++], done: <span class="literal">false</span>} :
+               {done: <span class="literal">true</span>};
+       }
+    }
+}
+
+<span class="keyword">var</span> it = makeIterator([<span class="string">'yo'</span>, <span class="string">'ya'</span>]);
+
+<span class="built_in">console</span>.log(it.next().value); <span class="comment">// 'yo'</span>
+<span class="built_in">console</span>.log(it.next().value); <span class="comment">// 'ya'</span>
+<span class="built_in">console</span>.log(it.next().done);  <span class="comment">// true</span>
+</code></pre><p>再看一个无穷的遍历器</p>
+<pre><code><span class="function"><span class="keyword">function</span> <span class="title">idMaker</span>(<span class="params"></span>)</span>{
+    <span class="keyword">var</span> index = <span class="number">0</span>;
+
+    <span class="keyword">return</span> {
+       next: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>{
+           <span class="keyword">return</span> {value: index++, done: <span class="literal">false</span>};
+       }
+    }
+}
+
+<span class="keyword">var</span> it = idMaker();
+
+<span class="built_in">console</span>.log(it.next().value); <span class="comment">// '0'</span>
+<span class="built_in">console</span>.log(it.next().value); <span class="comment">// '1'</span>
+<span class="built_in">console</span>.log(it.next().value); <span class="comment">// '2'</span>
+<span class="comment">// ...</span>
+</code></pre><p>也可以使用生成器(generator)来制作遍历器，生成器后面会说到</p>
+<pre><code><span class="function"><span class="keyword">function</span>* <span class="title">makeSimpleGenerator</span>(<span class="params">array</span>)</span>{
+    <span class="keyword">var</span> nextIndex = <span class="number">0</span>;
+
+    <span class="keyword">while</span>(nextIndex &lt; array.length){
+        <span class="keyword">yield</span> array[nextIndex++];
+    }
+}
+
+<span class="keyword">var</span> gen = makeSimpleGenerator([<span class="string">'yo'</span>, <span class="string">'ya'</span>]);
+
+<span class="built_in">console</span>.log(gen.next().value); <span class="comment">// 'yo'</span>
+<span class="built_in">console</span>.log(gen.next().value); <span class="comment">// 'ya'</span>
+<span class="built_in">console</span>.log(gen.next().done);  <span class="comment">// true</span>
+
+
+
+<span class="function"><span class="keyword">function</span>* <span class="title">idMaker</span>(<span class="params"></span>)</span>{
+    <span class="keyword">var</span> index = <span class="number">0</span>;
+    <span class="keyword">while</span>(<span class="literal">true</span>)
+        <span class="keyword">yield</span> index++;
+}
+
+<span class="keyword">var</span> gen = idMaker();
+
+<span class="built_in">console</span>.log(gen.next().value); <span class="comment">// '0'</span>
+<span class="built_in">console</span>.log(gen.next().value); <span class="comment">// '1'</span>
+<span class="built_in">console</span>.log(gen.next().value); <span class="comment">// '2'</span>
+<span class="comment">// ...</span>
+</code></pre><h3 id="for-of">for..of</h3><p>ES6中,一个对象只要实现了iterator接口，就可以用<code>for...of</code>来循环遍历它的值。在javascript,大部分数据结构默认具有iterator接口，例如，数组：</p>
+<pre><code><span class="keyword">var</span> arr = [<span class="string">'first'</span>, <span class="string">'second'</span>, <span class="string">'third'</span>];
+<span class="keyword">for</span>(<span class="keyword">let</span> e <span class="keyword">of</span> arr) {
+    <span class="built_in">console</span>.log(e);
+]
+<span class="comment">// 'first'</span>
+<span class="comment">// 'second'</span>
+<span class="comment">// 'third'</span>
+</code></pre><p>再例如：Set</p>
+<pre><code><span class="keyword">var</span> browers = <span class="keyword">new</span> <span class="built_in">Set</span>([<span class="string">'chrome'</span>, <span class="string">'firefox'</span>, <span class="string">'safari'</span>, <span class="string">'opera'</span>]);
+<span class="keyword">for</span>(<span class="keyword">var</span> e <span class="keyword">of</span> browers) {
+    <span class="built_in">console</span>.log(e);
+}
+<span class="comment">// chrome</span>
+<span class="comment">// firefox</span>
+<span class="comment">// safari</span>
+<span class="comment">// opera</span>
+</code></pre><p>Map也可以：</p>
+<pre><code><span class="keyword">let</span> <span class="built_in">map</span> = <span class="literal">new</span> <span class="built_in">Map</span>()<span class="built_in">.</span><span class="built_in">set</span>(<span class="string">'a'</span>, <span class="number">1</span>)<span class="built_in">.</span><span class="built_in">set</span>(<span class="string">'b'</span>, <span class="number">2</span>);
+f<span class="subst">or</span> (<span class="built_in">var</span> <span class="built_in">pair</span> of <span class="built_in">map</span>) {
+  console<span class="built_in">.</span><span class="keyword">log</span>(<span class="built_in">pair</span>);
+}
+<span class="comment">// ['a', 1]</span>
+<span class="comment">// ['b', 2]</span>
+</code></pre><p>Map结构与前两个不同的是，同时把键名和键值都输出了</p>
+<p>javascript原生的<code>for...in</code>只能遍历键名，不能获取键值。而<code>for...of</code>可以遍历键值</p>
+<h2 id="生成器(Generator)">生成器(Generator)</h2><p>Generator函数有多种理解角度。从语法上，首先可以把它理解成，Generator函数是一个状态机，封装了多个内部状态。执行Generator函数会返回一个遍历器对象，也就是说，Generator函数除了状态机，还是一个遍历器对象生成函数。返回的遍历器对象，可以依次遍历Generator函数内部的每一个状态。</p>
+<p>形式上，Generator函数是一个普通函数，但是有两个特征。一是，function命令与函数名之间有一个星号；二是，函数体内部使用yield语句，定义不同的内部状态（yield语句在英语里的意思就是“产出”）。</p>
+<p>简单的定义就是这样，但是理解起来比较吃力，如果要写得好，篇幅也比较长，= =！我功力不是很足，理解花了挺久时间，但是解析起来感觉说的不太清楚，所以还是建议去看一下<a href="http://es6.ruanyifeng.com/#docs/generator" target="_blank" rel="external">阮一峰老师的文章</a>。</p>
+<p> = =！好吧，下一个模块</p>
+<h2 id="Promise">Promise</h2><p>所谓Promise，就是一个对象，用来传递异步操作的消息。它代表了某个未来才会知道结果的事件（通常是一个异步操作），并且这个事件提供统一的API，可供进一步处理。</p>
+<p>在使用ajax请求，如果需要在请求一个接口，根据接口的数据，再继续请求数据…如果接口多了的话，就嵌套很多，就好像：</p>
+<pre><code>            }<span class="comment">;</span>
+        }<span class="comment">;</span>
+    }<span class="comment">;</span>
+}<span class="comment">;</span>
+...
+</code></pre><p>醉了，越到后面，越难维护，而且可读性比较差…如果使用Promise的话，就可以把代码从横向发展，到向下发展：</p>
+<p>ES6的Promise对象是一个构造函数，用来生成Promise实例，下面是Promise对象的基本用法：</p>
+<pre><code><span class="keyword">var</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve, reject</span>) </span>{
+    <span class="keyword">if</span>() { <span class="comment">// 如果异步请求操作成功</span>
+        resolve(); <span class="comment">// 方法可以传入异步请求回来的数据</span>
+    } <span class="keyword">else</span> {
+        reject(); <span class="comment">// 与resolve方法一样，是在请求失败之后，调用的方法</span>
+    }
+});
+
+promise.then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>{
+
+    <span class="comment">// 成功过请求之后的回调方法</span>
+    <span class="comment">// 也就是说，在异步请求执行resolve方法之后，就标记，请求成功</span>
+    <span class="comment">// 然后就调用这个方法</span>
+}, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>{
+
+    <span class="comment">// 与resolve类似，但是是处理</span>
+    <span class="comment">// 异步请求失败之后的回调方法</span>
+});
+</code></pre><p>看一下我们平常使用ajax请求数据的例子：</p>
+<pre><code><span class="keyword">var</span> getJSON = <span class="function"><span class="keyword">function</span>(<span class="params">url</span>) </span>{
+    <span class="keyword">var</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve, reject</span>) </span>{
+        <span class="keyword">var</span> xhr = <span class="keyword">new</span> XMLHttpRequest();
+        xhr.open(<span class="string">'GET'</span>, url, <span class="literal">true</span>);
+        xhr.onreadystatechange = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>{
+
+            <span class="keyword">if</span>(xhr.readyState === <span class="number">4</span>) {
+                <span class="keyword">if</span>(xhr.status === <span class="number">200</span>) {
+                    resolve(xhr.responseText);
+                } <span class="keyword">else</span> {
+                    reject(xhr.statusText);
+                }
+            }
+        };
+        xhr.send();
+    });
+    <span class="keyword">return</span> promise;
+};
+
+getJSON(<span class="string">'http://localhost:8888/json'</span>)
+    .then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>{
+
+        <span class="comment">// success</span>
+    }, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>{
+
+        <span class="comment">// failure</span>
+    ]);
+</code></pre><p>如果好像之前的需求，请求一个接口，再根据接口返回数据进行请求另外一个。下面给出一个例子，先通过接口<code>getID</code>随机返回一个id，然后再通过这个id，来请求对应手机的详细信息：</p>
+<pre><code>getJSON(<span class="string">'http://localhost:8888/getID'</span>)
+    .then(<span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>{
+        data = <span class="keyword">typeof</span> data === <span class="string">'object'</span> ? data : <span class="built_in">JSON</span>.parse(data);
+        <span class="keyword">return</span> getJSON(<span class="string">'http://localhost:8888/getPhone?ID='</span> + data.id);
+    })
+    .then(<span class="function"><span class="keyword">function</span>(<span class="params">phoneData</span>) </span>{
+        phoneData = <span class="keyword">typeof</span> phoneData === <span class="string">'object'</span> ? phoneData : <span class="built_in">JSON</span>.parse(phoneData);
+        <span class="built_in">console</span>.log(phoneData);
+    });
+</code></pre><p>要注意的是，在<code>then</code>里面的函数，是返回一个<code>Promise</code>的实例，因为<code>getJSON</code>函数返回一个Promise的实例，才可以使用链式调用；</p>
+<p>对于<code>Promise.all</code>方法</p>
+<p>这个方法用于将多个异步操作(或Promise对象)，包装成一个新的Promise对象。当这些异步操作都完成后，新的Promise对象的状态才会变成<code>fulfilled</code>,只要其中一个异步操作失败，新的Promise对象的状态就会变成<code>rejected</code>,继续使用之前getJSON函数：</p>
+<pre><code><span class="keyword">var</span> promises = [<span class="string">'getjson'</span>, <span class="string">'getID'</span>].map(<span class="function"><span class="keyword">function</span>(<span class="params">url</span>) </span>{
+    <span class="keyword">return</span> getJSON(<span class="string">'http://localhost:8888/'</span> + url);
+});
+<span class="built_in">Promise</span>.all(promises).then(<span class="function"><span class="keyword">function</span>(<span class="params">args</span>) </span>{
+
+    <span class="built_in">console</span>.log(<span class="string">'请求完的参数是'</span> + args);
+});
+</code></pre><p>这里同时发出两个异步请求，可能返回的时间会有所不同，但是需要等两个都返回了，才会调用then里面的回调函数，而且回调函数的<code>args</code>是两个请求的数据，两个数据之前用逗号分开；数据的顺序是请求的顺序</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2015/10/04/ES6的一些新特性(二)/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">ES6的一些新特性(二)</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2015 Mo Jingzhi
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="/js/main.js" type="text/javascript"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>
