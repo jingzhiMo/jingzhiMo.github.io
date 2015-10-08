@@ -5,34 +5,25 @@
   
   <title>ES6的一些特性(三) | 主页</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
+  <meta name="description" content="这一篇主要介绍ES6的Class,模块，生成器等等。文章都给卡住了，因为在理解生成器那里浪费了挺多时间，而且理解还不是很好，今天也是憋了一股劲，才把文章写了。。。
+ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
 class Point {
-    constuctor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    toString() {">
+    constu">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ES6的一些特性(三)">
 <meta property="og:url" content="http://yoursite.com/2015/10/08/ES6的一些特性(三)/index.html">
 <meta property="og:site_name" content="主页">
-<meta property="og:description" content="ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
+<meta property="og:description" content="这一篇主要介绍ES6的Class,模块，生成器等等。文章都给卡住了，因为在理解生成器那里浪费了挺多时间，而且理解还不是很好，今天也是憋了一股劲，才把文章写了。。。
+ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
 class Point {
-    constuctor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    toString() {">
-<meta property="og:updated_time" content="2015-10-08T14:06:12.093Z">
+    constu">
+<meta property="og:updated_time" content="2015-10-08T14:20:02.172Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ES6的一些特性(三)">
-<meta name="twitter:description" content="ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
+<meta name="twitter:description" content="这一篇主要介绍ES6的Class,模块，生成器等等。文章都给卡住了，因为在理解生成器那里浪费了挺多时间，而且理解还不是很好，今天也是憋了一股劲，才把文章写了。。。
+ClassES6之前，并没有类的定义，但是可以通过prototype来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过class关键字可以定义类
 class Point {
-    constuctor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    toString() {">
+    constu">
   
     <link rel="alternative" href="/atom.xml" title="主页" type="application/atom+xml">
   
@@ -213,7 +204,8 @@ class Point {
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="Class">Class</h2><p>ES6之前，并没有类的定义，但是可以通过<code>prototype</code>来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过<code>class</code>关键字可以定义类</p>
+        <p>这一篇主要介绍ES6的Class,模块，生成器等等。文章都给卡住了，因为在理解生成器那里浪费了挺多时间，而且理解还不是很好，今天也是憋了一股劲，才把文章写了。。。</p>
+<h2 id="Class">Class</h2><p>ES6之前，并没有类的定义，但是可以通过<code>prototype</code>来模拟出类，但是继承是通过原型继承，而不是类继承,ES6引入了类的概念，作为对象的模板。通过<code>class</code>关键字可以定义类</p>
 <pre><code><span class="class"><span class="keyword">class</span> <span class="title">Point</span> </span>{
     constuctor(x, y) {
         <span class="keyword">this</span>.x = x;
@@ -445,6 +437,7 @@ getJSON(<span class="string">'http://localhost:8888/json'</span>)
     <span class="built_in">console</span>.log(<span class="string">'请求完的参数是'</span> + args);
 });
 </code></pre><p>这里同时发出两个异步请求，可能返回的时间会有所不同，但是需要等两个都返回了，才会调用then里面的回调函数，而且回调函数的<code>args</code>是两个请求的数据，两个数据之前用逗号分开；数据的顺序是请求的顺序</p>
+<h2 id="最后的最后">最后的最后</h2><p>总算把ES6的一些东西啃下来了，虽然说不是很深入的理解，但是基础上的知识，还是自我感觉不错，通过编写文章，也能够写加深一下知识，巩固旧的知识。回顾一些这些特性，想想也是令人觉得激动，能早早用上，javascript就又上一个台阶了。。23333</p>
 
       
     </div>
