@@ -15,7 +15,7 @@ $attr:">
 <meta property="og:description" content="其实这篇文章也写了很久了，只不过在之前的hexo主题，后来换主题的时候，折腾了各种情况，就没有了。。。现在补发一下。主要说一下sass的稍稍进阶的东西，感觉把这些都熟练运用，感觉sass在平常的使用也是十分的高效的。
 让一切变成字符串 #{}我通常情况下，应该说在看这篇博文之前，我只知道，sass的变量只能够当属性值来使用，但是如果要把变量当成属性的话，可以吗，嗯，首先按常规出牌：
 $attr:">
-<meta property="og:updated_time" content="2015-10-13T11:09:33.508Z">
+<meta property="og:updated_time" content="2015-10-13T11:12:05.362Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="sass稍稍进阶">
 <meta name="twitter:description" content="其实这篇文章也写了很久了，只不过在之前的hexo主题，后来换主题的时候，折腾了各种情况，就没有了。。。现在补发一下。主要说一下sass的稍稍进阶的东西，感觉把这些都熟练运用，感觉sass在平常的使用也是十分的高效的。
@@ -218,15 +218,15 @@ p {
 <span class="tag">div</span>.#{<span class="variable">$className</span>} {
     <span class="attribute">width</span><span class="value">: <span class="number">100px</span>;</span>
 }
-</code></pre><p>这样就可以编译了，编译的结果是：</p>
+</code></pre><a id="more"></a>
+<p>这样就可以编译了，编译的结果是：</p>
 <pre><code><span class="tag">p</span> <span class="rules">{
       <span class="rule"><span class="attribute">color</span>:<span class="value"> red</span></span>;
 }</span>
 <span class="tag">div</span><span class="class">.box</span> <span class="rules">{
       <span class="rule"><span class="attribute">width</span>:<span class="value"> <span class="number">100px</span></span></span>;
 }</span>
-</code></pre><a id="more"></a>
-<h2 id="sass中的除法">sass中的除法</h2><p>其实下面也有说到关于sass的四则运算的，但是由于除法的坑有点多，so..除法有很多需要注意的地方，因为除法的运算符 <code>/</code> 在CSS中也有遇到，例如；font的缩写属性 <code>font-size</code> 和 <code>line-height</code> 属性，就需要 <code>/</code> 来分割。所以，在这些包含 <code>/</code> 的CSS属性中对应的位置，是不会参与运算的，除了下面的情况：</p>
+</code></pre><h2 id="sass中的除法">sass中的除法</h2><p>其实下面也有说到关于sass的四则运算的，但是由于除法的坑有点多，so..除法有很多需要注意的地方，因为除法的运算符 <code>/</code> 在CSS中也有遇到，例如；font的缩写属性 <code>font-size</code> 和 <code>line-height</code> 属性，就需要 <code>/</code> 来分割。所以，在这些包含 <code>/</code> 的CSS属性中对应的位置，是不会参与运算的，除了下面的情况：</p>
 <ul>
 <li>如果两个值其中一个或两个存放在变量中，或者由函数返回的值；</li>
 <li>如果值被包裹在一对括号里面</li>
