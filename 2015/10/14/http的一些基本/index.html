@@ -3,17 +3,36 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Archives: 2015/10 | 主页</title>
+  <title>http的一些基本 | 主页</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="还在找工作的苦逼">
-<meta property="og:type" content="website">
-<meta property="og:title" content="主页">
-<meta property="og:url" content="http://yoursite.com/archives/2015/10/index.html">
+  <meta name="description" content="HTTP协议MIME类型WEB传输的对象都打上了名为MIME类型的数据格式标签。MIME类似是一种文本标记，表示一种主要的对象类型和一个特定的子类型，中间由一条斜杠来分割，例如；
+
+HTML格式的文本文档：  text/html
+普通ASCII文本文档：   text/plain
+JPEG格式的图片：      image/jpeg
+GIF格式的图片：       image/gif
+Apple的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="http的一些基本">
+<meta property="og:url" content="http://yoursite.com/2015/10/14/http的一些基本/index.html">
 <meta property="og:site_name" content="主页">
-<meta property="og:description" content="还在找工作的苦逼">
+<meta property="og:description" content="HTTP协议MIME类型WEB传输的对象都打上了名为MIME类型的数据格式标签。MIME类似是一种文本标记，表示一种主要的对象类型和一个特定的子类型，中间由一条斜杠来分割，例如；
+
+HTML格式的文本文档：  text/html
+普通ASCII文本文档：   text/plain
+JPEG格式的图片：      image/jpeg
+GIF格式的图片：       image/gif
+Apple的">
+<meta property="og:updated_time" content="2015-10-14T02:09:51.765Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="主页">
-<meta name="twitter:description" content="还在找工作的苦逼">
+<meta name="twitter:title" content="http的一些基本">
+<meta name="twitter:description" content="HTTP协议MIME类型WEB传输的对象都打上了名为MIME类型的数据格式标签。MIME类似是一种文本标记，表示一种主要的对象类型和一个特定的子类型，中间由一条斜杠来分割，例如；
+
+HTML格式的文本文档：  text/html
+普通ASCII文本文档：   text/plain
+JPEG格式的图片：      image/jpeg
+GIF格式的图片：       image/gif
+Apple的">
   
     <link rel="alternative" href="/atom.xml" title="主页" type="application/atom+xml">
   
@@ -157,173 +176,100 @@
 		</header>				
 	</div>
 </nav>
-      <div class="body-wrap">
+      <div class="body-wrap"><article id="post-http的一些基本" class="article article-type-post" itemscope itemprop="blogPost">
   
+    <div class="article-meta">
+      <a href="/2015/10/14/http的一些基本/" class="article-date">
+  	<time datetime="2015-10-14T02:08:50.000Z" itemprop="datePublished">2015-10-14</time>
+</a>
+    </div>
   
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
     
     
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      http的一些基本
+    </h1>
+  
+
+      </header>
       
+      <div class="article-info article-info-post">
+        
+        
+
+        <div class="clearfix"></div>
+      </div>
       
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2015" class="archive-year">2015</a>
-        </div>
-        <div class="archives">
     
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2015/10/19/offsetTop等等的区别/" class="archive-article-date">
-  	<time datetime="2015-10-19T10:37:46.000Z" itemprop="datePublished">Oct 19</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2015/10/19/offsetTop等等的区别/">offsetTop,scrollTop,offsetWidth,scrollTop等等的区别</a>
-    </h1>
-  
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="HTTP协议">HTTP协议</h1><h2 id="MIME类型">MIME类型</h2><p>WEB传输的对象都打上了名为MIME类型的数据格式标签。MIME类似是一种文本标记，表示一种<strong>主要的对象类型和一个特定的子类型</strong>，中间由一条斜杠来分割，例如；</p>
+<ul>
+<li>HTML格式的文本文档：  text/html</li>
+<li>普通ASCII文本文档：   text/plain</li>
+<li>JPEG格式的图片：      image/jpeg</li>
+<li>GIF格式的图片：       image/gif</li>
+<li>Apple的QuickTIme电影：video/quicktime</li>
+<li>微软的PPT演示文件：   application/vnd.ms-powerpoint</li>
+</ul>
+<h2 id="请求报文和响应报文的起始行">请求报文和响应报文的起始行</h2><p>请求报文：<method> <request-url> <version></version></request-url></method></p>
+<p>相应报文：<version> <status> <reson-phrase></reson-phrase></status></version></p>
+<p>例如现在是在：<code>http://www.test.com</code>网站下，然后请求一个<code>index.html</code>文件，则请求报文的起始行是：<code>GET /index.html HTTP/1.1</code>，响应报文的起始行： <code>HTTP/1.1 200 OK</code></p>
+<h2 id="常用的HTTP方法">常用的HTTP方法</h2><p>|| <em>Year</em> || <em>Temperature (low)</em> || <em>Temperature (high)</em> ||<br>|| 1900 || -10 || 25 ||<br>|| 1910 || -15 || 30 ||<br>|| 1920 || -10 || 32 ||</p>
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/css/">css</a></li></ul>
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/10/19/offsetTop等等的区别/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          offsetTop,scrollTop,offsetWidth,scrollTop等等的区别
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/10/13/sass稍稍进阶/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">sass稍稍进阶</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
 	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
 
-          
 
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2015/10/14/http的一些基本/" class="archive-article-date">
-  	<time datetime="2015-10-14T02:08:50.000Z" itemprop="datePublished">Oct 14</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2015/10/14/http的一些基本/">http的一些基本</a>
-    </h1>
-  
 
-        <div class="article-info info-on-right">
-          
-          
 
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2015/10/13/sass稍稍进阶/" class="archive-article-date">
-  	<time datetime="2015-10-13T11:02:41.000Z" itemprop="datePublished">Oct 13</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2015/10/13/sass稍稍进阶/">sass稍稍进阶</a>
-    </h1>
-  
-
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/css/">css</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sass/">sass</a></li></ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2015/10/08/ES6的一些特性(三)/" class="archive-article-date">
-  	<time datetime="2015-10-08T14:05:05.000Z" itemprop="datePublished">Oct 8</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2015/10/08/ES6的一些特性(三)/">ES6的一些特性(三)</a>
-    </h1>
-  
-
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ES6/">ES6</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Javascript/">Javascript</a></li></ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2015/10/04/ES6的一些新特性(二)/" class="archive-article-date">
-  	<time datetime="2015-10-04T09:18:48.000Z" itemprop="datePublished">Oct 4</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2015/10/04/ES6的一些新特性(二)/">ES6的一些新特性(二)</a>
-    </h1>
-  
-
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ES6/">ES6</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Javascript/">Javascript</a></li></ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
-  
-
-    
 
 </div>
       <footer id="footer">
@@ -349,8 +295,8 @@
 		mathjax: true,
 		animate: true,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false

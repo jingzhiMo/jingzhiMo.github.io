@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>offsetTop,scrollTop,offsetWidth,scrollTop等等的区别 | 主页</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="昨晚，有个朋友问了一段代码，是有关获取具体元素的位置的，里面主要涉及两个模糊的东西，一个是offsetTop,另外一个是offsetParent，然后那个函数的主要目的是获取元素到文档左上角的top和left的大小。因为之前我也在这里纠结了很久，因为除了两个概念，还有其他的一些概念；顺便翻了一下权威指南，看到主要有三个系列：offset, client, scroll;这三个系列，这篇文章就明确一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="offsetTop,scrollTop,offsetWidth,scrollTop等等的区别">
+<meta property="og:url" content="http://yoursite.com/2015/10/19/offsetTop等等的区别/index.html">
+<meta property="og:site_name" content="主页">
+<meta property="og:description" content="昨晚，有个朋友问了一段代码，是有关获取具体元素的位置的，里面主要涉及两个模糊的东西，一个是offsetTop,另外一个是offsetParent，然后那个函数的主要目的是获取元素到文档左上角的top和left的大小。因为之前我也在这里纠结了很久，因为除了两个概念，还有其他的一些概念；顺便翻了一下权威指南，看到主要有三个系列：offset, client, scroll;这三个系列，这篇文章就明确一">
+<meta property="og:updated_time" content="2015-10-19T14:37:08.565Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="offsetTop,scrollTop,offsetWidth,scrollTop等等的区别">
+<meta name="twitter:description" content="昨晚，有个朋友问了一段代码，是有关获取具体元素的位置的，里面主要涉及两个模糊的东西，一个是offsetTop,另外一个是offsetParent，然后那个函数的主要目的是获取元素到文档左上角的top和left的大小。因为之前我也在这里纠结了很久，因为除了两个概念，还有其他的一些概念；顺便翻了一下权威指南，看到主要有三个系列：offset, client, scroll;这三个系列，这篇文章就明确一">
+  
+    <link rel="alternative" href="/atom.xml" title="主页" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/image/kakaxi.jpg" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Mo Jingzhi</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+						<li>关于我</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/jingzhiMo" title="github">github</a>
+					        
+								<a class="mail" target="_blank" href="mailto:mojingzhi.mail@gmail.com" title="mail">mail</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/ES6/" style="font-size: 20px;">ES6</a> <a href="/tags/Javascript/" style="font-size: 20px;">Javascript</a> <a href="/tags/css/" style="font-size: 15px;">css</a> <a href="/tags/html5/" style="font-size: 10px;">html5</a> <a href="/tags/sass/" style="font-size: 10px;">sass</a> <a href="/tags/入门/" style="font-size: 10px;">入门</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+				
+				<section class="switch-part switch-part3">
+				
+					<div id="js-aboutme">找工作、找工作、找工作...</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">Mo Jingzhi</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img lazy-src="/image/kakaxi.jpg" class="js-avatar">
+			</div>
+			<hgroup>
+			  <h1 class="header-author">Mo Jingzhi</h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/jingzhiMo" title="github">github</a>
+			        
+						<a class="mail" target="_blank" href="mailto:mojingzhi.mail@gmail.com" title="mail">mail</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <div class="body-wrap"><article id="post-offsetTop等等的区别" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/10/19/offsetTop等等的区别/" class="article-date">
+  	<time datetime="2015-10-19T10:37:46.000Z" itemprop="datePublished">2015-10-19</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      offsetTop,scrollTop,offsetWidth,scrollTop等等的区别
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/css/">css</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>昨晚，有个朋友问了一段代码，是有关获取具体元素的位置的，里面主要涉及两个模糊的东西，一个是<code>offsetTop</code>,另外一个是<code>offsetParent</code>，然后那个函数的主要目的是获取元素到文档左上角的top和left的大小。因为之前我也在这里纠结了很久，因为除了两个概念，还有其他的一些概念；顺便翻了一下权威指南，看到主要有三个系列：<code>offset</code>, <code>client</code>, <code>scroll</code>;这三个系列，这篇文章就明确一下这些概念…</p>
+<p>如果分三个系列来写的话，可能对比性不太明显，所以我就把<code>width,height</code>的归一类，<code>top,left</code>的归一类。</p>
+<h2 id="width,height">width,height</h2><p>在看这一类的区别的时候，先看一下代码，这些代码会在这一类中，反复使用，但是可能会对不同部分进行注释，以看到不同的效果</p>
+<pre><code><span class="comment">&lt;!-- html结构 --&gt;</span>
+<span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"out"</span>&gt;</span>
+    <span class="comment">&lt;!--
+    &lt;div id="in_1"&gt;
+    &lt;/div&gt;
+    &lt;div id="in_2"&gt;
+    &lt;/div&gt;
+    --&gt;</span>
+<span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+</code></pre><hr>
+<pre><code><span class="comment">/*css 样式*/</span>
+<span class="id">#out</span> <span class="rules">{
+    <span class="rule"><span class="attribute">width</span>:<span class="value"> <span class="number">100px</span></span></span>;
+    <span class="rule"><span class="attribute">height</span>:<span class="value"> <span class="number">100px</span></span></span>;
+    <span class="rule"><span class="attribute">padding</span>:<span class="value"> <span class="number">5px</span> <span class="number">20px</span></span></span>;
+    <span class="rule"><span class="attribute">margin</span>:<span class="value"> <span class="number">5px</span> <span class="number">10px</span></span></span>;
+    <span class="rule"><span class="attribute">border</span>:<span class="value"> <span class="number">2px</span> solid</span></span>;
+    <span class="comment">/*overflow: scroll;*/</span>
+}</span>
+</code></pre><a id="more"></a>
+<p>先看一下定义：</p>
+<ul>
+<li><p>offetWidth的定义：元素的offsetWidth 是一个只读属性，返回一个元素的布局宽度。offsetWidth是测量元素的borders、水平线上的padding、垂直线上的scroolbar（如果存在滚的话）、以及css设置的宽度的值。</p>
+</li>
+<li><p>clientWidth的定义：元素的clientWidth的定义属性表示元素的内部宽度，以像素计。该属性包括内边距，但不包括垂直滚动条（如果有的话）、边框和外边距。</p>
+</li>
+<li><p>scrollWidth的定义：元素的scrollWidth只读属性以px为单位返回元素的内容区域宽度或元素的本身的宽度中更大的那个值。若元素的宽度大于其内容的区域（例如，元素存在滚动条时）, scrollWidth的值要大于clientWidth。</p>
+</li>
+</ul>
+<p>是不是有一点晕了= =！</p>
+<h3 id="offsetWidth">offsetWidth</h3><p>先看一下<code>offsetWidth</code>，这个包含了元素的宽，内边距，还有边框的大小；这个应该很好理解，所以在上面的结构当中，<code>div#out</code>的offsetWidth的值就是：<code>100 + 20 * 2 + 2 * 2 = 144px</code>;而且测试过，这个属性在IE7+的浏览器和现代浏览器中，都是一致的。</p>
+<h3 id="clientWidth">clientWidth</h3><p>然后再看一下<code>clientWidth</code>，定义说，不包含垂直滚动条和边框，嗯~边框很好理解，但是垂直滚动条又怎么说呢；原来，刚才在审查元素的时候发现，滚动条的位置是在padding上面的，这个有点像平常使用<code>position:absolute</code>定位那样，可以想象就是，滚动条“飘”在padding上面；这个可能有点抽象，拿上面的<code>div#out</code>元素做例子，把<code>#out</code>的样式中的<code>overflow:scroll</code>的注释去掉，元素有100px宽度，左右padding有20px的话,</p>
+<p>那么<code>clientWidth = 100 + 20 * 2 - 滚动条宽度</code>;</p>
+<p>所以clientWidth的计算公式就是：<code>clientWidth = width + padding-left + padding-right - 滚动条宽度</code>;那么现在问题又有了，滚动条的宽度到底是多少，刚才经过简单的加减法(= =!)发现各个浏览器基本一致，都是<code>17px</code>；但是并不确定，不过连IE7都是，基本也没什么问题了，哈哈</p>
+<h3 id="scrollWidth">scrollWidth</h3><p>最后，再看一下<code>scrollWidth</code>，不过觉得这个用<code>scrollHeight</code>来说明，可能会容易一点，把<code>#out</code>元素里面的子元素注释去掉，然后为子元素加上下面的样式：</p>
+<pre><code><span class="id">#in_1</span> <span class="rules">{
+    <span class="rule"><span class="attribute">width</span>:<span class="value"> <span class="number">100%</span></span></span>;
+    <span class="rule"><span class="attribute">height</span>:<span class="value"> <span class="number">150px</span></span></span>;
+    <span class="rule"><span class="attribute">background-color</span>:<span class="value"> <span class="hexcolor">#ccc</span></span></span>;
+}</span>
+<span class="id">#in_2</span> <span class="rules">{
+    <span class="rule"><span class="attribute">width</span>:<span class="value"> <span class="number">100%</span></span></span>;
+    <span class="rule"><span class="attribute">height</span>:<span class="value"> <span class="number">100px</span></span></span>;
+    <span class="rule"><span class="attribute">background-color</span>:<span class="value"> <span class="hexcolor">#458dcb</span></span></span>;
+}</span>
+</code></pre><p>很明显，这个时候，外面包裹的div元素不能够包括所有子元素，但是因为设置了超出就显示滚动条，所以，这个时候，垂直滚动条就出现了；如果这个时候获取<code>scrollHeight</code>的话，这个时候的值就是：<code>260px</code>。怎么来的？答案就是：…</p>
+<p><code>#in_1</code>的高度加上<code>#in_2</code>得到高度，再加上<code>10px</code>;嗯，估计有些人已经猜到<code>10px</code>是怎么来的了。就是<code>#out</code>的<code>padding-top</code>和<code>padding-bottom</code>；所以，嗯哼。再看一下定义，“哪个大，返回哪个？”。是的，因为这个时候，容器的实际上高度就是里面元素撑开的，而且比该元素的视口大小要大，所以，这个时候要取里面元素的实际的大小。</p>
+<p>但是，如果没有出现滚动条呢？那么这个时候的<code>scrollHeight</code>与<code>clientHeight</code>就是一致的。所以，<code>scrollHeight</code>的大小也是不包括滚动条的大小，和边框的大小。</p>
+<p>next…</p>
+<h2 id="top,left">top,left</h2><p>好的，我们再来看一下定义：</p>
+<ul>
+<li>offsetTop的定义：HTMLElement.offsetTop 为只读属性，它返回当前元素相对于其 offsetParent 元素的顶部的距离。</li>
+<li>scrollTop的定义：指定元素的滚动条的位置</li>
+<li>clientTop的定义：一个元素顶部边框的宽度（以像素表示）。不包括顶部外边距或内边距。clientTop 是只读的。</li>
+</ul>
+<h3 id="offsetTop,offsetLeft">offsetTop,offsetLeft</h3><p>要想比较好的理解这两个概念，需要弄清楚<code>offsetParent</code>，获取一个元素的offsetParent的元素是：<code>ele.offsetParent</code>；但是这个“父元素”是直接上一层的父元素吗？或许再看看定义，会更加清晰一些：</p>
+<p>HTMLElement.offsetParent 是一个只读属性，返回一个指向最近的（closest，指包含层级上的最近）包含该元素的定位元素。如果没有定位的元素，则 offsetParent 为最近的 table 元素对象或根元素（标准模式下为 html；quirks 模式下为 body）。当元素的 style.display 设置为 “none” 时，offsetParent 返回 null。offsetParent 很有用，因为 offsetTop 和 offsetLeft 都是相对于其内边距边界的。</p>
+<p>定义有点长，我们来选一个关键字，对，没错，就是“定位元素”。那什么才是叫定位元素呢？就是已经定位了的元素…擦；其实是<code>position</code>定义了非<code>static</code>值(position的默认值就是static)的元素，也就是说，只要<code>position</code>只要设置了<code>relative,absolute,fixed</code>着三个值的其中一个，该元素就变成了定位元素了。举个例子：</p>
+<pre><code><span class="tag">&lt;<span class="title">body</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"out"</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"in"</span>&gt;</span><span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">script</span>&gt;</span><span class="javascript">
+        <span class="keyword">var</span> inEle = <span class="built_in">document</span>.getElementById(<span class="string">'in'</span>);
+        <span class="built_in">console</span>.log(inEle.offsetParent);
+    </span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+</code></pre><p>上面的代码当中，在控制台中，打印出来的元素是<code>body</code>，囧。怎么跟定义有出入的。。。额，也不是很清楚，可能根元素就是body吧。大家可以测试一下。</p>
+<p>如果我把<code>#out</code>的样式设置一下：<code>position:relative</code>；这样的话，那么打印出来的元素就是，<code>div#out</code>了</p>
+<p>嗯，扯了这么长，要回来<code>offsetTop</code>的属性来了，这个时候就容易了，就是当前选中的元素，距离它的<code>offsetParent</code>元素左上角的top高度相差多少。</p>
+<h3 id="scrollTop,scrollLeft">scrollTop,scrollLeft</h3><p>这个属性比较简单，就是该元素的滚动条（如果有的话），滑动过的距离。<code>scrollTop</code>就是垂直滚动条滚动的距离，<code>scrollLeft</code>就是水平滚动条滚动的距离。</p>
+<h3 id="clientTop,clientLeft">clientTop,clientLeft</h3><p>《javascript权威指南》说，这两个属性没什么用；他们返回元素的内边距的外边缘和它的边框的外边缘之间的水平距离，通常这些值就等于左边和上边的边框的宽度。但是如果元素有滚动条，并且浏览器将这些滚动条放置在左侧或顶部（可能不太常见），<code>clientLeft</code>和<code>clientTop</code>也就包含了滚动条的宽度。对于内联元素，这两个值总是0。</p>
+<h2 id="总结">总结</h2><p>呼，总算写完了。看到这里，相信应该对这几个属性了解很深入了，希望能够对了解有帮助。如果有错的话，麻烦<a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues" target="_blank" rel="external">在这里</a>提一下issues。蟹蟹</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2015/10/14/http的一些基本/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">http的一些基本</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2015 Mo Jingzhi
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="/js/main.js" type="text/javascript"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>
