@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="主页">
 <meta property="og:description" content="最近几天在写一个关于弹出显示大图的lightbox插件，有兴趣的同学可以点进去看看，哈。不过编写这个插件的时候，也遇到过一个垂直居中的方法，也卡了一阵子，后来翻翻以前的笔记，顺便总结一下，各种实现垂直居中的方法，还有对应的优缺点。嗯，还有，因为使用javascript来写的话，实现起来就比较容易，所以下面的方法都是使用css代码来实现，来来来，瞄一下：
 下面的dom结构，在下面方法的那些例子都会用">
-<meta property="og:updated_time" content="2015-10-29T11:30:07.568Z">
+<meta property="og:updated_time" content="2015-10-29T11:31:27.220Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="实现垂直居中的一些方法">
 <meta name="twitter:description" content="最近几天在写一个关于弹出显示大图的lightbox插件，有兴趣的同学可以点进去看看，哈。不过编写这个插件的时候，也遇到过一个垂直居中的方法，也卡了一阵子，后来翻翻以前的笔记，顺便总结一下，各种实现垂直居中的方法，还有对应的优缺点。嗯，还有，因为使用javascript来写的话，实现起来就比较容易，所以下面的方法都是使用css代码来实现，来来来，瞄一下：
@@ -264,7 +264,7 @@
 }</span>
 </code></pre><p>优点： 代码粗暴，呵呵<br>缺点：需要厉害一点点的浏览器，要支持弹性布局</p>
 <h2 id="最后">最后</h2><p>顺便说一下为什么很多定位都是:<code>position: relative/absolute/fixed;</code>；之前的我，是认为，如果定位要<code>position:absolute</code>的话，就需要找到离它最近的父节点，该父节点还需要是<code>position:relative</code>；但是后来发现，只需要，父节点定位非静态(<code>position:static</code>)，都可以；而静态定位的话，就是默认值，所以，只要不是默认值即可。嗯~</p>
-<p>基本就写完了，如果有什么问题，可以在<a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues" target="_blank" rel="external">这里</a>提一下issue；如果有更好的方法，也可以题一下，互相学习。哈哈</p>
+<p>基本就写完了，如果有什么问题，可以在<a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues" target="_blank" rel="external">这里</a>提一下issue；如果有更好的方法，也可以提一下，互相学习。哈哈</p>
 
       
     </div>
