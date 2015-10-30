@@ -13,7 +13,7 @@
 <meta property="og:site_name" content="主页">
 <meta property="og:description" content="最近几天在写一个关于弹出显示大图的lightbox插件，有兴趣的同学可以点进去看看，哈。不过编写这个插件的时候，也遇到过一个垂直居中的方法，也卡了一阵子，后来翻翻以前的笔记，顺便总结一下，各种实现垂直居中的方法，还有对应的优缺点。嗯，还有，因为使用javascript来写的话，实现起来就比较容易，所以下面的方法都是使用css代码来实现，来来来，瞄一下：
 下面的dom结构，在下面方法的那些例子都会用">
-<meta property="og:updated_time" content="2015-10-29T11:31:27.220Z">
+<meta property="og:updated_time" content="2015-10-30T08:07:26.850Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="实现垂直居中的一些方法">
 <meta name="twitter:description" content="最近几天在写一个关于弹出显示大图的lightbox插件，有兴趣的同学可以点进去看看，哈。不过编写这个插件的时候，也遇到过一个垂直居中的方法，也卡了一阵子，后来翻翻以前的笔记，顺便总结一下，各种实现垂直居中的方法，还有对应的优缺点。嗯，还有，因为使用javascript来写的话，实现起来就比较容易，所以下面的方法都是使用css代码来实现，来来来，瞄一下：
@@ -235,7 +235,6 @@
 <pre><code><span class="id">#out</span> <span class="rules">{
     <span class="rule"><span class="attribute">height</span>:<span class="value"> <span class="number">500px</span></span></span>;
     <span class="rule"><span class="attribute">line-height</span>:<span class="value"> <span class="number">500px</span></span></span>;
-    <span class="rule"><span class="attribute">vertical-align</span>:<span class="value"> middle</span></span>;
     <span class="rule"><span class="attribute">text-align</span>:<span class="value"> center</span></span>;
 }</span>
 <span class="id">#in</span> <span class="rules">{
@@ -255,6 +254,20 @@
     <span class="attribute">margin</span>: auto;
 }
 </code></pre><p>优点：兼容性好，容易实现，里面，外面元素的高度宽度都不需要知道<br>缺点：一开始，我以为这个方法最厉害，没缺点；直到我写个lightbox的插件的时候发现…<code>#in</code>元素不能由它的子元素撑开，而是一直占到<code>#out</code>的大小的最大；这个有时候很不好，因为有时候想让<code>#in</code>元素让里面的撑开，但是<code>#in</code>会一直占到最大的宽度高度</p>
+<h2 id="使用伪元素与vertical-align配合实现">使用伪元素与vertical-align配合实现</h2><pre><code><span class="id">#out</span> <span class="rules">{
+    <span class="rule"><span class="attribute">text-align</span>:<span class="value"> center</span></span>;
+}</span>
+<span class="id">#out</span><span class="pseudo">:before</span> <span class="rules">{
+    <span class="rule"><span class="attribute">content</span>:<span class="value"> <span class="string">''</span></span></span>;
+    <span class="rule"><span class="attribute">display</span>:<span class="value"> inline-block</span></span>;
+    <span class="rule"><span class="attribute">height</span>:<span class="value"> <span class="number">100%</span></span></span>;
+    <span class="rule"><span class="attribute">vertical-align</span>:<span class="value"> middle</span></span>;
+}</span>
+<span class="id">#in</span> <span class="rules">{
+    <span class="rule"><span class="attribute">display</span>:<span class="value"> inline-block</span></span>;
+    <span class="rule"><span class="attribute">vertical-align</span>:<span class="value"> middle</span></span>;
+}</span>
+</code></pre><p>优点：兼容性好，容易实现，外面里面的元素都不需要知道宽度高度<br>缺点：好像没什么缺点，如果实在要说的话，就是说需要一个伪元素，哈哈</p>
 <p>对的，最厉害的，往往是最后出场的</p>
 <h2 id="使用弹性布局">使用弹性布局</h2><pre><code><span class="id">#out</span> <span class="rules">{
     <span class="rule"><span class="attribute">display</span>:<span class="value"> flex</span></span>;
