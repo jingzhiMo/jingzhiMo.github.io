@@ -5,21 +5,21 @@
   
   <title>lightbox的一些东西 | 主页</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="之前这几天，感觉突然好想不知道甘什么好，node好像不知道看什么，mongodb入门了那么一点点(做毕业设计),，然后，好像也有段时间没有敲代码了，感觉要写点东西什么的来玩玩。
+  <meta name="description" content="之前这几天，感觉突然好想不知道做什么好，node好像不知道看什么，mongodb入门了那么一点点(做毕业设计),，然后，好像也有段时间没有敲代码了，感觉要写点东西什么的来玩玩。
 其实在很久之前(一两个月吧)，就很想写个插件什么的，然后方便后面的快速开发；前几天也去慕课网逛逛，咦！发现一个教程是关于Lightbox的插件，然后？就没然后了。看了一下，顺便了解一下大概的思路，就开始编写了…lightb">
 <meta property="og:type" content="article">
 <meta property="og:title" content="lightbox的一些东西">
 <meta property="og:url" content="http://yoursite.com/2015/10/30/lightbox的一些东西/index.html">
 <meta property="og:site_name" content="主页">
-<meta property="og:description" content="之前这几天，感觉突然好想不知道甘什么好，node好像不知道看什么，mongodb入门了那么一点点(做毕业设计),，然后，好像也有段时间没有敲代码了，感觉要写点东西什么的来玩玩。
+<meta property="og:description" content="之前这几天，感觉突然好想不知道做什么好，node好像不知道看什么，mongodb入门了那么一点点(做毕业设计),，然后，好像也有段时间没有敲代码了，感觉要写点东西什么的来玩玩。
 其实在很久之前(一两个月吧)，就很想写个插件什么的，然后方便后面的快速开发；前几天也去慕课网逛逛，咦！发现一个教程是关于Lightbox的插件，然后？就没然后了。看了一下，顺便了解一下大概的思路，就开始编写了…lightb">
 <meta property="og:image" content="http://yoursite.com/image/2015-10-30/1.png">
 <meta property="og:image" content="http://yoursite.com/image/2015-10-30/1.png">
 <meta property="og:image" content="http://yoursite.com/image/2015-10-30/2.png">
-<meta property="og:updated_time" content="2015-10-30T11:54:21.544Z">
+<meta property="og:updated_time" content="2015-11-02T11:55:45.058Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="lightbox的一些东西">
-<meta name="twitter:description" content="之前这几天，感觉突然好想不知道甘什么好，node好像不知道看什么，mongodb入门了那么一点点(做毕业设计),，然后，好像也有段时间没有敲代码了，感觉要写点东西什么的来玩玩。
+<meta name="twitter:description" content="之前这几天，感觉突然好想不知道做什么好，node好像不知道看什么，mongodb入门了那么一点点(做毕业设计),，然后，好像也有段时间没有敲代码了，感觉要写点东西什么的来玩玩。
 其实在很久之前(一两个月吧)，就很想写个插件什么的，然后方便后面的快速开发；前几天也去慕课网逛逛，咦！发现一个教程是关于Lightbox的插件，然后？就没然后了。看了一下，顺便了解一下大概的思路，就开始编写了…lightb">
   
     <link rel="alternative" href="/atom.xml" title="主页" type="application/atom+xml">
@@ -201,7 +201,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>之前这几天，感觉突然好想不知道甘什么好，node好像不知道看什么，mongodb入门了那么一点点(做毕业设计),，然后，好像也有段时间没有敲代码了，感觉要写点东西什么的来玩玩。</p>
+        <p>之前这几天，感觉突然好想不知道做什么好，node好像不知道看什么，mongodb入门了那么一点点(做毕业设计),，然后，好像也有段时间没有敲代码了，感觉要写点东西什么的来玩玩。</p>
 <p>其实在很久之前(一两个月吧)，就很想写个插件什么的，然后方便后面的快速开发；前几天也去慕课网逛逛，咦！发现一个教程是关于Lightbox的插件，然后？就没然后了。看了一下，顺便了解一下大概的思路，就开始编写了…lightbox是什么？嗯，刚开始我也比它这个名字吓到了，好像很高大上的样子，原来发现是这样子的：</p>
 <p><img src="/image/2015-10-30/1.png" alt="lightbox"><br>嗯，没错，就是平常用来查看大图的东西，可以上/下一张，显示图片描述；然后抽出来，变成一个插件，方便使用。在编写的过程，也遇到一点问题：…</p>
 <a id="more"></a>
@@ -213,7 +213,7 @@
     <span class="comment">// 暴露方法给外面调用</span>
     <span class="built_in">window</span>.xxx = xxx;
 
-])();
+})();
 </code></pre><p>把自己的代码放到一个匿名的，自执行的回调函数里面，然后再通过<code>window</code>来暴露方法给外面调用；这样子的话，就可以把里面的变量使用闭包“藏起来”，只通过向外面暴露的方法，可以让外部来进行一些操作。</p>
 <h2 id="使用单例模式">使用单例模式</h2><p>一般情况，一个页面就只有一个lightox来显示图片，无论页面有多少个小图，只要把大图的一些参数传递，就使用这个lightbox来显示，所以我这里选用了单例模式；把<code>init</code>的方法暴露给外面，使用者哪怕多次调用，内存当中，也只有一个实例对象，这样的话，一定程度上可以提高性能。</p>
 <h2 id="如何才可以在切换图片的时候，使用动画，把包裹图片的盒子缩放/扩大">如何才可以在切换图片的时候，使用动画，把包裹图片的盒子缩放/扩大</h2><p>可能这个问题有点抽象，举个例子：<br>第一张图片：<br><img src="/image/2015-10-30/1.png" alt="lightbox"><br>第二张图片<br><img src="/image/2015-10-30/2.png" alt="lightbox"></p>
