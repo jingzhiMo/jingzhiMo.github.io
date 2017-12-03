@@ -1,7 +1,115 @@
-<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[blogIssue]]></title><description><![CDATA[All about blog]]></description><link>https://jingzhimo.github.io</link><generator>RSS for Node</generator><lastBuildDate>Sun, 03 Dec 2017 14:46:08 GMT</lastBuildDate><atom:link href="https:/jingzhimo.github.io/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Sun, 03 Dec 2017 14:46:08 GMT</pubDate><item><title><![CDATA[angularJs 配合ui-router,webpack, ocLazyLoad懒加载]]></title><description><![CDATA[<h2>title</h2><p>|
-|害
-|怕
-|<strong><strong>__</strong></strong>
-/
-/ 省流量版</p>
-]]></description><link>https:/jingzhimo.github.io/posts/249803582.html</link><guid isPermaLink="true">https:/jingzhimo.github.io/posts/249803582.html</guid><dc:creator><![CDATA[jingzhiMo]]></dc:creator><pubDate>Sun, 03 Dec 2017 14:44:59 GMT</pubDate></item></channel></rss>
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[blogIssue]]></title><description><![CDATA[All about blog]]></description><link>https://jingzhimo.github.io</link><generator>RSS for Node</generator><lastBuildDate>Sun, 03 Dec 2017 14:48:53 GMT</lastBuildDate><atom:link href="https:/jingzhimo.github.io/rss.xml" rel="self" type="application/rss+xml"/><pubDate>Sun, 03 Dec 2017 14:48:51 GMT</pubDate><item><title><![CDATA[angularJs 配合ui-router,webpack, ocLazyLoad懒加载]]></title><description><![CDATA[<h2>前言</h2><p>自从工作之后就极少写文章了，因为空闲时间没这么多，到了周末又想轻松两天，但是周末其实并不轻松，或许归根到底最后就是一个字：<strong>懒</strong>！这周回家之后，感觉总算可以静下心来做点东西，把之前在项目用ng1.x按需加载的实现整理一下。</p>
+<h2>需求背景</h2><p>最近工作用到<code>angularJs</code>，也就是<code>ng1.x</code>版本开发一个网站，这个项目其中用<a href="https://ui-router.github.io/ng1/">ui-router</a>来控制路由，<a href="https://webpack.js.org/">webpack</a>来构建项目。<strong>有个比较致命的痛点，ng1.x官方不支持懒加载！</strong></p>
+<p>这个项目经过webpack打包之后主要形成两个js文件，一个是<code>vendor.js</code>，是引入的<code>node_modules</code>的公用文件，另外一个是<code>app.js</code>，是自己写的js文件。</p>
+<p>处理之前项目的js入口文件大概是这样子的；</p>
+<pre><code>&#x2F;&#x2F; 引入主要工具和框架
+import angular from &#39;.&#x2F;angular&#39;
+import &#39;angular-ui-router&#39;
+
+&#x2F;&#x2F; 引入一些工具库
+import tool1 from &#39;.&#x2F;tool1&#39;
+
+&#x2F;&#x2F; 引入ng的一些指令，组件，service等等
+import aComponent from &#39;.&#x2F;a.component&#39;
+import aService from &#39;.&#x2F;a.service&#39;
+import aDirective from &#39;.&#x2F;a.directive&#39;
+
+&#x2F;&#x2F; 引入路由
+import router from &#39;.&#x2F;router&#39;
+
+&#x2F;&#x2F; 项目模块
+angular.module(&#39;app&#39;, [
+    &#39;ui.router&#39;,
+    &#x2F;&#x2F; ... 其他一些依赖
+])
+.config(router)
+.component(&#39;aComponent&#39;, aComponent)
+&#x2F;&#x2F; ...</code></pre><p>从这个入口文件就可以看出，现在所有依赖的外部工具库和自己编写的内容都是一次性引入进来，尽管通过webpack来分开了两个文件，但是在入口的html文件还是一次引入了。特别是进入首页介绍页面的时候，逻辑功能比较少，但是却要加载全部功能。</p>
+<h2>解决思路</h2><h3>路由分模块定义</h3><p>因为项目通过一级url分工明显，每个url可以分离成一个模块，处理起来就更直观，例如：</p>
+<pre><code>&#x2F;foo
+&#x2F;bar
+&#x2F;baz
+&#x2F;&#x2F; ...</code></pre><p>因此需要从<code>ui-router</code>先下手，能够指定一级url之后，交给对应的模块处理，对应的模块内部再处理子url，这样子每个模块之间就更加明确。从<a href="https://ui-router.github.io/guide/lazyloading">ui-router</a>官网参考的例子如下：</p>
+<pre><code>var contactsFutureState &#x3D; {
+  name: &#39;contacts.**&#39;,
+  url: &#39;&#x2F;contacts&#39;,
+  lazyLoad: function() {
+    &#x2F;&#x2F; lazy load the contacts module here
+  }
+}</code></pre><p>这里的例子大概意思是url为<code>/contact</code>的命名是<code>contact.**</code>，然后通过<code>layLoad</code>的函数加载对应的模块逻辑处理。这里要引入一个概念，叫<code>futureState</code>，字面上的意思是未来的状态，就是预先定义的。在配置页面全局路由的时候，大概就是这样子：</p>
+<pre><code>angular.module(&#39;app&#39;, [&#39;ui-router&#39;])
+.config([&#39;$stateProvider&#39;, function ($stateProvider) {
+   let states &#x3D; [
+        {
+            name: &#39;foo.**&#39;,
+            url: &#39;&#x2F;foo&#39;,
+            lazyLoad: function() {
+                &#x2F;&#x2F; 引入对应的模块
+            }
+        },
+        {
+            name: &#39;bar.**&#39;,
+            url: &#39;&#x2F;bar&#39;,
+            lazyLoad: function() {
+                &#x2F;&#x2F; 引入对应的模块
+            }
+        }
+        &#x2F;&#x2F; ...
+    ]
+    &#x2F;&#x2F; 定义相关url
+    states.forEach(state &#x3D;&gt; $stateProvider.state(state))
+}])</code></pre><p>然后具体<code>foo</code>模块就定义对应的二级url：</p>
+<pre><code>angular.module(&#39;foo&#39;, [&#39;ui-router&#39;])
+.config([&#39;$stateProvider&#39;, function ($stateProvider) {
+   let states &#x3D; [
+        {
+            name: &#39;foo&#39;,
+            url: &#39;&#x2F;foo&#39;,
+            component: &#39;foo&#39;
+        },
+        {
+            name: &#39;foo.second&#39;,
+            &#x2F;&#x2F; 实际访问的url是 &#x2F;foo&#x2F;second
+            url: &#39;&#x2F;second&#39;,
+            component: &#39;fooSecond&#39;
+        }
+        &#x2F;&#x2F; ...
+    ]
+    &#x2F;&#x2F; 定义相关url
+    states.forEach(state &#x3D;&gt; $stateProvider.state(state))
+}])
+&#x2F;&#x2F; foo和fooSecond也是在该模块引入，这里没有写出
+.component(&#39;foo&#39;, foo)
+.component(&#39;fooSecond&#39;, fooSecond)</code></pre><p>但是，这样子并跑不通，会报一个<code>multiple define</code>的多重定义的错，然而ui-router官方并没有给出相关例子，刚才的<code>foo</code>模块定义是根据之前定义全局模块的定义。直到后来在stackflow找到了ui-router注入对象<code>$stateRegistry</code>,替换子模块的<code>$stateProvider</code>，因此子模块定义url的时候，就变成了：</p>
+<pre><code>&#x2F;&#x2F; 注册相关url，依赖的注入也要修改
+states.forEach(state &#x3D;&gt; $stateRegistry.state(state))</code></pre><h3>动态注入</h3><p>路由处理完毕之后，就要考虑一下怎么把刚才的子模块在对应路由触发的时候，动态注入，这个在<a href="https://ui-router.github.io/guide/lazyloading">ui-router</a>给出了一个参考，就是利用第三方的<a href="https://oclazyload.readme.io/docs">ocLazyLoad</a>来支撑，在定义全局路由的时候，表明懒加载，例如：</p>
+<pre><code>[{
+    name: &#39;foo.**&#39;,
+    url: &#39;&#x2F;foo&#39;,
+    lazyLoad: function ($transition$) {
+        return $transition$.injector().get(&#39;$ocLazyLoad&#39;).load(&#39;.&#x2F;fooModule.js&#39;);
+    }
+    }
+}]</code></pre><h3>分离代码</h3><p>动态注入ok了，然后就是用webpack工具来打包分离代码，分离比较简单，教程在<a href="https://webpack.js.org/guides/code-splitting/#dynamic-imports">这里</a>，有使用<code>import</code>和<code>require.ensure</code>的方法，这里就使用了<code>import</code>的方法，修改<code>lazyLoad</code>的动态注入方法：</p>
+<pre><code>[{
+    name: &#39;foo.**&#39;,
+    url: &#39;&#x2F;foo&#39;,
+    lazyLoad: function ($transition$) {
+        return import(&#x2F;* webpackChunkName: &quot;foo&quot; *&#x2F; &#39;.&#x2F;fooModule.js&#39;)
+            .then(mod &#x3D;&gt; {
+                &#x2F;&#x2F; mod.defatut 是因为fooModule.js export default ...
+                $transition$.injector().get(&#39;$ocLazyLoad&#39;).load(mod.default)
+            })
+    }
+    }
+}]</code></pre><p>这样子webpack打包文件的时候会分割代码，当该模块触发的时候，再请求该模块的文件，然后给到ocLazyLoad来动态注入，实现按需加载，当访问过该模块的时候，下次进入已加载过的模块，也不会再次发出请求模块文件</p>
+<h2>总结</h2><p>到这里，整个流程就跑通了，回顾一下几个关键点：</p>
+<ol>
+<li>预定义路由future state；</li>
+<li>子模块使用<code>$stateRegistry</code>来注册路由；</li>
+<li>使用<code>ocLazyLoad</code>实现动态注入；</li>
+<li>使用webpack分离代码打包</li>
+</ol>
+<p>这次也是在填ng1.x的一些坑，使用相对较旧的框架实现一些看起来比较简单的需求，有时候也是挺折腾的。或许像同事所说的<strong>这是旧框架与人民日益增长的需求之间的矛盾</strong>。</p>
+<h2>安利</h2><p>回顾之前用hexo写文章的时候，换了电脑之后，源文件又要重新找，而且过程搭建也是挺麻烦的，所以这次写博客用到同事贡献自动化博客，安利一下<a href="https://github.com/acyortjs/acyort">地址</a>，仅仅用github的issue就可以写了，而且不怕丢失了，而且一次配置，绝无手尾，写完issue就能更新到我们的博客了。END</p>
+]]></description><link>https:/jingzhimo.github.io/posts/249803582.html</link><guid isPermaLink="true">https:/jingzhimo.github.io/posts/249803582.html</guid><dc:creator><![CDATA[jingzhiMo]]></dc:creator><pubDate>Sun, 03 Dec 2017 14:47:39 GMT</pubDate></item></channel></rss>
