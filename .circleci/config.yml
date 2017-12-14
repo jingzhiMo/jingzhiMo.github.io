@@ -1,0 +1,32 @@
+# 注意这个文件名为 config.yml，在 .circleci 目录下
+version: 2
+jobs:
+  build:
+    docker:
+      # specify the version you desire here
+      - image: node:latest
+
+    working_directory: ~/acyort
+
+    branches:
+      only:
+        - master # 这个是配置文件的分支名，注意不要写错分支
+
+    steps:
+      - checkout
+      - run: npm install acyort -g
+      - run: acyort init
+      - run: cp config.bak.yml config.yml
+      - run: git clone https://github.com/acyortjs/theme-donob.git themes/donob # 这个是博客主题，如果使用默认主题是不需要这段的
+      - run: acyort build
+      - run: git checkout .
+      - run: git checkout master # 这个分支是存放博客静态文件分支，不要写错
+      - run: git reset --hard origin/master # 同上
+      - run: cp -R public/* . # 不明白就不要修改
+      - run: rm config.bak.yml
+      - run: rm -R scripts themes public # 不明白就不要修改
+      - run: git add .
+      - run: git config user.name "jingzhiMo" # 你的 GitHub 用户名，一定要改，不要填我的
+      - run: git config user.email "mojingzhi.mail@gmail.com" # 你的 GitHub 邮箱，一定要改，不要填我的
+      - run: git commit -m "Updated by circleci - `date`" # 你可以修改 commit 的文字，后面的 date 代表时间
+      - run: git push https://${gh_token}@github.com/jingzhiMo/jingzhiMo.github.io.git master:master -q # 修改成你的项目路径，格式为 用户名/项目名。gh-pages 为存放博客静态文件分支，不要写错了。${gh_token} 不明白也不要动

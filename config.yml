@@ -1,0 +1,135 @@
+# 博客的配置，根据实际情况修改
+
+# Base Config
+
+# site
+# default "AcyOrt", "A Node.js blog tool powered by GitHub."
+title: jingzhiMo
+description: All about Recordum
+
+# rss
+# set false if not need rss output
+# default "rss.xml"
+rss:
+
+# site url. you can set as 'http://yoursite.com/child' if necessary
+# please add 'http://' or 'https://'
+# default "https://acyortjs.github.io"
+url: http://jingzhimo.github.io/
+
+# theme
+# default "ccc45"
+theme: donob # 主题选择，跟上面的 CircleCI 配置文件对应
+
+# pagination
+# set 0 if not need
+# default 10
+per_page: 5
+
+# menu
+menu:
+  Archives: /archives/
+  About: /about/
+  # categories: /category/
+  # tags: /tag/
+
+# category
+# default "uncategorized"
+default_category: blog
+
+# site content source
+# your github user/repository
+# default "acyortjs", "acyortjs.github.io"
+user: jingzhiMo # GitHub 用户名
+repository: jingzhiMo.github.io # 项目名
+
+
+# Advance Config
+
+# scripts
+# script file name
+scripts:
+  # - hexo.js
+
+# html output directory or child directory e.g. 'child'
+# default "/"
+public_dir: public # 一定要设置一个目录，并且跟 CircleCI 配置对应
+
+# blog post authors
+# github username
+authors:
+  - jingzhiMo
+#  - author0
+#  - author1
+
+# timezone
+# the timezone of your website
+# example: America/New_York, Japan, or UTC
+# default is local system timezone
+timezone: Asia/Shanghai # 时区设置，因为 CircleCI 时区不一样
+
+# language
+# requires theme support
+language:
+
+# code line numbers
+# whether to dispaly code line numbers
+# default true
+line_numbers:
+
+# archives pagination
+# set 0 if not need
+# default 30
+archives_per_page:
+
+# post order
+# order by create time" or "update time"
+# created: use "create time"
+# updated: use "update time"
+# default "created"
+order:
+
+# thumbnail mode
+# 1: use the first image as thumbnail and remove the image
+# 2: use the first image as thumbnail but not remove the image
+# default 2
+thumbnail_mode:
+
+# category directory
+# default "category"
+category_dir:
+
+# tag directory
+# default "tag"
+tag_dir:
+
+# post directory
+# default "posts"
+post_dir:
+
+# archives directory
+# default "archives"
+archives_dir:
+
+# gitHub access token(optional)
+# token should be separated by '#' if you push this file to github
+# example: 5#c31bffc137f44faf74da827g7ca2cfeaa
+token: 9#490144a70578714a649b11da02fb0583d15bdf6 # 请添加刚刚获得的 read-token 的值
+
+# json output
+# boolean or string
+# you can set json output path
+# default false
+json:
+
+# dev mode
+# default false
+dev:
+
+
+# Other Config
+# customize some settings if necessary
+
+# disqus:
+# keywords:
+# favicon:
