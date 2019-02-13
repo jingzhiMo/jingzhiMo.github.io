@@ -114,7 +114,7 @@ archives_dir:
 # gitHub access token(optional)
 # token should be separated by '#' if you push this file to github
 # example: 5#c31bffc137f44faf74da827g7ca2cfeaa
-token: 9#490144a70578714a649b11da02fb0583d15bdf6 # 请添加刚刚获得的 read-token 的值
+token: 5#90fe06cfdb7ea3fa25f2ec92aa8476bc51121ba # 请添加刚刚获得的 read-token 的值
 
 # json output
 # boolean or string
