@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="keywords" content="" />
+<meta name="description" content="All about Recordum" />
 <link rel="stylesheet" href="/css/style.css" />
 
   <title>
@@ -15,8 +15,7 @@ angularJs 配合ui-router,webpack, ocLazyLoad懒加载 - jingzhiMo
 <body>
 
 <div class="main">
-<div class="inner">
-  
+
 <div class="header">
     <a class="logo" href="/">jingzhiMo</a><!--
 
@@ -27,33 +26,25 @@ angularJs 配合ui-router,webpack, ocLazyLoad懒加载 - jingzhiMo
     <div class="social">
         <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 <path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
-</svg></a><!--
-    --><a target="_blank" href="/rss.xml"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-<path d="M6.18,15.64A2.18,2.18 0 0,1 8.36,17.82C8.36,19 7.38,20 6.18,20C5,20 4,19 4,17.82A2.18,2.18 0 0,1 6.18,15.64M4,4.44A15.56,15.56 0 0,1 19.56,20H16.73A12.73,12.73 0 0,0 4,7.27V4.44M4,10.1A9.9,9.9 0 0,1 13.9,20H11.07A7.07,7.07 0 0,0 4,12.93V10.1Z"></path>
 </svg></a>
     </div>
 </div>
 
 
-
-
 <div id="post" class="center">
-
-    <p class="time">December 19, 2017</p>
-
-    <h1 class="title">angularJs 配合ui-router,webpack, ocLazyLoad懒加载</h1>
-
-    <div class="content"><h2 id="前言">前言</h2><p>自从工作之后就极少写文章了，因为空闲时间没这么多，到了周末又想轻松两天，但是周末其实并不轻松，或许归根到底最后就是一个字：<strong>懒</strong>！这周回家之后，感觉总算可以静下心来做点东西，把之前在项目用ng1.x按需加载的实现整理一下。</p>
+  <p class="time">December 14, 2017</p>
+  <h1 class="title">angularJs 配合ui-router,webpack, ocLazyLoad懒加载</h1>
+  <div class="content"><h2 id="前言">前言</h2><p>自从工作之后就极少写文章了，因为空闲时间没这么多，到了周末又想轻松两天，但是周末其实并不轻松，或许归根到底最后就是一个字：<strong>懒</strong>！这周回家之后，感觉总算可以静下心来做点东西，把之前在项目用ng1.x按需加载的实现整理一下。</p>
 <h2 id="需求背景">需求背景</h2><p>最近工作用到<code>angularJs</code>，也就是<code>ng1.x</code>版本开发一个网站，这个项目其中用<a href="https://ui-router.github.io/ng1/">ui-router</a>来控制路由，<a href="https://webpack.js.org/">webpack</a>来构建项目。<strong>有个比较致命的痛点，ng1.x官方不支持懒加载！</strong></p>
 <p>这个项目经过webpack打包之后主要形成两个js文件，一个是<code>vendor.js</code>，是引入的<code>node_modules</code>的公用文件，另外一个是<code>app.js</code>，是自己写的js文件。</p>
 <p>处理之前项目的js入口文件大概是这样子的；</p>
 
-    <div class="hljs javascript">
-      <table>
-        <tbody>
-          <tr>
-            <td class="line">
-              <pre><span>1</span>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
 <span>2</span>
 <span>3</span>
 <span>4</span>
@@ -77,8 +68,8 @@ angularJs 配合ui-router,webpack, ocLazyLoad懒加载 - jingzhiMo
 <span>22</span>
 <span>23</span>
 </pre>
-            </td>
-            <td class="code"><pre><span class="hljs-comment">// 引入主要工具和框架</span>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 引入主要工具和框架</span>
 <span class="hljs-keyword">import</span> angular <span class="hljs-keyword">from</span> <span class="hljs-string">'./angular'</span>
 <span class="hljs-keyword">import</span> <span class="hljs-string">'angular-ui-router'</span>
 
@@ -101,40 +92,40 @@ angular.<span class="hljs-keyword">module</span>(<span class="hljs-string">'app'
 .config(router)
 .component(<span class="hljs-string">'aComponent'</span>, aComponent)
 <span class="hljs-comment">// ...</span></pre></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <p>从这个入口文件就可以看出，现在所有依赖的外部工具库和自己编写的内容都是一次性引入进来，尽管通过webpack来分开了两个文件，但是在入口的html文件还是一次引入了。特别是进入首页介绍页面的时候，逻辑功能比较少，但是却要加载全部功能。</p>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>从这个入口文件就可以看出，现在所有依赖的外部工具库和自己编写的内容都是一次性引入进来，尽管通过webpack来分开了两个文件，但是在入口的html文件还是一次引入了。特别是进入首页介绍页面的时候，逻辑功能比较少，但是却要加载全部功能。</p>
 <h2 id="解决思路">解决思路</h2><h3 id="路由分模块定义">路由分模块定义</h3><p>因为项目通过一级url分工明显，每个url可以分离成一个模块，处理起来就更直观，例如：</p>
 
-    <div class="hljs javascript">
-      <table>
-        <tbody>
-          <tr>
-            <td class="line">
-              <pre><span>1</span>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
 <span>2</span>
 <span>3</span>
 <span>4</span>
 </pre>
-            </td>
-            <td class="code"><pre><span class="hljs-string">/foo</span>
+              </td>
+              <td class="code"><pre><span class="hljs-string">/foo</span>
 <span class="hljs-string">/bar</span>
 <span class="hljs-string">/baz</span>
 <span class="hljs-string">//</span> <span class="hljs-string">...</span></pre></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <p>因此需要从<code>ui-router</code>先下手，能够指定一级url之后，交给对应的模块处理，对应的模块内部再处理子url，这样子每个模块之间就更加明确。从<a href="https://ui-router.github.io/guide/lazyloading">ui-router</a>官网参考的例子如下：</p>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>因此需要从<code>ui-router</code>先下手，能够指定一级url之后，交给对应的模块处理，对应的模块内部再处理子url，这样子每个模块之间就更加明确。从<a href="https://ui-router.github.io/guide/lazyloading">ui-router</a>官网参考的例子如下：</p>
 
-    <div class="hljs javascript">
-      <table>
-        <tbody>
-          <tr>
-            <td class="line">
-              <pre><span>1</span>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
 <span>2</span>
 <span>3</span>
 <span>4</span>
@@ -142,26 +133,26 @@ angular.<span class="hljs-keyword">module</span>(<span class="hljs-string">'app'
 <span>6</span>
 <span>7</span>
 </pre>
-            </td>
-            <td class="code"><pre><span class="hljs-keyword">var</span> contactsFutureState = {
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">var</span> contactsFutureState = {
   name: <span class="hljs-string">'contacts.**'</span>,
   url: <span class="hljs-string">'/contacts'</span>,
   lazyLoad: <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> </span>{
     <span class="hljs-comment">// lazy load the contacts module here</span>
   }
 }</pre></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <p>这里的例子大概意思是url为<code>/contact</code>的命名是<code>contact.**</code>，然后通过<code>layLoad</code>的函数加载对应的模块逻辑处理。这里要引入一个概念，叫<code>futureState</code>，字面上的意思是未来的状态，就是预先定义的。在配置页面全局路由的时候，大概就是这样子：</p>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这里的例子大概意思是url为<code>/contact</code>的命名是<code>contact.**</code>，然后通过<code>layLoad</code>的函数加载对应的模块逻辑处理。这里要引入一个概念，叫<code>futureState</code>，字面上的意思是未来的状态，就是预先定义的。在配置页面全局路由的时候，大概就是这样子：</p>
 
-    <div class="hljs javascript">
-      <table>
-        <tbody>
-          <tr>
-            <td class="line">
-              <pre><span>1</span>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
 <span>2</span>
 <span>3</span>
 <span>4</span>
@@ -184,8 +175,8 @@ angular.<span class="hljs-keyword">module</span>(<span class="hljs-string">'app'
 <span>21</span>
 <span>22</span>
 </pre>
-            </td>
-            <td class="code"><pre>angular.module(<span class="hljs-string">'app'</span>, [<span class="hljs-string">'ui-router'</span>])
+              </td>
+              <td class="code"><pre>angular.module(<span class="hljs-string">'app'</span>, [<span class="hljs-string">'ui-router'</span>])
 .config([<span class="hljs-string">'$stateProvider'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">($stateProvider)</span> </span>{
    let states = [
         {
@@ -207,18 +198,18 @@ angular.<span class="hljs-keyword">module</span>(<span class="hljs-string">'app'
     <span class="hljs-comment">// 定义相关url</span>
     states.<span class="hljs-keyword">forEach</span>(state =&gt; $stateProvider.state(state))
 }])</pre></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <p>然后具体<code>foo</code>模块就定义对应的二级url：</p>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>然后具体<code>foo</code>模块就定义对应的二级url：</p>
 
-    <div class="hljs javascript">
-      <table>
-        <tbody>
-          <tr>
-            <td class="line">
-              <pre><span>1</span>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
 <span>2</span>
 <span>3</span>
 <span>4</span>
@@ -241,8 +232,8 @@ angular.<span class="hljs-keyword">module</span>(<span class="hljs-string">'app'
 <span>21</span>
 <span>22</span>
 </pre>
-            </td>
-            <td class="code"><pre>angular.module(<span class="hljs-string">'foo'</span>, [<span class="hljs-string">'ui-router'</span>])
+              </td>
+              <td class="code"><pre>angular.module(<span class="hljs-string">'foo'</span>, [<span class="hljs-string">'ui-router'</span>])
 .config([<span class="hljs-string">'$stateProvider'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">($stateProvider)</span> </span>{
    let states = [
         {
@@ -264,35 +255,35 @@ angular.<span class="hljs-keyword">module</span>(<span class="hljs-string">'app'
 <span class="hljs-comment">// foo和fooSecond也是在该模块引入，这里没有写出</span>
 .component(<span class="hljs-string">'foo'</span>, foo)
 .component(<span class="hljs-string">'fooSecond'</span>, fooSecond)</pre></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <p>但是，这样子并跑不通，会报一个<code>multiple define</code>的多重定义的错，然而ui-router官方并没有给出相关例子，刚才的<code>foo</code>模块定义是根据之前定义全局模块的定义。直到后来在stackflow找到了ui-router注入对象<code>$stateRegistry</code>,替换子模块的<code>$stateProvider</code>，因此子模块定义url的时候，就变成了：</p>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>但是，这样子并跑不通，会报一个<code>multiple define</code>的多重定义的错，然而ui-router官方并没有给出相关例子，刚才的<code>foo</code>模块定义是根据之前定义全局模块的定义。直到后来在stackflow找到了ui-router注入对象<code>$stateRegistry</code>,替换子模块的<code>$stateProvider</code>，因此子模块定义url的时候，就变成了：</p>
 
-    <div class="hljs javascript">
-      <table>
-        <tbody>
-          <tr>
-            <td class="line">
-              <pre><span>1</span>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
 <span>2</span>
 </pre>
-            </td>
-            <td class="code"><pre>// 注册相关url，依赖的注入也要修改
+              </td>
+              <td class="code"><pre>// 注册相关url，依赖的注入也要修改
 states.<span class="hljs-keyword">for</span>Each(<span class="hljs-keyword">state</span> =&gt; <span class="hljs-variable">$stateRegistry</span>.<span class="hljs-keyword">state</span>(<span class="hljs-keyword">state</span>))</pre></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <h3 id="动态注入">动态注入</h3><p>路由处理完毕之后，就要考虑一下怎么把刚才的子模块在对应路由触发的时候，动态注入，这个在<a href="https://ui-router.github.io/guide/lazyloading">ui-router</a>给出了一个参考，就是利用第三方的<a href="https://oclazyload.readme.io/docs">ocLazyLoad</a>来支撑，在定义全局路由的时候，表明懒加载，例如：</p>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="动态注入">动态注入</h3><p>路由处理完毕之后，就要考虑一下怎么把刚才的子模块在对应路由触发的时候，动态注入，这个在<a href="https://ui-router.github.io/guide/lazyloading">ui-router</a>给出了一个参考，就是利用第三方的<a href="https://oclazyload.readme.io/docs">ocLazyLoad</a>来支撑，在定义全局路由的时候，表明懒加载，例如：</p>
 
-    <div class="hljs javascript">
-      <table>
-        <tbody>
-          <tr>
-            <td class="line">
-              <pre><span>1</span>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
 <span>2</span>
 <span>3</span>
 <span>4</span>
@@ -301,8 +292,8 @@ states.<span class="hljs-keyword">for</span>Each(<span class="hljs-keyword">stat
 <span>7</span>
 <span>8</span>
 </pre>
-            </td>
-            <td class="code"><pre>[{
+              </td>
+              <td class="code"><pre>[{
     name: <span class="hljs-symbol">'foo.**</span>',
     url: <span class="hljs-symbol">'/foo</span>',
     lazyLoad: function (<span class="hljs-name">$transition$</span>) {
@@ -310,18 +301,18 @@ states.<span class="hljs-keyword">for</span>Each(<span class="hljs-keyword">stat
     }
     }
 }]</pre></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <h3 id="分离代码">分离代码</h3><p>动态注入ok了，然后就是用webpack工具来打包分离代码，分离比较简单，教程在<a href="https://webpack.js.org/guides/code-splitting/#dynamic-imports">这里</a>，有使用<code>import</code>和<code>require.ensure</code>的方法，这里就使用了<code>import</code>的方法，修改<code>lazyLoad</code>的动态注入方法：</p>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="分离代码">分离代码</h3><p>动态注入ok了，然后就是用webpack工具来打包分离代码，分离比较简单，教程在<a href="https://webpack.js.org/guides/code-splitting/#dynamic-imports">这里</a>，有使用<code>import</code>和<code>require.ensure</code>的方法，这里就使用了<code>import</code>的方法，修改<code>lazyLoad</code>的动态注入方法：</p>
 
-    <div class="hljs javascript">
-      <table>
-        <tbody>
-          <tr>
-            <td class="line">
-              <pre><span>1</span>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
 <span>2</span>
 <span>3</span>
 <span>4</span>
@@ -334,8 +325,8 @@ states.<span class="hljs-keyword">for</span>Each(<span class="hljs-keyword">stat
 <span>11</span>
 <span>12</span>
 </pre>
-            </td>
-            <td class="code"><pre>[{
+              </td>
+              <td class="code"><pre>[{
     name: <span class="hljs-symbol">'foo.**</span>',
     url: <span class="hljs-symbol">'/foo</span>',
     lazyLoad: function (<span class="hljs-name">$transition$</span>) {
@@ -347,30 +338,34 @@ states.<span class="hljs-keyword">for</span>Each(<span class="hljs-keyword">stat
     }
     }
 }]</pre></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <p>这样子webpack打包文件的时候会分割代码，当该模块触发的时候，再请求该模块的文件，然后给到ocLazyLoad来动态注入，实现按需加载，当访问过该模块的时候，下次进入已加载过的模块，也不会再次发出请求模块文件</p>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这样子webpack打包文件的时候会分割代码，当该模块触发的时候，再请求该模块的文件，然后给到ocLazyLoad来动态注入，实现按需加载，当访问过该模块的时候，下次进入已加载过的模块，也不会再次发出请求模块文件</p>
 <h2 id="总结">总结</h2><p>到这里，整个流程就跑通了，回顾一下几个关键点：</p>
 <ol>
-<li>预定义路由future state；</li><li>子模块使用<code>$stateRegistry</code>来注册路由；</li><li>使用<code>ocLazyLoad</code>实现动态注入；</li><li>使用webpack分离代码打包</li></ol>
+<li>预定义路由future state；</li>
+<li>子模块使用<code>$stateRegistry</code>来注册路由；</li>
+<li>使用<code>ocLazyLoad</code>实现动态注入；</li>
+<li>使用webpack分离代码打包</li>
+</ol>
 <p>这次也是在填ng1.x的一些坑，使用相对较旧的框架实现一些看起来比较简单的需求，有时候也是挺折腾的。或许像同事所说的<strong>这是旧框架与人民日益增长的需求之间的矛盾</strong>。</p>
 <h2 id="安利">安利</h2><p>回顾之前用hexo写文章的时候，换了电脑之后，源文件又要重新找，而且过程搭建也是挺麻烦的，所以这次写博客用到同事贡献自动化博客，安利一下<a href="https://github.com/acyortjs/acyort">地址</a>，仅仅用github的issue就可以写了，而且不怕丢失了，而且一次配置，绝无手尾，写完issue就能更新到我们的博客了。END</p>
 </div>
-
-    <div class="comments">
-        <div id="disqus_thread"></div>
-    </div>
-
+  <div class="comments"><div id="disqus_thread"></div></div>
 </div>
 
 
-</div>
 </div>
 
 <div class="footer">
-    <div class="center">jingzhiMo / Powered by <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> & <a target="_blank" href="https://github.com">GitHub</a></div>
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
 </div>
 
 

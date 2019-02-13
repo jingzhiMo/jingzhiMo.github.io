@@ -1,0 +1,266 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+简单折腾一下 prerender-spa-plugin - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">February 13, 2019</p>
+  <h1 class="title">简单折腾一下 prerender-spa-plugin</h1>
+  <div class="content"><h2 id="背景">背景</h2><p>网站的首页和部分介绍页面需要预渲染，为了更好的SEO；而网站的dashboard的相关页面则保持原来的SPA处理。后续生产环境的文件构建需要放到ci统一处理。</p>
+<h2 id="使用工具">使用工具</h2><ul>
+<li><a href="">prerender-spa-plugin</a></li>
+<li><a href="">puppeteer</a></li>
+</ul>
+<p>现在使用<code>prerender-spa-plugin</code>的插件用来把部分静态页面预渲染，这个插件是依赖<code>puppeteer</code>的工具，<code>puppeteer</code>工具是需要下载一个<code>chromium</code>的浏览器。如果没有梯子是没办法下载的，下载安装包的大小大概在70M左右。</p>
+<p><code>puppeteer</code>从<code>1.7.0</code>版本开始就把<code>puppeteer-core</code>的包分离出来，如果需要单独测试的话，仅下载这个包就好了。但是<code>prerender-spa-plugin</code>插件是依赖<code>puppeteer</code>的包，所以需要设置npm的环境变量才能能够跳过下载浏览器，在安装<code>npm install</code>之前，需要在项目的根目录新建文件<code>.npmrc</code>或者往里面追加内容，内容是：</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-attr">puppeteer_skip_chromium_download</span>=<span class="hljs-literal">true</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h2 id="使用基础例子">使用基础例子</h2><p>后面所使用的代码，均基于<a href="https://github.com/chrisvfritz/prerender-spa-plugin/tree/master/examples/vue2-webpack-router">官方的例子</a>进行更改</p>
+<h3 id="webpack配置">webpack 配置</h3><p>在webpack的配置当中，生产环境的plugins的数组需要加入下面的实例：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 引入对应的插件</span>
+<span class="hljs-keyword">const</span> PrerenderSPAPlugin = require(<span class="hljs-string">'prerender-spa-plugin'</span>)
+<span class="hljs-keyword">const</span> Renderer = PrerenderSPAPlugin.PuppeteerRenderer
+
+<span class="hljs-keyword">module</span>.<span class="hljs-keyword">exports</span> = {
+  <span class="hljs-comment">// ...</span>
+  plugins: [
+    <span class="hljs-comment">// ...</span>
+    <span class="hljs-keyword">new</span> PrerenderSPAPlugin({
+      staticDir: path.join(__dirname, <span class="hljs-string">'dist'</span>),
+      routes: [ <span class="hljs-string">'/'</span>, <span class="hljs-string">'/about'</span>, <span class="hljs-string">'/contact'</span> ],
+
+      renderer: <span class="hljs-keyword">new</span> Renderer({
+        inject: {
+          foo: <span class="hljs-string">'bar'</span>
+        },
+        headless: <span class="hljs-keyword">false</span>,
+        <span class="hljs-comment">// 这个事件名称需要与网站的事件名称一直，具体可以参考官方例子：</span>
+        <span class="hljs-comment">// https://github.com/chrisvfritz/prerender-spa-plugin/tree/master/examples/vue2-webpack-router</span>
+        renderAfterDocumentEvent: <span class="hljs-string">'render-event'</span>,
+        <span class="hljs-comment">// 这个是macos下chrome的调用路径</span>
+        executablePath: <span class="hljs-string">'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'</span>
+        <span class="hljs-comment">// chromium的调用路径</span>
+        <span class="hljs-comment">// executablePath: '/Applications/Chromium.app/Contents/MacOS/Chromium'</span>
+      })
+    })  
+  ]
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="vuecli配置">vue-cli 配置</h3><p>如果使用<code>vue-cli</code>进行配置，需要更改<code>vue.config.js</code>，可以通过<code>configureWebpack</code>的函数进行处理：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// vue.config.js</span>
+<span class="hljs-built_in">module</span>.exports = {
+  <span class="hljs-attr">configureWebpack</span>: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-comment">// 针对生产环境进行处理</span>
+    <span class="hljs-keyword">if</span> (process.env.NODE_ENV === <span class="hljs-string">'production'</span>) {
+      <span class="hljs-keyword">return</span> {
+        <span class="hljs-attr">plugins</span>: [
+            <span class="hljs-keyword">new</span> PrerenderSPAPlugin({
+              <span class="hljs-comment">// ...</span>
+            })
+        ]
+      }
+    }
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h2 id="使用本地浏览器">使用本地浏览器</h2><p>在使用本地系统安装浏览器的时候，推荐使用chromium，由于部分情况chrome可能会出现问题。linux通常chrome和chromium的安装路径分别是：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+</pre>
+              </td>
+              <td class="code"><pre>&#x2F;usr&#x2F;bin&#x2F;chromium-browser
+&#x2F;usr&#x2F;bin&#x2F;google-chrome</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>部分chrome版本是stable版本，所以可能是<code>/usr/bin/google-chrome-stable</code>；在linux可以通过<code>which</code>命令查看对应路径，然后把得到的路径填入<code>executablePath</code>字段即可。</p>
+<p>在linux系统执行的时候，有可能会出现依赖没有装完，导致无法启动chromium，这个问题可以查看这个<a href="https://github.com/GoogleChrome/puppeteer/issues/290#issuecomment-322838700">解决方案</a>；也有可能会提示配置不需要沙箱环境，需要改动配置如下：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-selector-tag">new</span> <span class="hljs-selector-tag">PrerenderSPAPlugin</span>({
+      <span class="hljs-attribute">staticDir</span>: path.join(__dirname, <span class="hljs-string">'dist'</span>),
+      <span class="hljs-attribute">routes</span>: [ <span class="hljs-string">'/'</span>, <span class="hljs-string">'/about'</span>, <span class="hljs-string">'/contact'</span> ],
+
+      <span class="hljs-attribute">renderer</span>: new Renderer({
+        <span class="hljs-attribute">inject</span>: {
+          <span class="hljs-attribute">foo</span>: <span class="hljs-string">'bar'</span>
+        },
+        <span class="hljs-attribute">headless</span>: false,
+        <span class="hljs-attribute">renderAfterDocumentEvent</span>: <span class="hljs-string">'render-event'</span>,
+        <span class="hljs-comment">// 这个是macos下chrome的调用路径</span>
+        <span class="hljs-attribute">executablePath</span>: <span class="hljs-string">'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'</span>,
+        <span class="hljs-comment">// 配置这行</span>
+        <span class="hljs-attribute">args</span>: [<span class="hljs-string">'--no-sandbox'</span>]
+      })
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h2 id="ci环境部署">ci 环境部署</h2><p>如果需要在ci环境部署，浏览器的安装也是一个问题，浏览器的安装包体积也不小，这里想到的几个方案有：</p>
+<ol>
+<li>不跳过安装chromium，直接在<code>node_modules</code>安装的时候，把浏览器安装包也下载了；然后ci的<code>cache</code>把<code>node_modules</code>加上；</li>
+<li>跳过安装chromium，自行下载浏览器并安装浏览器，<code>cache</code>需要把<code>node_modules</code>和浏览器下载路径都缓存；</li>
+<li>跳过安装chromium，选用一个带有<code>chromium</code>的docker的image，就可以避免安装chromium。</li>
+</ol>
+<p>缺点：</p>
+<p>1、2两点都能够通过不同方法安装浏览器，但是通常浏览器依赖包还是缺失，需要自行安装对应的依赖；</p>
+<p>第3点应该是比较好的解决方案，但需要选中一个比较好且稳定的image，<a href="https://hub.docker.com/r/browserless/chrome/tags">dockerhub</a></p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
