@@ -35,14 +35,14 @@
   <p class="time">May 16, 2019</p>
   <h1 class="title">记一次本地前后联调的过程</h1>
   <div class="content"><h2 id="背景">背景</h2><p>最近项目组的的后端业务开始拆分，把部分用户与业务需求拆分；在原来的时候，用户的请求与业务请求都是由同一个后端项目支持；现在由于子项目不断扩充，不同的子项目之间的账号信息需要同步。</p>
-<h2 id="分析">分析</h2><h3 id="更改前">更改前</h3><p><img src="https://note.youdao.com/yws/public/resource/12cf2e440ef40986b5f92a36add7f9cf/xmlnote/E20EF1B7A42D456F8A41533199465689/19749" alt=""></p>
+<h2 id="分析">分析</h2><h3 id="更改前">更改前</h3><p><img src="https://note.youdao.com/yws/public/resource/6cfeac6c6e531e54c35cc563699ca55b/xmlnote/WEBRESOURCE489fde98ee1dc48fe62c7c8c4be2f0c9/19903" alt=""></p>
 <p>步骤：</p>
 <ol>
 <li><code>request user</code>， 前端向后端请求用户信息（忽略登录过程）</li>
 <li><code>response token</code>，后端返回用户的token；前端拿到token存储到 <strong>storage</strong></li>
 <li><code>req/res</code> 前后端进行业务数据的交流</li>
 </ol>
-<h3 id="更改后">更改后</h3><p><img src="https://note.youdao.com/yws/public/resource/12cf2e440ef40986b5f92a36add7f9cf/xmlnote/23861E50F9664F61AF96D032AF1513B1/19787" alt=""></p>
+<h3 id="更改后">更改后</h3><p><img src="https://note.youdao.com/yws/public/resource/6cfeac6c6e531e54c35cc563699ca55b/xmlnote/WEBRESOURCEa135f8458f97036ee0040111bc3e66e9/19905" alt=""></p>
 <p>步骤：</p>
 <ol>
 <li><code>request user</code> 前端<code>a.example</code> 向<code>user.example</code>用户后端请求 用户信息（忽略登录过程）</li>
