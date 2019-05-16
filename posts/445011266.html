@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+记一次本地前后联调的过程 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">May 16, 2019</p>
+  <h1 class="title">记一次本地前后联调的过程</h1>
+  <div class="content"><h2 id="背景">背景</h2><p>最近项目组的的后端业务开始拆分，把部分用户与业务需求拆分；在原来的时候，用户的请求与业务请求都是由同一个后端项目支持；现在由于子项目不断扩充，不同的子项目之间的账号信息需要同步。</p>
+<h2 id="分析">分析</h2><h3 id="更改前">更改前</h3><p><img src="https://note.youdao.com/yws/public/resource/12cf2e440ef40986b5f92a36add7f9cf/xmlnote/E20EF1B7A42D456F8A41533199465689/19749" alt=""></p>
+<p>步骤：</p>
+<ol>
+<li><code>request user</code>， 前端向后端请求用户信息（忽略登录过程）</li>
+<li><code>response token</code>，后端返回用户的token；前端拿到token存储到 <strong>storage</strong></li>
+<li><code>req/res</code> 前后端进行业务数据的交流</li>
+</ol>
+<h3 id="更改后">更改后</h3><p><img src="https://note.youdao.com/yws/public/resource/12cf2e440ef40986b5f92a36add7f9cf/xmlnote/23861E50F9664F61AF96D032AF1513B1/19787" alt=""></p>
+<p>步骤：</p>
+<ol>
+<li><code>request user</code> 前端<code>a.example</code> 向<code>user.example</code>用户后端请求 用户信息（忽略登录过程）</li>
+<li><code>response token</code>，用户后端返回用户的token，设置到 <strong>cookie</strong>；</li>
+<li><code>req/res data</code> 前端与业务后端<code>b.example.com</code>进行数据交流</li>
+</ol>
+<h3 id="不同点">不同点</h3><p>这次更改的不同点主要是：</p>
+<ol>
+<li>请求的用户信息的域名不一致；更改后的会存在跨域问题；</li>
+<li>前端存储用户token的方法不同，前者存储在 storage ;后者存储在 cookie</li>
+<li>前者由于用户信息存储在 storage；因为在请求数据的时候，需要在请求拦截器加一层，把用户的 token 加到 xhr 的请求头，让服务器能够拿到对应的用户信息；后者用户信息存储在 cookie；那么前端不需要做特别的处理，cookie 自动加入 header 发送到服务器。</li>
+</ol>
+<h2 id="解决方案">解决方案</h2><p>由于涉及多个域名，因此原有使用 storage 的方案没有 cookie 那么灵活。OK，涉及多个域名，那么最常见的 CORS 跨域的手段必不可少；前端在这个过程处理不多，只需要设置 xhr 的<code>withCredentials: true</code>；则浏览器会在请求跨域的时候，把对应域名的 cookie 带上到请求。</p>
+<p>但是在开发的时候，尽管后端同学已经允许请求跨域；但是看到 network 会出现部分 <code>OPTIONS</code> 请求；然后再发出真正的请求；在这之前，有了解过，这是浏览器的安全机制，先发出 <code>OPTIONS</code> 的预检请求，如果服务器允许的话，才发出真正的请求，这个过程对前端来说是透明的。但是观察到，只是部分请求有预检，并不是所有请求都有预检，那么对于哪些请求才需要呢？然后找到了 <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS">mdn cors 相关文章</a>，文章对于情况说的比较明白，这里简单总结几点；</p>
+<ol>
+<li>浏览器对“简单请求”不做预检(preflight)；这些请求包括：<code>GET</code>, <code>POST</code>, <code>HEAD</code> 这三种</li>
+<li>请求头(headers)需要在白名单内，除了浏览器自动加的<code>user-Agent</code>,<code>referer</code>等, 白名单的请求头有：<ul>
+<li>Accept</li>
+<li>Accept-Language</li>
+<li>Content-Language</li>
+<li>Content-Type(仅包括：application/x-www-form-urlencoded, multipart/form-data, text/plain 三种)</li>
+<li>DPR</li>
+<li>Downlink</li>
+<li>Save-Data</li>
+<li>Viewport-Width</li>
+<li>Width</li>
+</ul>
+</li>
+<li>请求中的任意XMLHttpRequestUpload 对象均没有注册任何事件监听器；XMLHttpRequestUpload 对象可以使用 XMLHttpRequest.upload 属性访问</li>
+<li>请求中没有使用 ReadableStream 对象。</li>
+</ol>
+<p>到现在为止，请求就能够正常发出了，用户的登录与业务数据交流也完成了；但实际上也遗留了一个问题：线上环境的业务请求不是跨域的，只是本地与后端同学调试才是，那么能不能本地也不做跨域的请求呢？</p>
+<h2 id="后续">后续</h2><p>本地测试前置条件：</p>
+<ol>
+<li>前端地址：<code>http://localhost:8080</code></li>
+<li>用户后端项目地址：<code>user.local.com</code></li>
+<li>业务后端项目地址：<code>a.local.com</code></li>
+</ol>
+<p>由于本地开发的时候，本地通常是访问<code>http://localhost:8080</code>；因此在请求完<code>user.local.com</code>的时候，后端返回的用户信息 cookie 是存在域名 <code>*.local.com</code>；所以当我们请求业务数据的时候<code>a.local.com</code>的时候，浏览器自动把 cookie 带过去。</p>
+<p>因此想在请求业务数据<code>a.local.com</code>的时候不跨域而又需要<code>a.local.com</code>；那么本地访问的地址也是要<code>*.local.com</code>；顺理成章，我们把本地的host配一下，<code>a.local.com:8080</code>，这个时候有个疑问，因为不同协议(http/https)，不同域名，不同端口的情况下，都属于跨域，那么实际上 cookie 还是不会发过去...</p>
+<p>But, 对于我这种面向google的，还是去查一下，因为之前只停留在印象阶段，没有去实际应用；在<a href="https://stackoverflow.com/questions/1612177/are-http-cookies-port-specific">stackoverflow</a> 的回答中，指出 cookie 的传输不受端口的跨域限制。</p>
+<p>至此，我们前端开发的域名就与后端一致了；那么后端的接口怎么发送到后端同学那边呢，这里我们可以使用webpack-dev-server代理我们的请求；webpack dev-server的简略<a href="https://webpack.js.org/configuration/dev-server">配置</a>：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-attribute">devServer</span>: {
+    <span class="hljs-attribute">proxy</span>: {
+        <span class="hljs-comment">// 通常针对特定规则的请求</span>
+        <span class="hljs-string">'^/backend'</span>: {
+            <span class="hljs-comment">// 后端同学的ip地址</span>
+            <span class="hljs-attribute">target</span>: <span class="hljs-string">'172.x.x.x'</span>
+        }
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>总体起来是两点：</p>
+<ol>
+<li>本地配host与测试用户服务器域名为同一个父域名的地址；</li>
+<li>使用webpack-dev-server 代理请求，指定到业务服务器的地址</li>
+</ol>
+<h2 id="总结">总结</h2><p>这次解决的问题实际上也比较简单；但是对一些之前认知的知识只停留在理论阶段，在实际应用上并没有实践好；顺便也巩固之前一些模棱两可的答案。end...</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
