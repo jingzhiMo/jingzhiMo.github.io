@@ -1,0 +1,1149 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+动手实现简单版 vue 计算属性computed - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">June 01, 2019</p>
+  <h1 class="title">动手实现简单版 vue 计算属性computed</h1>
+  <div class="content"><p>在使用 vue 的时候，了解到计算属性很好用，可以延迟计算直到调用才返回真实的数据，而且计算属性依赖的值没有发生改变的情况，就不会重新执行函数计算；比较好奇是怎么实现的，但是没有去了解原理性相关，最近去看一下源码实现，大概直到具体的实现。下面就是根据自己的了解，手动实现一个简单的计算属性：</p>
+<h2 id="思考">思考</h2><p>我们知道 vue2.x 是基于<code>Object.defineProperty</code>来劫持数据的，那么挂载到<code>vm.data</code>的属性值就很好理解，在<code>getter</code>与<code>setter</code>的函数里面做一层简单的代理，那么计算属性为啥可以从一个函数变成一个数值，而且可以知道依赖的数据值？大概是因为计算属性的函数执行的时候，会触发到<code>data</code>属性的<code>getter</code>，那么我们就可以在这里做手脚，就知道当前的计算属性依赖了多少<code>data</code>数据了。</p>
+<h2 id="v10">v1.0</h2><p>我们来看一段的代码，声明<code>data</code>与<code>computed</code>数据，劫持<code>data</code>数据方法，初始化计算属性方法等</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+<span>57</span>
+<span>58</span>
+<span>59</span>
+<span>60</span>
+<span>61</span>
+<span>62</span>
+<span>63</span>
+<span>64</span>
+<span>65</span>
+<span>66</span>
+<span>67</span>
+<span>68</span>
+<span>69</span>
+<span>70</span>
+<span>71</span>
+<span>72</span>
+<span>73</span>
+<span>74</span>
+<span>75</span>
+<span>76</span>
+<span>77</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// data 数据</span>
+<span class="hljs-keyword">var</span> data = {
+    <span class="hljs-attr">foo</span>: <span class="hljs-number">123</span>,
+    <span class="hljs-attr">bar</span>: <span class="hljs-string">'bar'</span>
+}
+
+<span class="hljs-comment">// data 的代理对象</span>
+<span class="hljs-keyword">var</span> _data = {}
+
+<span class="hljs-comment">// 计算属性数据</span>
+<span class="hljs-keyword">var</span> computedData = {
+    fooMap () {
+        <span class="hljs-keyword">return</span> data.foo + <span class="hljs-number">1</span>
+    },
+    barMap () {
+        <span class="hljs-keyword">return</span> data.bar + <span class="hljs-string">' baz'</span>
+    }
+}
+
+<span class="hljs-comment">// 是否在收集数据</span>
+<span class="hljs-keyword">var</span> isDep = <span class="hljs-literal">false</span>
+<span class="hljs-comment">// 当前收集的回调函数</span>
+<span class="hljs-keyword">var</span> notify
+
+<span class="hljs-comment">// foo 的回调函数列表</span>
+<span class="hljs-keyword">var</span> fooNotify = []
+
+<span class="hljs-comment">// 回调函数对应的字段</span>
+<span class="hljs-keyword">var</span> notifyProp
+
+
+<span class="hljs-comment">// 劫持数据方法</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">defineProperty</span> (<span class="hljs-params">obj</span>) </span>{
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> key <span class="hljs-keyword">in</span> obj) {
+        <span class="hljs-comment">// 缓存原有的数据</span>
+        _data[key] = obj[key]
+
+        <span class="hljs-built_in">Object</span>.defineProperty(obj, key, {
+            <span class="hljs-keyword">get</span> () {
+                <span class="hljs-comment">// 判断当前调用方法是否在收集当中</span>
+                <span class="hljs-keyword">if</span> (isDep) {
+                    <span class="hljs-comment">// 计算属性对应的方法与计算属性对应的key值加入到缓存</span>
+                    fooNotify.push([notify, notifyProp])
+                }
+                <span class="hljs-keyword">return</span> _data[key]
+            },
+            <span class="hljs-keyword">set</span> (value) {
+                <span class="hljs-comment">// 更改缓存的数值</span>
+                _data[key] = value
+                <span class="hljs-comment">// 计算属性对应的方法重新计算，重新赋值</span>
+                fooNotify.forEach(<span class="hljs-function"><span class="hljs-params">item</span> =&gt;</span> {
+                    computedData[item[<span class="hljs-number">1</span>]] = item[<span class="hljs-number">0</span>]()
+                })
+            }
+        })
+    }
+    <span class="hljs-keyword">return</span> obj
+}
+
+<span class="hljs-comment">// 初始化计算属性</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initComputed</span> (<span class="hljs-params">computed</span>) </span>{
+    <span class="hljs-comment">// 依赖收集开始</span>
+    isDep = <span class="hljs-literal">true</span>
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> key <span class="hljs-keyword">in</span> computed) {
+        <span class="hljs-keyword">let</span> method = computed[key]
+
+        <span class="hljs-comment">// 把当前的计算属性方法赋值到全局变量</span>
+        notify = method
+        notifyProp = key
+        <span class="hljs-comment">// 通过函数计算获取数据，获得计算属性的值</span>
+        computed[key] = method()
+    }
+
+    <span class="hljs-comment">// 依赖收集结束</span>
+    isDep = <span class="hljs-literal">false</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>定义好方法与数据，我们可以尝试着使用：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 1. 劫持数据</span>
+<span class="hljs-function"><span class="hljs-title">defineProperty</span><span class="hljs-params">(data)</span></span>
+<span class="hljs-comment">// 2. 初始化计算属性</span>
+<span class="hljs-function"><span class="hljs-title">initComputed</span><span class="hljs-params">(computedData)</span></span> 
+<span class="hljs-comment">// 执行完这一步，computedData 的数据就变成了：{ fooMap: 124, barMap: 'bar baz' }</span>
+<span class="hljs-comment">// 3. 更改 data.foo 的值</span>
+data<span class="hljs-selector-class">.foo</span> = <span class="hljs-number">1234</span>
+<span class="hljs-comment">// 执行完这一步，computedData 为： {fooMap: 1235, barMap: 'bar baz'}</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>从上面的结果得到，可以实现计算属性一个很重要的一个特点：依赖数据发生改变，则计算属性发生改变；但是缺点也是很明显的，变量都是全局变量；依赖数据发生改变的回调的方法也是放到全局的数组；我们在接下来的v2版本修好这种情况。现在我们大概看到<code>computed</code>与<code>data</code>的观察者关系：
+<img src="https://note.youdao.com/yws/public/resource/8ec5f6107563d52970796252f51655e4/xmlnote/D690688D786748889AF42E2E0C4B4F5A/20057" alt=""></p>
+<h2 id="v20">v2.0</h2><p>这一个版本我们主要 fix 部分全局变量，把计算属性与数据归类到同一个对象，这个版本改动不多，下面显示的是两次diff的截图；具体版本代码可以看 <a href="">v2.0 版本链接</a></p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+<span>57</span>
+<span>58</span>
+<span>59</span>
+<span>60</span>
+<span>61</span>
+<span>62</span>
+<span>63</span>
+<span>64</span>
+<span>65</span>
+<span>66</span>
+<span>67</span>
+<span>68</span>
+<span>69</span>
+<span>70</span>
+<span>71</span>
+<span>72</span>
+<span>73</span>
+<span>74</span>
+<span>75</span>
+<span>76</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 是否在收集数据</span>
+<span class="hljs-selector-tag">var</span> isDep = false
+<span class="hljs-comment">// 当前收集的回调函数</span>
+<span class="hljs-selector-tag">var</span> notify
+
+<span class="hljs-comment">// foo 的回调函数列表</span>
+<span class="hljs-selector-tag">var</span> fooNotify = []
+
+<span class="hljs-comment">// 回调函数对应的字段</span>
+<span class="hljs-selector-tag">var</span> notifyProp
+
+<span class="hljs-selector-tag">var</span> instance = {
+    data: {
+        foo: <span class="hljs-number">123</span>,
+        bar: <span class="hljs-string">'bar'</span>
+    },
+    computed: {
+        fooMap () {
+            return instance<span class="hljs-selector-class">.data</span><span class="hljs-selector-class">.foo</span> + <span class="hljs-number">1</span>
+        },
+        barMap () {
+            return instance<span class="hljs-selector-class">.data</span><span class="hljs-selector-class">.bar</span> + <span class="hljs-string">' baz'</span>
+        }
+    }
+}
+
+<span class="hljs-comment">// 劫持对象</span>
+function defineProperty (vm) {
+    let data = vm<span class="hljs-selector-class">.data</span>
+
+    vm._data = {}
+
+    <span class="hljs-keyword">for</span> (let key <span class="hljs-keyword">in</span> data) {
+        <span class="hljs-comment">// 缓存原有的数据</span>
+        vm._data[key] = data[key]
+
+        Object.defineProperty(data, key, {
+            get () {
+                <span class="hljs-keyword">if</span> (isDep) {
+                    fooNotify.push([notify, notifyProp])
+                }
+                return vm._data[key]
+            },
+            set (value) {
+                vm._data[key] = value
+                fooNotify.forEach(item =&gt; {
+                    vm<span class="hljs-selector-class">.computed</span>[item[<span class="hljs-number">1</span>]] = item[<span class="hljs-number">0</span>]()
+                })
+            }
+        })
+    }
+    return data
+}
+
+<span class="hljs-comment">// 初始化计算属性</span>
+function initComputed (vm) {
+    <span class="hljs-comment">// 依赖收集开始</span>
+    isDep = true
+
+    <span class="hljs-keyword">for</span> (let key <span class="hljs-keyword">in</span> vm.computed) {
+        let method = vm<span class="hljs-selector-class">.computed</span>[key]
+
+        notify = method
+        notifyProp = key
+        <span class="hljs-comment">// 通过函数计算获取数据</span>
+        vm<span class="hljs-selector-class">.computed</span>[key] = method()
+    }
+
+    <span class="hljs-comment">// 依赖收集结束</span>
+    isDep = false
+}
+
+<span class="hljs-comment">// 劫持 data 数据</span>
+<span class="hljs-function"><span class="hljs-title">defineProperty</span><span class="hljs-params">(instance)</span></span>
+<span class="hljs-comment">// 初始化计算属性</span>
+<span class="hljs-function"><span class="hljs-title">initComputed</span><span class="hljs-params">(instance)</span></span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在完成v2.0版本之后，我们把计算属性与数据合成到一个对象；但是只能实现一个计算属性的应用，如果有多个计算属性的话，就控制不了，因为存放计算属性的数组只有一个，在v3版本，需要处理这种情况。</p>
+<h2 id="v30">v3.0</h2>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+<span>57</span>
+<span>58</span>
+<span>59</span>
+<span>60</span>
+<span>61</span>
+<span>62</span>
+<span>63</span>
+<span>64</span>
+<span>65</span>
+<span>66</span>
+<span>67</span>
+<span>68</span>
+<span>69</span>
+<span>70</span>
+<span>71</span>
+<span>72</span>
+<span>73</span>
+<span>74</span>
+<span>75</span>
+<span>76</span>
+<span>77</span>
+<span>78</span>
+<span>79</span>
+<span>80</span>
+<span>81</span>
+<span>82</span>
+<span>83</span>
+<span>84</span>
+<span>85</span>
+<span>86</span>
+<span>87</span>
+<span>88</span>
+<span>89</span>
+<span>90</span>
+<span>91</span>
+<span>92</span>
+<span>93</span>
+<span>94</span>
+<span>95</span>
+<span>96</span>
+<span>97</span>
+<span>98</span>
+<span>99</span>
+<span>100</span>
+<span>101</span>
+<span>102</span>
+<span>103</span>
+<span>104</span>
+<span>105</span>
+<span>106</span>
+<span>107</span>
+<span>108</span>
+<span>109</span>
+<span>110</span>
+<span>111</span>
+<span>112</span>
+<span>113</span>
+<span>114</span>
+<span>115</span>
+<span>116</span>
+<span>117</span>
+<span>118</span>
+<span>119</span>
+<span>120</span>
+<span>121</span>
+<span>122</span>
+<span>123</span>
+<span>124</span>
+<span>125</span>
+<span>126</span>
+<span>127</span>
+<span>128</span>
+<span>129</span>
+<span>130</span>
+<span>131</span>
+<span>132</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 观察者列表</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObserverList</span> </span>{
+    <span class="hljs-keyword">constructor</span> () {
+        <span class="hljs-keyword">this</span>.list = []
+    }
+    add (item) {
+        <span class="hljs-keyword">this</span>.list.push(item)
+    }
+    count () {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.list.length
+    }
+    getByIndex (index) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.list[index]
+    }
+}
+
+<span class="hljs-comment">// 被观察者</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Watcher</span> </span>{
+    <span class="hljs-keyword">constructor</span> () {
+        <span class="hljs-keyword">this</span>.observer = <span class="hljs-keyword">new</span> ObserverList()
+    }
+    addObserver (observer) {
+        <span class="hljs-keyword">this</span>.observer.add(observer)
+    }
+    notify () {
+        <span class="hljs-keyword">let</span> len = <span class="hljs-keyword">this</span>.observer.count()
+
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; len; i++) {
+            <span class="hljs-keyword">this</span>.observer.getByIndex(i).update()
+        }
+    }
+}
+
+<span class="hljs-comment">// 观察者</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Observer</span> </span>{
+    <span class="hljs-keyword">constructor</span> (update) {
+        <span class="hljs-keyword">this</span>.update = update
+    }
+}
+
+<span class="hljs-comment">// 数据依赖</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Dep</span> </span>{}
+
+Dep.target = <span class="hljs-string">''</span>
+
+<span class="hljs-comment">// 劫持对象</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">defineProperty</span> (<span class="hljs-params">vm</span>) </span>{
+    <span class="hljs-keyword">let</span> data = vm.data
+
+    vm._data = {}
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> key <span class="hljs-keyword">in</span> data) {
+        <span class="hljs-comment">// 缓存原有的数据</span>
+        vm._data[key] = data[key]
+
+        <span class="hljs-built_in">Object</span>.defineProperty(data, key, {
+            <span class="hljs-keyword">get</span> () {
+                <span class="hljs-comment">// 只有在依赖收集的时候，才需要添加 watcher，普通数据调用不需要添加 watcher</span>
+                <span class="hljs-keyword">if</span> (Dep.target) {
+                    <span class="hljs-comment">// 当前数据字段还没有 watcher ，则新建一个</span>
+                    <span class="hljs-keyword">let</span> watcher = vm._watcher[key] || <span class="hljs-keyword">new</span> Watcher()
+
+                    <span class="hljs-comment">// 加入到依赖数组</span>
+                    watcher.addObserver(Dep.target)
+                    vm._watcher[key] = watcher
+                }
+                <span class="hljs-keyword">return</span> vm._data[key]
+            },
+            <span class="hljs-keyword">set</span> (value) {
+                vm._data[key] = value
+
+                <span class="hljs-comment">// 有对应的 watcher 那么则提示更新，调用watcher的notify方法</span>
+                <span class="hljs-keyword">if</span> (vm._watcher[key]) {
+                    vm._watcher[key].notify()
+                }
+            }
+        })
+    }
+    <span class="hljs-keyword">return</span> data
+}
+
+<span class="hljs-comment">// 初始化计算属性</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initComputed</span> (<span class="hljs-params">vm</span>) </span>{
+    vm._watcher = {}
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> key <span class="hljs-keyword">in</span> vm.computed) {
+        <span class="hljs-keyword">let</span> method = vm.computed[key]
+
+        <span class="hljs-comment">// 新建 observer，并标识收集依赖开始</span>
+        Dep.target = <span class="hljs-keyword">new</span> Observer(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+            vm.computed[key] = method()
+        })
+
+        <span class="hljs-comment">// 通过函数初始化计算数据，并且获取到所有依赖</span>
+        vm.computed[key] = method()
+        <span class="hljs-comment">// 依赖收集结束</span>
+        Dep.target = <span class="hljs-literal">undefined</span>
+    }
+}
+
+<span class="hljs-keyword">var</span> instance = {
+    <span class="hljs-attr">data</span>: {
+        <span class="hljs-attr">foo</span>: <span class="hljs-number">123</span>,
+        <span class="hljs-attr">bar</span>: <span class="hljs-string">'bar'</span>,
+        <span class="hljs-attr">baz</span>: <span class="hljs-string">'bazbaz'</span>
+    },
+    <span class="hljs-attr">computed</span>: {
+        fooMap () {
+            <span class="hljs-keyword">let</span> num = instance.data.foo + <span class="hljs-number">1</span>
+            <span class="hljs-keyword">let</span> str = instance.data.bar + <span class="hljs-string">'...str'</span>
+
+            <span class="hljs-keyword">return</span> num + str
+        },
+        barMap () {
+            <span class="hljs-keyword">return</span> instance.data.bar + <span class="hljs-string">' baz'</span>
+        }
+    }
+}
+
+<span class="hljs-comment">// 劫持 data 数据</span>
+defineProperty(instance)
+<span class="hljs-comment">// 初始化计算属性</span>
+initComputed(instance)
+
+<span class="hljs-comment">// 验证处理：</span>
+<span class="hljs-built_in">console</span>.log(instance.computed.fooMap) <span class="hljs-comment">// 124bar...str</span>
+<span class="hljs-built_in">console</span>.log(instance.computed.barMap) <span class="hljs-comment">// bar baz</span>
+<span class="hljs-comment">// 赋值数据</span>
+instance.data.bar = <span class="hljs-string">'new bar value'</span>
+<span class="hljs-built_in">console</span>.log(instance.computed.fooMap) <span class="hljs-comment">// 124new bar value...str</span>
+<span class="hljs-built_in">console</span>.log(instance.computed.barMap) <span class="hljs-comment">// new bar value baz  </span>
+<span class="hljs-comment">// done.</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这个版本更改的地方比较多，加入观察者模式的处理；</p>
+<p>在初始化计算属性的时候，为每个计算属性新建一个观察者，新建一个观察者传入的参数是一个函数，这个函数会在依赖的数据发生改变的时候执行；函数的内容就是为计算属性的值重新计算:</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre> <span class="hljs-comment">// 新建 observer，并标识收集依赖开始</span>
+<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Dep</span>.</span></span>target = <span class="hljs-keyword">new</span> <span class="hljs-constructor">Observer(()</span> =&gt; {
+    vm.computed<span class="hljs-literal">[<span class="hljs-identifier">key</span>]</span> = <span class="hljs-keyword">method</span><span class="hljs-literal">()</span> <span class="hljs-comment">// method 是指计算属性对应的方法</span>
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在劫持数据的时候，数据的<code>get</code>触发的时候，如果是在依赖收集的过程中（也就是数据被计算属性调用），那么就会为这个数据添加<code>watcher</code>；并且把当前正在收集依赖的计算属性对应的<code>observer</code>实例加入到watcher中</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">if</span> (<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Dep</span>.</span></span>target) {
+    <span class="hljs-comment">// 当前数据字段还没有 watcher ，则新建一个</span>
+    <span class="hljs-keyword">let</span> watcher = vm._watcher<span class="hljs-literal">[<span class="hljs-identifier">key</span>]</span><span class="hljs-operator"> || </span><span class="hljs-keyword">new</span> <span class="hljs-constructor">Watcher()</span>
+
+    <span class="hljs-comment">// 加入到依赖数组</span>
+    watcher.add<span class="hljs-constructor">Observer(Dep.<span class="hljs-params">target</span>)</span>
+    vm._watcher<span class="hljs-literal">[<span class="hljs-identifier">key</span>]</span> = watcher
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>数据的<code>set</code>触发的时候，那么就需要通知对应观察者，计算属性对应的值就可以更新。</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 有对应的 watcher 那么则提示更新，调用watcher的notify方法</span>
+<span class="hljs-keyword">if</span> (vm._watcher[<span class="hljs-built_in">key</span>]) {
+    vm._watcher[<span class="hljs-built_in">key</span>].<span class="hljs-built_in">notify</span>()
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>通过引入观察者的类别，处理多个计算属性；现在我们基本完善好v1.0版本全局变量的问题；除此之外，计算属性也有一个比较重要的特点是：惰性求值。当没有调用计算属性的时候，是不会触发计算；而且如果单个计算属性调用数据多次的时候，会存在watcher添加多次observer，这些下一个版本继续增加或优化。</p>
+<h2 id="v40">v4.0</h2>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+<span>57</span>
+<span>58</span>
+<span>59</span>
+<span>60</span>
+<span>61</span>
+<span>62</span>
+<span>63</span>
+<span>64</span>
+<span>65</span>
+<span>66</span>
+<span>67</span>
+<span>68</span>
+<span>69</span>
+<span>70</span>
+<span>71</span>
+<span>72</span>
+<span>73</span>
+<span>74</span>
+<span>75</span>
+<span>76</span>
+<span>77</span>
+<span>78</span>
+<span>79</span>
+<span>80</span>
+<span>81</span>
+<span>82</span>
+<span>83</span>
+<span>84</span>
+<span>85</span>
+<span>86</span>
+<span>87</span>
+<span>88</span>
+<span>89</span>
+<span>90</span>
+<span>91</span>
+<span>92</span>
+<span>93</span>
+<span>94</span>
+<span>95</span>
+<span>96</span>
+<span>97</span>
+<span>98</span>
+<span>99</span>
+<span>100</span>
+<span>101</span>
+<span>102</span>
+<span>103</span>
+<span>104</span>
+<span>105</span>
+<span>106</span>
+<span>107</span>
+<span>108</span>
+<span>109</span>
+<span>110</span>
+<span>111</span>
+<span>112</span>
+<span>113</span>
+<span>114</span>
+<span>115</span>
+<span>116</span>
+<span>117</span>
+<span>118</span>
+<span>119</span>
+<span>120</span>
+<span>121</span>
+<span>122</span>
+<span>123</span>
+<span>124</span>
+<span>125</span>
+<span>126</span>
+<span>127</span>
+<span>128</span>
+<span>129</span>
+<span>130</span>
+<span>131</span>
+<span>132</span>
+<span>133</span>
+<span>134</span>
+<span>135</span>
+<span>136</span>
+<span>137</span>
+<span>138</span>
+<span>139</span>
+<span>140</span>
+<span>141</span>
+<span>142</span>
+<span>143</span>
+<span>144</span>
+<span>145</span>
+<span>146</span>
+<span>147</span>
+<span>148</span>
+<span>149</span>
+<span>150</span>
+<span>151</span>
+<span>152</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 观察者列表</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObserverList</span> </span>{
+    <span class="hljs-keyword">constructor</span> () {
+        <span class="hljs-keyword">this</span>.list = []
+    }
+    add (item) {
+        <span class="hljs-keyword">this</span>.list.push(item)
+    }
+    count () {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.list.length
+    }
+    getByIndex (index) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.list[index]
+    }
+}
+
+<span class="hljs-comment">// 被观察者</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Watcher</span> </span>{
+    <span class="hljs-keyword">constructor</span> () {
+        <span class="hljs-keyword">this</span>.dep = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Set</span>()
+        <span class="hljs-keyword">this</span>.observer = <span class="hljs-keyword">new</span> ObserverList()
+    }
+    addObserver (observer) {
+        <span class="hljs-comment">// 已经加入了到依赖，返回，不做处理</span>
+        <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">this</span>.dep.has(observer.id)) {
+            <span class="hljs-keyword">this</span>.observer.add(observer)
+            <span class="hljs-keyword">this</span>.dep.add(observer.id)
+        }
+    }
+    notify () {
+        <span class="hljs-keyword">let</span> len = <span class="hljs-keyword">this</span>.observer.count()
+
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; len; i++) {
+            <span class="hljs-keyword">let</span> ob = <span class="hljs-keyword">this</span>.observer.getByIndex(i)
+            ob.dirty = <span class="hljs-literal">true</span>
+            ob.update()
+        }
+    }
+}
+
+<span class="hljs-comment">// 观察者</span>
+<span class="hljs-keyword">let</span> _uid = <span class="hljs-number">0</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Observer</span> </span>{
+    <span class="hljs-keyword">constructor</span> (update) {
+        <span class="hljs-keyword">this</span>.id = _uid++
+        <span class="hljs-keyword">this</span>.update = update
+    }
+}
+
+<span class="hljs-comment">// 数据依赖</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Dep</span> </span>{}
+
+Dep.target = <span class="hljs-string">''</span>
+
+<span class="hljs-comment">// 劫持对象</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">defineProperty</span> (<span class="hljs-params">vm</span>) </span>{
+    <span class="hljs-keyword">let</span> data = vm.data
+
+    vm._data = {}
+    vm._watcher = {}
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> key <span class="hljs-keyword">in</span> data) {
+        <span class="hljs-comment">// 缓存原有的数据</span>
+        vm._data[key] = data[key]
+
+        <span class="hljs-built_in">Object</span>.defineProperty(data, key, {
+            <span class="hljs-keyword">get</span> () {
+                <span class="hljs-keyword">if</span> (Dep.target) {
+                    <span class="hljs-comment">// 当前数据字段还没有 watcher ，则新建一个</span>
+                    <span class="hljs-keyword">let</span> watcher = vm._watcher[key] || <span class="hljs-keyword">new</span> Watcher()
+
+                    <span class="hljs-comment">// 加入到依赖数组</span>
+                    watcher.addObserver(Dep.target)
+                    vm._watcher[key] = watcher
+                }
+                <span class="hljs-keyword">return</span> vm._data[key]
+            },
+            <span class="hljs-keyword">set</span> (value) {
+                vm._data[key] = value
+
+                <span class="hljs-comment">// 有 watcher 那么则提示更新</span>
+                <span class="hljs-keyword">if</span> (vm._watcher[key]) {
+                    vm._watcher[key].notify()
+                }
+            }
+        })
+    }
+    <span class="hljs-keyword">return</span> data
+}
+
+<span class="hljs-comment">// 初始化计算属性</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initComputed</span> (<span class="hljs-params">vm</span>) </span>{
+    vm._computedWatcher = {}
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> key <span class="hljs-keyword">in</span> vm.computed) {
+        <span class="hljs-keyword">let</span> method = vm.computed[key]
+
+        vm._computedWatcher[key] = {
+            <span class="hljs-attr">dirty</span>: <span class="hljs-literal">true</span>,
+            <span class="hljs-attr">value</span>: <span class="hljs-literal">undefined</span>,
+            <span class="hljs-attr">getter</span>: method,
+            <span class="hljs-comment">// 这个属性的观察者</span>
+            ob: <span class="hljs-literal">undefined</span>
+        }
+
+        <span class="hljs-built_in">Object</span>.defineProperty(vm.computed, key, {
+            <span class="hljs-keyword">get</span> () {
+                <span class="hljs-keyword">let</span> cache = vm._computedWatcher[key]
+
+                <span class="hljs-keyword">if</span> (!cache.dirty) {
+                    <span class="hljs-keyword">return</span> cache.value
+                } <span class="hljs-keyword">else</span> {
+                    <span class="hljs-comment">// 该属性没有指定的观察者，则新建</span>
+                    <span class="hljs-keyword">if</span> (!cache.ob) {
+                        <span class="hljs-comment">// 新建 observer，并标识收集依赖开始</span>
+                        Dep.target = cache.ob = <span class="hljs-keyword">new</span> Observer(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+                            cache.value = cache.getter()
+                        })
+                    }
+                    cache.dirty = <span class="hljs-literal">false</span>
+                    cache.value = cache.getter()
+                }
+
+                <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'calc new cache'</span>)
+                <span class="hljs-keyword">return</span> cache.value
+            }
+        })
+        <span class="hljs-comment">// 通过函数初始化计算数据，并且获取到所有依赖</span>
+        vm.computed[key] = method()
+        <span class="hljs-comment">// 依赖收集结束</span>
+        Dep.target = <span class="hljs-literal">undefined</span>
+    }
+}
+
+<span class="hljs-keyword">var</span> instance = {
+    <span class="hljs-attr">data</span>: {
+        <span class="hljs-attr">foo</span>: <span class="hljs-number">123</span>,
+        <span class="hljs-attr">bar</span>: <span class="hljs-string">'bar'</span>,
+        <span class="hljs-attr">baz</span>: <span class="hljs-string">'bazbaz'</span>
+    },
+    <span class="hljs-attr">computed</span>: {
+        fooMap () {
+            <span class="hljs-keyword">let</span> num = instance.data.foo + <span class="hljs-number">1</span>
+            <span class="hljs-keyword">let</span> str = instance.data.bar + <span class="hljs-string">'...str'</span>
+
+            <span class="hljs-keyword">return</span> num + str
+        },
+        barMap () {
+            <span class="hljs-keyword">return</span> instance.data.bar + <span class="hljs-string">' baz'</span>
+        }
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在这一个版本，主要新增了，<code>vm._computedWatcher</code>，缓存每一个计算属性的一些记录，结构如下：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre>vm._computedWatcher[key] = {
+<span class="hljs-symbol">    dirty:</span> true, <span class="hljs-comment">// 表示当前数据是否为“脏”，当为“脏”的时候，则需要重新计算</span>
+<span class="hljs-symbol">    value:</span> undefined, <span class="hljs-comment">// 缓存计算属性的返回值</span>
+<span class="hljs-symbol">    getter:</span> method, <span class="hljs-comment">// 计算属性对应的计算方法</span>
+<span class="hljs-symbol">    ob:</span> undefined <span class="hljs-comment">// 这个属性的观察者</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>dirty</code>为<code>true</code>的情况主要是两种，一种初始化的时候，另外一个种是依赖的数据已经发生了改变。为了验证这种情况，我们在计算属性的<code>get</code>方法打log，如果被调用的时候就会log出来：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 劫持 data 数据</span>
+<span class="hljs-function"><span class="hljs-title">defineProperty</span><span class="hljs-params">(instance)</span></span>
+<span class="hljs-comment">// 初始化计算属性</span>
+<span class="hljs-function"><span class="hljs-title">initComputed</span><span class="hljs-params">(instance)</span></span> <span class="hljs-comment">// 这个时候并没有 log：calc new cache</span>
+
+<span class="hljs-comment">// 获取计算属性</span>
+instance<span class="hljs-selector-class">.computed</span><span class="hljs-selector-class">.fooMap</span>
+<span class="hljs-comment">// calc new cache</span>
+<span class="hljs-comment">// return 124bar...str</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>由此可以看出，惰性求值是可以的。另外可以注意到为每个观察者的实例添加一个<code>id</code>，在<code>watcher</code>添加观察者的时候判断观察者列表是否已经包含当前观察者，可以实现简单的观察者去重。</p>
+<h2 id="总结">总结</h2><p>至此，一个简单的计算属性就可以实现起来，虽然使用起来与vue有区别，例如数据与计算属性都挂载到vm对象；并且例子的健壮性也需要提高，没有考虑到一些特殊的情况，例如如何监听数组的变化，这些也需要实现；还有一些例如<code>sync</code>特性没有实现；但是大部分常用功能都能够实现，而且思路上理解清晰就完成了部分任务；这个时候再去看 vue 的源码应该会理解起来更加快。end.</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
