@@ -234,7 +234,7 @@ data<span class="hljs-selector-class">.foo</span> = <span class="hljs-number">12
       </div>
     <p>从上面的结果得到，可以实现计算属性一个很重要的一个特点：依赖数据发生改变，则计算属性发生改变；但是缺点也是很明显的，变量都是全局变量；依赖数据发生改变的回调的方法也是放到全局的数组；我们在接下来的v2版本修好这种情况。现在我们大概看到<code>computed</code>与<code>data</code>的观察者关系：
 <img src="https://note.youdao.com/yws/public/resource/8ec5f6107563d52970796252f51655e4/xmlnote/D690688D786748889AF42E2E0C4B4F5A/20057" alt=""></p>
-<h2 id="v20">v2.0</h2><p>这一个版本我们主要 fix 部分全局变量，把计算属性与数据归类到同一个对象，这个版本改动不多，下面显示的是两次diff的截图；具体版本代码可以看 <a href="">v2.0 版本链接</a></p>
+<h2 id="v20">v2.0</h2><p>这一个版本我们主要 fix 部分全局变量，把计算属性与数据归类到同一个对象，这个版本改动不多：</p>
 
       <div class="hljs javascript">
         <table>
