@@ -1,0 +1,879 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+ts学习笔记 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">June 19, 2019</p>
+  <h1 class="title">ts学习笔记</h1>
+  <div class="content"><p>这篇文章主要是读 <a href="https://ts.xcatliu.com/">ts 入门教程</a> 与 <a href="https://www.tslang.cn/docs/home.html">ts 中文网</a> 所记下来的一些笔记，作为后面学习的一个参考点；看完文章后，对知识点做一定的提取；但是描述起来比较简单，主要针对部分关键知识点；如果需要系统的学习的话，就需要把教程看了。</p>
+<h2 id="类型声明">类型声明</h2><ul>
+<li>声明基础数据带有类型：
+<code>`</code>ts
+// 声明数字
+let num: number</li>
+</ul>
+<p>num = 1
+num = &#39;str&#39; // error</p>
+<p>// 声明字符串
+let str: string = &#39;str&#39;</p>
+<p>// 声明多种类型
+let value: number | string</p>
+<p>value = 1
+value = &#39;str&#39;</p>
+<p>// 声明任意数据类型；若声明函数没有指明类型，也是 any 类型
+let value: any</p>
+<p>value = true
+value = { foo: &#39;foo&#39; }</p>
+<p>// 声明函数返回的类型
+// 函数参数支持类型也是与声明变量类似
+function foo (bar: string | number): boolean {
+    var flag:boolean = true</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+</pre>
+              </td>
+              <td class="code"><pre>console.log(bar.length) &#x2F;&#x2F; length 属性只在 string 类型存在，number 类型不存在；因为编译器会报错
+console.log(bar.toString()) &#x2F;&#x2F; 两种类型都有的方法，能够正常运行，因此当声明变量为多个类型的时候，访问的属性需要两个类型都具有的方法或者属性
+return flag</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>}</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+</pre>
+              </td>
+              <td class="code"><pre>
+* interface 定义对象类型
+&#x60;&#x60;&#x60;ts
+interface Person {
+    name: string,
+    age: number
+}
+
+let person: Person &#x3D; {
+    name: &#39;kyrie&#39;,
+    age: 20
+}
+
+&#x2F;&#x2F; 当有属性是不确定添加，部分对象包含，部分对象不包含的情况，可以使用这样子来表示：
+interface Person {
+    name: string,
+    nickName?: string,
+    age: number,
+    id?: number,
+}
+
+let person: Person &#x3D; {
+    name: &#39;kyrie&#39;,
+    age: 20,
+    id: 10
+}
+
+&#x2F;&#x2F; 当一个对象需要一些不确定名称的值，可以使用任意属性的定义方法，但是已知的属性必须是任意属性类型的子集；例如已知属性全部都是 string 类型；那么任意属性可以定义为 string, 但不能够定义为 number；如果已知属性有number, string，那么任意属性定义为 string 也不正确
+interface: Person {
+    readonly id: number,
+    name: string,
+    age: number,
+    [propName: string]: any &#x2F;&#x2F; 所以这里可以定义为 any 类型；那么 string 与 number 就是 any 的子集
+}
+
+&#x2F;&#x2F; 注意上面的接口有一个是 readonly 关键词，表示只读，也就是第一次赋值，不能二次赋值
+
+let person: Person &#x3D; {
+    id: 10,
+    name: &#39;kyrie&#39;,
+    age: 20
+}
+person.id &#x3D; 11 &#x2F;&#x2F; error</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ul>
+<li>定义数组类型</li>
+</ul>
+
+      <div class="hljs ts">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 1. 类型 + 方括号表示方法，类型包括 any 的定义</span>
+<span class="hljs-keyword">let</span> arr: <span class="hljs-built_in">number</span>[] = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>] <span class="hljs-comment">// 数组元素只能是数字</span>
+
+<span class="hljs-comment">// 2. 泛形(后面会说到泛型的详细信息)</span>
+<span class="hljs-keyword">let</span> arr: <span class="hljs-built_in">Array</span>&lt;<span class="hljs-built_in">number</span>&gt; = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>]
+
+<span class="hljs-comment">// 3. 接口类型</span>
+<span class="hljs-keyword">interface</span> NumberArray {
+    [index: <span class="hljs-built_in">number</span>]: <span class="hljs-built_in">number</span>
+}
+<span class="hljs-keyword">let</span> arr: NumberArray = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>] <span class="hljs-comment">// successful</span>
+<span class="hljs-keyword">let</span> arr2: NumberArray = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-string">'3'</span>] <span class="hljs-comment">// error</span>
+
+<span class="hljs-comment">// 4. 内置对象，常见的有：IArguments(普通函数的参数), NodeList, HTMLCollection</span>
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">foo</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-comment">// let args: number[] = arguments // error</span>
+    <span class="hljs-keyword">let</span> args: IArguments = <span class="hljs-built_in">arguments</span>
+
+    <span class="hljs-built_in">console</span>.log(args)
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-keyword">typeof</span> args)
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ul>
+<li>定义函数类型
+<code>`</code>js
+// 通常函数定义分两种，一种是函数声明，另外一种是函数表达式
+function foo () {} // 函数声明</li>
+</ul>
+<p>let foo = function () {} // 函数表达式</p>
+<p>// 对于普通函数声明：
+function foo (id: number, name: string = &#39;anonymous&#39;, age?: number, address?: string) {}</p>
+<p>// 上面这个函数表示，id 这个参数比必选的，name 参数有默认值，如果不传的值是 &#39;anonymous&#39;, age 参数是可选的，不传就没有值了；
+// 可选参数且没有默认值的参数，只能在函数声明的最后，可以有多个可选没默认值参数；有默认值的参数，后面可以接必须参数</p>
+<p>// 剩余参数的处理；实际上剩余参数是数组，我们可以声明数组的方式来处理
+function foo (id: number, name: string, ...msg: any[]) {
+    console.log(msg)
+}</p>
+<p>// 对于函数表达式
+let foo = function (id: number, name: string): any {
+    // 这样子定义是ok的，能够通过编译
+} </p>
+<p>// 实际上只是对右边的匿名函数进行声明类型，没有对 foo 的变量的类型声明，完整的声明方式应该是这样子的：
+// 注意区分箭头函数的区别
+let foo: (id: number, name: string) =&gt; any = function (id: number, name: string): any {
+    // xxx
+}</p>
+<p>// 另外一种为函数表达式变量定义类型的方式可以使用接口形式
+interface fooFunction {
+    (id: number, name: string): boolean
+}
+let foo: fooFunction = function (id: number, name: string): boolean {
+    return !!id
+}</p>
+<p>// 函数重载，需求：假设对传的参数是number，则扩大十倍，是字符串则添加前缀：
+function calc (value: number | string): number | string {
+    if (typeof value === &#39;number&#39;) {
+        return value * 10
+    } else {
+        return &#39;_&#39; + value
+    }
+}</p>
+<p>// 实际上是应该对参数是number 则返回值是 number; 参数是 string ，则返回值是 string
+function calc (value: number): number;
+function calc (value: string): string;
+function calc (value: number | string): number | string {
+    if (typeof value === &#39;number&#39;) {
+        return value * 10
+    } else {
+        return &#39;_&#39; + value
+    }
+}
+// 前两次声明是函数的定义，最后的声明是函数的实现；ts 会从最开始声明的进行匹配</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+</pre>
+              </td>
+              <td class="code"><pre>
+* 类型断言
+类型断言就是 ts 允许开发者覆盖它的推断，并且能以你任何你想要的方式分析它，这种机制被称为「类型断言」。
+&#x60;&#x60;&#x60;ts
+function getLength (value: string | number): void {
+    &#x2F;&#x2F; 断言方式有两种
+    &#x2F;&#x2F; 第一种是 &lt;type&gt; 的方式
+    console.log((&lt;string&gt;value).length)
+    &#x2F;&#x2F; 第二种是 值 as 类型
+    console.log((value as string).length)
+    &#x2F;&#x2F; 因为第一种方式在 jsx 里面会存在误区，所以在 jsx 语法里面，只能使用第二种
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>简要解释一下上面的函数，因为接收的参数有<code>string</code>与<code>number</code>两种类型，而<code>number</code>类型是没有<code>length</code>属性，前面说到，需要两个类型共有的方法或者属性才能使用；而我们这里强制断言为<code>string</code>，因此编译的时候不会报错。</p>
+<ul>
+<li>类型别名</li>
+</ul>
+<p>就例如上面的<code>getLength</code>方法，有些时候我们需要定义多个类型的时候，如果经常要重复编写就会很麻烦，我们可以自定义一个类型：</p>
+
+      <div class="hljs ts">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 使用 type 关键词</span>
+<span class="hljs-keyword">type</span> numStr = <span class="hljs-built_in">string</span> | <span class="hljs-built_in">number</span>
+<span class="hljs-keyword">type</span> numStrFun = numStr | <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-built_in">string</span>
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getLength</span> (<span class="hljs-params">value: numStr</span>) </span>{
+    <span class="hljs-comment">// ...</span>
+}
+
+<span class="hljs-comment">// type 关键词除了可以定义类型之外，还可以字符串字面量</span>
+<span class="hljs-keyword">type</span> top3 = <span class="hljs-string">'first'</span> | <span class="hljs-string">'second'</span> | <span class="hljs-string">'third'</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">typeFun</span> (<span class="hljs-params">value: top3</span>) </span>{
+    <span class="hljs-built_in">console</span>.log(value)
+}
+
+typeFun(<span class="hljs-string">'first'</span>)
+typeFun(<span class="hljs-string">'fourth'</span>) <span class="hljs-comment">// 报错，因为参数 fourth 不在定义的字符串字面量中</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ul>
+<li>元组类型
+通常数组是表示同一类型的元素，而元组(Tuple)则可以表示不同类型；
+<code>`</code>ts
+var multiType: [string, number]</li>
+</ul>
+<p>multiType = [&#39;1&#39;, 1]
+// 元组与数组比较类似，可以通过下标用来赋值或者取值，但是赋值的时候，这个值需要下标对应类型一致，否则会出错
+multiType[0] = 2 // error，类型对不上</p>
+<p>// 可以使用 push 添加属性，也可以使用 slice 来获取不同值
+multiType.push(&#39;2&#39;) // 注意使用 push 的时候，需要初始化值之后才能使用
+multiType.push(2)
+multiType.slice(0) // [ &#39;1&#39;, 1, &#39;2&#39;, 2 ]
+multiType.push(true) // error 类型对不上</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+</pre>
+              </td>
+              <td class="code"><pre>
+## 枚举
+
+通常是用于取值在一定范围的场景，例如一周7天，颜色固定红绿蓝三个颜色
+
+&#x60;&#x60;&#x60;ts
+enum Color {
+    red,
+    green,
+    blue
+}
+
+&#x2F;&#x2F; 取值
+Color[&#39;red&#39;] &#x2F;&#x2F; 0
+Color[1] &#x2F;&#x2F; &#39;green&#39;
+
+&#x2F;&#x2F; 上面的枚举类型，转换到js之后是这样子的：
+var Color;
+(function (Color) {
+    Color[Color[&quot;red&quot;] &#x3D; 0] &#x3D; &quot;red&quot;;
+    Color[Color[&quot;green&quot;] &#x3D; 1] &#x3D; &quot;green&quot;;
+    Color[Color[&quot;blue&quot;] &#x3D; 2] &#x3D; &quot;blue&quot;;
+})(Color || (Color &#x3D; {}));
+
+&#x2F;&#x2F; 执行后相当于：
+var Color &#x3D; {
+    0: &#39;red&#39;,
+    1: &#39;green&#39;,
+    2: &#39;blue&#39;,
+    &#39;red&#39;: 0,
+    &#39;green&#39;: 1,
+    &#39;blue&#39;: 2
+}
+&#x2F;&#x2F; 通过下标与字符串都能够访问到对应数据</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>实际上枚举的步长每次增加1；如果我们设置初始的值是1，例如：</p>
+
+      <div class="hljs ts">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">Color</span> {</span>
+    red = <span class="hljs-number">1</span>,
+    green,
+    blue
+}
+
+Color[<span class="hljs-number">2</span>] /<span class="hljs-regexp">/ 'green'
+Color[3] /</span><span class="hljs-regexp">/ 'blue'
+/</span><span class="hljs-regexp">/ 所以这个数可以是负数或者是小数，每次增加步长都是1；也可以是计算所得值：
+
+enum Color {
+    red,
+    green,
+    blue = 'blue'.length
+}
+
+/</span><span class="hljs-regexp">/ 需要注意的是，这个计算所得值对应的枚举项需要是最后的值；如果不是最后的值，那么计算所得值后面的枚举项将不能每次步长+1；无法获取确切的初始值而报错。</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ul>
+<li>类
+ts 的类与 es6 的类有比较多相同的地方；增加的地方有：</li>
+</ul>
+
+      <div class="hljs ts">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 1. 类的属性与方法添加修饰符：public(默认值，任何对象都能够访问到), private(只能在当前类的方法访问), protected(只能在当前类或者子类访问)</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span> </span>{
+    <span class="hljs-keyword">public</span> name
+    <span class="hljs-keyword">private</span> nickName
+
+    <span class="hljs-keyword">constructor</span> (name: string, nickName: string) {
+        <span class="hljs-keyword">this</span>.name = name
+        <span class="hljs-keyword">this</span>.nickName = nickName
+    }
+
+    <span class="hljs-comment">// 默认是 public，实例对象可以访问</span>
+    getName () {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.name
+    }
+    <span class="hljs-comment">// 私有方法，只能在当前类访问</span>
+    <span class="hljs-keyword">private</span> getNickName () {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.nickName
+    }
+    <span class="hljs-comment">// 保护方法，只能在当前类或者子类中访问</span>
+    <span class="hljs-keyword">protected</span> getFullName () {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.name + <span class="hljs-string">':'</span> + <span class="hljs-keyword">this</span>.nickName
+    }
+}
+
+<span class="hljs-comment">// 2. 抽象类，使用 abstract 关键词声明的类；抽象类是不能够直接实例化，只能通过有子类继承，并由子类实现所有抽象类的抽象方法</span>
+<span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Eat</span> </span>{
+    <span class="hljs-keyword">abstract</span> eatFood ()
+}
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Animal</span> </span>{
+    <span class="hljs-keyword">public</span> food
+    <span class="hljs-keyword">constructor</span> (food: string) {
+        <span class="hljs-keyword">this</span>.food = food
+    }
+    eatFood () {
+        console.log(<span class="hljs-string">'eat food:'</span>, <span class="hljs-keyword">this</span>.food)
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h2 id="类与接口interface">类与接口 (interface)</h2><p>通常类大多数都是继承关系，子类通过继承父类，然后加多一些特有的方法属性等；但有时候继承类并不能实现所有方法，子类(假设为A)可能有些方法需要在别的类(假设为B类)实现；而且这个B类也为其他类别(假设为C类)提供；B类就有点公共类的意思了，同时为A，C类提供；</p>
+<p>例如一个场景：</p>
+<blockquote>
+<p>举例来说，门是一个类，防盗门是门的子类。如果防盗门有一个报警器的功能，我们可以简单的给防盗门添加一个报警方法。这时候如果有另一个类，车，也有报警器的功能，就可以考虑把报警器提取出来，作为一个接口，防盗门和车都去实现它：</p>
+</blockquote>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+</pre>
+              </td>
+              <td class="code"><pre>interface Alarm {
+    alert ()
+}
+
+class Door {
+}
+
+class SecurityDoor extends Door implements Alarm {
+    alert () {
+        console.log(&#39;SecurityDoor alert&#39;)
+    }
+}
+
+class Car implements Alarm {
+    alert () {
+        console.log(&#39;Car alert&#39;) 
+    }
+}
+
+&#x2F;&#x2F; 并且一个类可以实现多个接口：
+interface Alarm {
+    alert()
+}
+
+interface Light {
+    lightOn ()
+    lightOff ()
+}
+
+class Car implements Alarm, Light {
+    alert() {
+        console.log(&#39;Car alert&#39;)
+    }
+    lightOn() {
+        console.log(&#39;Car light on&#39;)
+    }
+    lightOff() {
+        console.log(&#39;Car light off&#39;)
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <blockquote>
+<p>上例中，Car 实现了 Alarm 和 Light 接口，既能报警，也能开关车灯</p>
+</blockquote>
+<p>这样子在使用 class 语法的时候，能够提高类的灵活性；容易添加部分公共类方法，扩充对象</p>
+<h2 id="泛型">泛型</h2><p>通常在定义函数、接口、类的时候，会定义一些类型；但有时候有些类型是函数执行的时候才能确定，并且是根据传入参数的类型，返回的类型也要一致；那样子就有点存在动态类型的意思了；而泛型的作用是<strong>可以在定义的时候不预先指定类型，在运行的时候再确定好数据的类型：</strong></p>
+
+      <div class="hljs ts">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+<span>57</span>
+<span>58</span>
+<span>59</span>
+<span>60</span>
+<span>61</span>
+<span>62</span>
+<span>63</span>
+<span>64</span>
+<span>65</span>
+<span>66</span>
+<span>67</span>
+<span>68</span>
+<span>69</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">repeatValue</span>&lt;<span class="hljs-title">T</span>&gt; (<span class="hljs-params">value: T</span>): <span class="hljs-title">T</span>[] </span>{
+    <span class="hljs-keyword">var</span> arr: T[] = []
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">3</span>; i++) {
+        arr.push(value)
+    }
+
+    <span class="hljs-keyword">return</span> arr
+}
+
+repeatValue(<span class="hljs-string">'str'</span>) <span class="hljs-comment">// ['str', 'str', 'str']</span>
+repeatValue(<span class="hljs-number">1</span>) <span class="hljs-comment">// [1, 1, 1]</span>
+
+<span class="hljs-comment">// 泛型中的类型可以是 interface 的类型，也可以是基础的数据类型</span>
+<span class="hljs-comment">// 可以在函数中定义多个泛型的类型</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">reverse</span>&lt;<span class="hljs-title">T</span>, <span class="hljs-title">U</span>&gt; (<span class="hljs-params">v1: T, v2: U</span>): [<span class="hljs-title">U</span>, <span class="hljs-title">T</span>] </span>{
+    <span class="hljs-keyword">return</span> [v2, v1]
+}
+reverse(<span class="hljs-string">'1'</span>, <span class="hljs-number">2</span>) <span class="hljs-comment">// [2, '1']</span>
+
+<span class="hljs-comment">// 由于泛型定义的变量并不知道是什么类型，因此如果调用变量的一些属性的时候，因为类型不确定的关系，系统会报错</span>
+<span class="hljs-comment">// 这个泛型的默认类型为 string; 可以在函数使用的时候，传的参数没有指定确切类型的时候使用</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getLen</span>&lt;<span class="hljs-title">T</span> = <span class="hljs-title">string</span>&gt; (<span class="hljs-params">value: T</span>): <span class="hljs-title">number</span> </span>{
+    <span class="hljs-keyword">return</span> value.length <span class="hljs-comment">// error</span>
+}
+
+<span class="hljs-comment">// 但是我们的泛型也是可以添加约束的，那么在约束范围内使用方法或者属性就可以了：</span>
+<span class="hljs-keyword">interface</span> lengthInterface {
+    length: <span class="hljs-built_in">number</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getLen</span>&lt;<span class="hljs-title">T</span> <span class="hljs-title">extends</span> <span class="hljs-title">lengthInterface</span>&gt; (<span class="hljs-params">value: T</span>): <span class="hljs-title">number</span> </span>{
+    <span class="hljs-keyword">return</span> value.length
+}
+
+<span class="hljs-comment">// 泛型接口 interface</span>
+<span class="hljs-comment">// 没有使用泛型定义的接口，根据接口定义函数表达式的函数</span>
+<span class="hljs-keyword">interface</span> includeFunction {
+    (str: <span class="hljs-built_in">string</span>, subStr: <span class="hljs-built_in">string</span>): <span class="hljs-built_in">boolean</span>    
+}
+<span class="hljs-keyword">let</span> isInclude: includeFunction
+isInclude = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">str: <span class="hljs-built_in">string</span>, subString</span>): <span class="hljs-title">boolean</span> </span>{
+    <span class="hljs-keyword">return</span> str.indexOf(subStr) &gt; <span class="hljs-number">-1</span>
+}
+
+<span class="hljs-comment">// 使用泛型定义接口的话</span>
+<span class="hljs-keyword">interface</span> repeatFunction {
+    &lt;T&gt;(value: T, len: <span class="hljs-built_in">number</span>): <span class="hljs-built_in">Array</span>&lt;T&gt;
+}
+<span class="hljs-keyword">let</span> repeatByLen: repeatFunction
+repeatByLen = <span class="hljs-function"><span class="hljs-keyword">function</span>&lt;<span class="hljs-title">T</span>&gt; (<span class="hljs-params">value: T, len: <span class="hljs-built_in">number</span></span>): <span class="hljs-title">Array</span>&lt;<span class="hljs-title">T</span>&gt; </span>{
+    <span class="hljs-keyword">let</span> arr: <span class="hljs-built_in">Array</span>&lt;T&gt; = []
+
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; len; i++) {
+        arr.push(value)
+    }
+    <span class="hljs-keyword">return</span> arr
+}
+repeatByLen(<span class="hljs-string">'foo'</span>, <span class="hljs-number">3</span>) <span class="hljs-comment">// ['foo', 'foo', 'foo']</span>
+
+<span class="hljs-comment">// 在类中添加泛型</span>
+<span class="hljs-keyword">class</span> NumberClass&lt;T&gt; {
+    value: T,
+    add: <span class="hljs-function">(<span class="hljs-params">x: T, y: T</span>) =&gt;</span> T
+}
+
+<span class="hljs-keyword">let</span> num = <span class="hljs-keyword">new</span> NumberClass()
+num.value = <span class="hljs-number">10</span>
+num.add = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">x, y</span>) </span>{ <span class="hljs-keyword">return</span> x + y }</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
