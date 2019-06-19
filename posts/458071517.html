@@ -474,20 +474,45 @@ typeFun(<span class="hljs-string">'fourth'</span>) <span class="hljs-comment">//
       </div>
     <ul>
 <li>元组类型
-通常数组是表示同一类型的元素，而元组(Tuple)则可以表示不同类型；
-<code>`</code>ts
-var multiType: [string, number]</li>
+通常数组是表示同一类型的元素，而元组(Tuple)则可以表示不同类型；</li>
 </ul>
-<p>multiType = [&#39;1&#39;, 1]
-// 元组与数组比较类似，可以通过下标用来赋值或者取值，但是赋值的时候，这个值需要下标对应类型一致，否则会出错
-multiType[0] = 2 // error，类型对不上</p>
-<p>// 可以使用 push 添加属性，也可以使用 slice 来获取不同值
-multiType.push(&#39;2&#39;) // 注意使用 push 的时候，需要初始化值之后才能使用
-multiType.push(2)
-multiType.slice(0) // [ &#39;1&#39;, 1, &#39;2&#39;, 2 ]
-multiType.push(true) // error 类型对不上</p>
 
-      <div class="hljs">
+      <div class="hljs ts">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre>var multiType: [<span class="hljs-built_in">string</span>, number]
+
+multiType = [<span class="hljs-string">'1'</span>, <span class="hljs-number">1</span>]
+<span class="hljs-comment">// 元组与数组比较类似，可以通过下标用来赋值或者取值，但是赋值的时候，这个值需要下标对应类型一致，否则会出错</span>
+multiType[<span class="hljs-number">0</span>] = <span class="hljs-number">2</span> <span class="hljs-comment">// error，类型对不上</span>
+
+<span class="hljs-comment">// 可以使用 push 添加属性，也可以使用 slice 来获取不同值</span>
+multiType.push(<span class="hljs-string">'2'</span>) <span class="hljs-comment">// 注意使用 push 的时候，需要初始化值之后才能使用</span>
+multiType.push(<span class="hljs-number">2</span>)
+multiType.slice(<span class="hljs-number">0</span>) <span class="hljs-comment">// [ '1', 1, '2', 2 ]</span>
+multiType.push(<span class="hljs-literal">true</span>) <span class="hljs-comment">// error 类型对不上</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h2 id="枚举">枚举</h2><p>通常是用于取值在一定范围的场景，例如一周7天，颜色固定红绿蓝三个颜色</p>
+
+      <div class="hljs ts">
         <table>
           <tbody>
             <tr>
@@ -520,48 +545,36 @@ multiType.push(true) // error 类型对不上</p>
 <span>26</span>
 <span>27</span>
 <span>28</span>
-<span>29</span>
-<span>30</span>
-<span>31</span>
-<span>32</span>
-<span>33</span>
-<span>34</span>
 </pre>
               </td>
-              <td class="code"><pre>
-## 枚举
-
-通常是用于取值在一定范围的场景，例如一周7天，颜色固定红绿蓝三个颜色
-
-&#x60;&#x60;&#x60;ts
-enum Color {
+              <td class="code"><pre>enum <span class="hljs-keyword">Color</span> {
     red,
     green,
     blue
 }
 
-&#x2F;&#x2F; 取值
-Color[&#39;red&#39;] &#x2F;&#x2F; 0
-Color[1] &#x2F;&#x2F; &#39;green&#39;
+<span class="hljs-comment">// 取值</span>
+<span class="hljs-keyword">Color</span>[<span class="hljs-string">'red'</span>] <span class="hljs-comment">// 0</span>
+<span class="hljs-keyword">Color</span>[<span class="hljs-number">1</span>] <span class="hljs-comment">// 'green'</span>
 
-&#x2F;&#x2F; 上面的枚举类型，转换到js之后是这样子的：
-var Color;
-(function (Color) {
-    Color[Color[&quot;red&quot;] &#x3D; 0] &#x3D; &quot;red&quot;;
-    Color[Color[&quot;green&quot;] &#x3D; 1] &#x3D; &quot;green&quot;;
-    Color[Color[&quot;blue&quot;] &#x3D; 2] &#x3D; &quot;blue&quot;;
-})(Color || (Color &#x3D; {}));
+<span class="hljs-comment">// 上面的枚举类型，转换到js之后是这样子的：</span>
+var <span class="hljs-keyword">Color</span><span class="hljs-comment">;</span>
+(function (<span class="hljs-keyword">Color</span>) {
+    <span class="hljs-keyword">Color</span>[<span class="hljs-keyword">Color</span>[<span class="hljs-string">"red"</span>] = <span class="hljs-number">0</span>] = <span class="hljs-string">"red"</span><span class="hljs-comment">;</span>
+    <span class="hljs-keyword">Color</span>[<span class="hljs-keyword">Color</span>[<span class="hljs-string">"green"</span>] = <span class="hljs-number">1</span>] = <span class="hljs-string">"green"</span><span class="hljs-comment">;</span>
+    <span class="hljs-keyword">Color</span>[<span class="hljs-keyword">Color</span>[<span class="hljs-string">"blue"</span>] = <span class="hljs-number">2</span>] = <span class="hljs-string">"blue"</span><span class="hljs-comment">;</span>
+})(<span class="hljs-keyword">Color</span> || (<span class="hljs-keyword">Color</span> = {}))<span class="hljs-comment">;</span>
 
-&#x2F;&#x2F; 执行后相当于：
-var Color &#x3D; {
-    0: &#39;red&#39;,
-    1: &#39;green&#39;,
-    2: &#39;blue&#39;,
-    &#39;red&#39;: 0,
-    &#39;green&#39;: 1,
-    &#39;blue&#39;: 2
+<span class="hljs-comment">// 执行后相当于：</span>
+var <span class="hljs-keyword">Color</span> = {
+    <span class="hljs-number">0</span>: <span class="hljs-string">'red'</span>,
+    <span class="hljs-number">1</span>: <span class="hljs-string">'green'</span>,
+    <span class="hljs-number">2</span>: <span class="hljs-string">'blue'</span>,
+    <span class="hljs-string">'red'</span>: <span class="hljs-number">0</span>,
+    <span class="hljs-string">'green'</span>: <span class="hljs-number">1</span>,
+    <span class="hljs-string">'blue'</span>: <span class="hljs-number">2</span>
 }
-&#x2F;&#x2F; 通过下标与字符串都能够访问到对应数据</pre></td>
+<span class="hljs-comment">// 通过下标与字符串都能够访问到对应数据</span></pre></td>
             </tr>
           </tbody>
         </table>
