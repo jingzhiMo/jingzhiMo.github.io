@@ -36,29 +36,10 @@ ts学习笔记 - jingzhiMo
   <h1 class="title">ts学习笔记</h1>
   <div class="content"><p>这篇文章主要是读 <a href="https://ts.xcatliu.com/">ts 入门教程</a> 与 <a href="https://www.tslang.cn/docs/home.html">ts 中文网</a> 所记下来的一些笔记，作为后面学习的一个参考点；看完文章后，对知识点做一定的提取；但是描述起来比较简单，主要针对部分关键知识点；如果需要系统的学习的话，就需要把教程看了。</p>
 <h2 id="类型声明">类型声明</h2><ul>
-<li>声明基础数据带有类型：
-<code>`</code>ts
-// 声明数字
-let num: number</li>
+<li>声明基础数据带有类型：</li>
 </ul>
-<p>num = 1
-num = &#39;str&#39; // error</p>
-<p>// 声明字符串
-let str: string = &#39;str&#39;</p>
-<p>// 声明多种类型
-let value: number | string</p>
-<p>value = 1
-value = &#39;str&#39;</p>
-<p>// 声明任意数据类型；若声明函数没有指明类型，也是 any 类型
-let value: any</p>
-<p>value = true
-value = { foo: &#39;foo&#39; }</p>
-<p>// 声明函数返回的类型
-// 函数参数支持类型也是与声明变量类似
-function foo (bar: string | number): boolean {
-    var flag:boolean = true</p>
 
-      <div class="hljs">
+      <div class="hljs ts">
         <table>
           <tbody>
             <tr>
@@ -66,18 +47,76 @@ function foo (bar: string | number): boolean {
                 <pre><span>1</span>
 <span>2</span>
 <span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
 </pre>
               </td>
-              <td class="code"><pre>console.log(bar.length) &#x2F;&#x2F; length 属性只在 string 类型存在，number 类型不存在；因为编译器会报错
-console.log(bar.toString()) &#x2F;&#x2F; 两种类型都有的方法，能够正常运行，因此当声明变量为多个类型的时候，访问的属性需要两个类型都具有的方法或者属性
-return flag</pre></td>
+              <td class="code"><pre><span class="hljs-comment">// 声明数字</span>
+<span class="hljs-keyword">let</span> num: <span class="hljs-built_in">number</span>
+
+num = <span class="hljs-number">1</span>
+num = <span class="hljs-string">'str'</span> <span class="hljs-comment">// error</span>
+
+<span class="hljs-comment">// 声明字符串</span>
+<span class="hljs-keyword">let</span> str: <span class="hljs-built_in">string</span> = <span class="hljs-string">'str'</span>
+
+<span class="hljs-comment">// 声明多种类型</span>
+<span class="hljs-keyword">let</span> value: <span class="hljs-built_in">number</span> | <span class="hljs-built_in">string</span>
+
+value = <span class="hljs-number">1</span>
+value = <span class="hljs-string">'str'</span>
+
+
+<span class="hljs-comment">// 声明任意数据类型；若声明函数没有指明类型，也是 any 类型</span>
+<span class="hljs-keyword">let</span> value: <span class="hljs-built_in">any</span>
+
+value = <span class="hljs-literal">true</span>
+value = { foo: <span class="hljs-string">'foo'</span> }
+
+<span class="hljs-comment">// 声明函数返回的类型</span>
+<span class="hljs-comment">// 函数参数支持类型也是与声明变量类似</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">foo</span> (<span class="hljs-params">bar: <span class="hljs-built_in">string</span> | <span class="hljs-built_in">number</span></span>): <span class="hljs-title">boolean</span> </span>{
+    <span class="hljs-keyword">var</span> flag:<span class="hljs-built_in">boolean</span> = <span class="hljs-literal">true</span>
+
+    <span class="hljs-built_in">console</span>.log(bar.length) <span class="hljs-comment">// length 属性只在 string 类型存在，number 类型不存在；因为编译器会报错</span>
+    <span class="hljs-built_in">console</span>.log(bar.toString()) <span class="hljs-comment">// 两种类型都有的方法，能够正常运行，因此当声明变量为多个类型的时候，访问的属性需要两个类型都具有的方法或者属性</span>
+    <span class="hljs-keyword">return</span> flag
+}</pre></td>
             </tr>
           </tbody>
         </table>
       </div>
-    <p>}</p>
+    <ul>
+<li>interface 定义对象类型</li>
+</ul>
 
-      <div class="hljs">
+      <div class="hljs ts">
         <table>
           <tbody>
             <tr>
@@ -122,54 +161,48 @@ return flag</pre></td>
 <span>38</span>
 <span>39</span>
 <span>40</span>
-<span>41</span>
-<span>42</span>
-<span>43</span>
 </pre>
               </td>
-              <td class="code"><pre>
-* interface 定义对象类型
-&#x60;&#x60;&#x60;ts
+              <td class="code"><pre>interface Person {
+   <span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>,
+    age:<span class="hljs-built_in"> number</span>
+}
+
+<span class="hljs-keyword">let</span> person: Person = {
+   <span class="hljs-built_in"> name</span>: <span class="hljs-string">'kyrie'</span>,
+    age: <span class="hljs-number">20</span>
+}
+
+// 当有属性是不确定添加，部分对象包含，部分对象不包含的情况，可以使用这样子来表示：
 interface Person {
-    name: string,
-    age: number
+   <span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>,
+    nickName?:<span class="hljs-built_in"> string</span>,
+    age:<span class="hljs-built_in"> number</span>,
+   <span class="hljs-built_in"> id</span>?:<span class="hljs-built_in"> number</span>,
 }
 
-let person: Person &#x3D; {
-    name: &#39;kyrie&#39;,
-    age: 20
+<span class="hljs-keyword">let</span> person: Person = {
+   <span class="hljs-built_in"> name</span>: <span class="hljs-string">'kyrie'</span>,
+    age: <span class="hljs-number">20</span>,
+   <span class="hljs-built_in"> id</span>: <span class="hljs-number">10</span>
 }
 
-&#x2F;&#x2F; 当有属性是不确定添加，部分对象包含，部分对象不包含的情况，可以使用这样子来表示：
-interface Person {
-    name: string,
-    nickName?: string,
-    age: number,
-    id?: number,
-}
-
-let person: Person &#x3D; {
-    name: &#39;kyrie&#39;,
-    age: 20,
-    id: 10
-}
-
-&#x2F;&#x2F; 当一个对象需要一些不确定名称的值，可以使用任意属性的定义方法，但是已知的属性必须是任意属性类型的子集；例如已知属性全部都是 string 类型；那么任意属性可以定义为 string, 但不能够定义为 number；如果已知属性有number, string，那么任意属性定义为 string 也不正确
+// 当一个对象需要一些不确定名称的值，可以使用任意属性的定义方法，但是已知的属性必须是任意属性类型的子集；例如已知属性全部都是<span class="hljs-built_in"> string</span> 类型；那么任意属性可以定义为<span class="hljs-built_in"> string</span>, 但不能够定义为<span class="hljs-built_in"> number</span>；如果已知属性<span class="hljs-built_in">有number</span>,<span class="hljs-built_in"> string</span>，那么任意属性定义为<span class="hljs-built_in"> string</span> 也不正确
 interface: Person {
-    readonly id: number,
-    name: string,
-    age: number,
-    [propName: string]: any &#x2F;&#x2F; 所以这里可以定义为 any 类型；那么 string 与 number 就是 any 的子集
+    readonly<span class="hljs-built_in"> id</span>:<span class="hljs-built_in"> number</span>,
+   <span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>,
+    age:<span class="hljs-built_in"> number</span>,
+    [propName:<span class="hljs-built_in"> string</span>]: any // 所以这里可以定义为 any 类型；那么<span class="hljs-built_in"> string</span> 与<span class="hljs-built_in"> number</span> 就是 any 的子集
 }
 
-&#x2F;&#x2F; 注意上面的接口有一个是 readonly 关键词，表示只读，也就是第一次赋值，不能二次赋值
+// 注意上面的接口有一个是 readonly 关键词，表示只读，也就是第一次赋值，不能二次赋值
 
-let person: Person &#x3D; {
-    id: 10,
-    name: &#39;kyrie&#39;,
-    age: 20
+<span class="hljs-keyword">let</span> person: Person = {
+   <span class="hljs-built_in"> id</span>: <span class="hljs-number">10</span>,
+   <span class="hljs-built_in"> name</span>: <span class="hljs-string">'kyrie'</span>,
+    age: <span class="hljs-number">20</span>
 }
-person.id &#x3D; 11 &#x2F;&#x2F; error</pre></td>
+person<span class="hljs-built_in">.id</span> = <span class="hljs-number">11</span> //<span class="hljs-built_in"> error</span></pre></td>
             </tr>
           </tbody>
         </table>
@@ -234,57 +267,10 @@ person.id &#x3D; 11 &#x2F;&#x2F; error</pre></td>
         </table>
       </div>
     <ul>
-<li>定义函数类型
-<code>`</code>js
-// 通常函数定义分两种，一种是函数声明，另外一种是函数表达式
-function foo () {} // 函数声明</li>
+<li>定义函数类型</li>
 </ul>
-<p>let foo = function () {} // 函数表达式</p>
-<p>// 对于普通函数声明：
-function foo (id: number, name: string = &#39;anonymous&#39;, age?: number, address?: string) {}</p>
-<p>// 上面这个函数表示，id 这个参数比必选的，name 参数有默认值，如果不传的值是 &#39;anonymous&#39;, age 参数是可选的，不传就没有值了；
-// 可选参数且没有默认值的参数，只能在函数声明的最后，可以有多个可选没默认值参数；有默认值的参数，后面可以接必须参数</p>
-<p>// 剩余参数的处理；实际上剩余参数是数组，我们可以声明数组的方式来处理
-function foo (id: number, name: string, ...msg: any[]) {
-    console.log(msg)
-}</p>
-<p>// 对于函数表达式
-let foo = function (id: number, name: string): any {
-    // 这样子定义是ok的，能够通过编译
-} </p>
-<p>// 实际上只是对右边的匿名函数进行声明类型，没有对 foo 的变量的类型声明，完整的声明方式应该是这样子的：
-// 注意区分箭头函数的区别
-let foo: (id: number, name: string) =&gt; any = function (id: number, name: string): any {
-    // xxx
-}</p>
-<p>// 另外一种为函数表达式变量定义类型的方式可以使用接口形式
-interface fooFunction {
-    (id: number, name: string): boolean
-}
-let foo: fooFunction = function (id: number, name: string): boolean {
-    return !!id
-}</p>
-<p>// 函数重载，需求：假设对传的参数是number，则扩大十倍，是字符串则添加前缀：
-function calc (value: number | string): number | string {
-    if (typeof value === &#39;number&#39;) {
-        return value * 10
-    } else {
-        return &#39;_&#39; + value
-    }
-}</p>
-<p>// 实际上是应该对参数是number 则返回值是 number; 参数是 string ，则返回值是 string
-function calc (value: number): number;
-function calc (value: string): string;
-function calc (value: number | string): number | string {
-    if (typeof value === &#39;number&#39;) {
-        return value * 10
-    } else {
-        return &#39;_&#39; + value
-    }
-}
-// 前两次声明是函数的定义，最后的声明是函数的实现；ts 会从最开始声明的进行匹配</p>
 
-      <div class="hljs">
+      <div class="hljs javascript">
         <table>
           <tbody>
             <tr>
@@ -301,19 +287,137 @@ function calc (value: number | string): number | string {
 <span>10</span>
 <span>11</span>
 <span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
 </pre>
               </td>
-              <td class="code"><pre>
-* 类型断言
-类型断言就是 ts 允许开发者覆盖它的推断，并且能以你任何你想要的方式分析它，这种机制被称为「类型断言」。
-&#x60;&#x60;&#x60;ts
-function getLength (value: string | number): void {
-    &#x2F;&#x2F; 断言方式有两种
-    &#x2F;&#x2F; 第一种是 &lt;type&gt; 的方式
-    console.log((&lt;string&gt;value).length)
-    &#x2F;&#x2F; 第二种是 值 as 类型
-    console.log((value as string).length)
-    &#x2F;&#x2F; 因为第一种方式在 jsx 里面会存在误区，所以在 jsx 语法里面，只能使用第二种
+              <td class="code"><pre>// 通常函数定义分两种，一种是函数声明，另外一种是函数表达式
+<span class="hljs-keyword">function</span> foo () {} // 函数声明
+
+<span class="hljs-keyword">let</span> foo = <span class="hljs-keyword">function</span> () {} // 函数表达式
+
+// 对于普通函数声明：
+<span class="hljs-keyword">function</span> foo <span class="hljs-built_in">(id</span>:<span class="hljs-built_in"> number</span>,<span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span> = <span class="hljs-string">'anonymous'</span>, age?:<span class="hljs-built_in"> number</span>, address?:<span class="hljs-built_in"> string</span>) {}
+
+// 上面这个函数表示<span class="hljs-built_in">，id</span> 这个参数比必选的<span class="hljs-built_in">，name</span> 参数有默认值，如果不传的值是 <span class="hljs-string">'anonymous'</span>, age 参数是可选的，不传就没有值了；
+// 可选参数且没有默认值的参数，只能在函数声明的最后，可以有多个可选没默认值参数；有默认值的参数，后面可以接必须参数
+
+// 剩余参数的处理；实际上剩余参数是数组，我们可以声明数组的方式来处理
+<span class="hljs-keyword">function</span> foo <span class="hljs-built_in">(id</span>:<span class="hljs-built_in"> number</span>,<span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>, ...msg: any[]) {
+    console.log(msg)
+}
+
+// 对于函数表达式
+<span class="hljs-keyword">let</span> foo = <span class="hljs-keyword">function</span> <span class="hljs-built_in">(id</span>:<span class="hljs-built_in"> number</span>,<span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>): any {
+    // 这样子定义是ok的，能够通过编译
+} 
+
+// 实际上只是对右边的匿名函数进行声明类型，没有对 foo 的变量的类型声明，完整的声明方式应该是这样子的：
+// 注意区分箭头函数的区别
+<span class="hljs-keyword">let</span> foo: <span class="hljs-built_in">(id</span>:<span class="hljs-built_in"> number</span>,<span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>) =&gt; any = <span class="hljs-keyword">function</span> <span class="hljs-built_in">(id</span>:<span class="hljs-built_in"> number</span>,<span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>): any {
+    // xxx
+}
+
+// 另外一种为函数表达式变量定义类型的方式可以使用接口形式
+interface fooFunction {
+    <span class="hljs-built_in">(id</span>:<span class="hljs-built_in"> number</span>,<span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>):<span class="hljs-built_in"> boolean</span>
+}
+<span class="hljs-keyword">let</span> foo: fooFunction = <span class="hljs-keyword">function</span> <span class="hljs-built_in">(id</span>:<span class="hljs-built_in"> number</span>,<span class="hljs-built_in"> name</span>:<span class="hljs-built_in"> string</span>):<span class="hljs-built_in"> boolean</span> {
+    <span class="hljs-keyword">return</span> !<span class="hljs-built_in">!id</span>
+}
+
+// 函数重载，需求：假设对传的参数<span class="hljs-built_in">是number</span>，则扩大十倍，是字符串则添加前缀：
+<span class="hljs-keyword">function</span> calc (value:<span class="hljs-built_in"> number</span> |<span class="hljs-built_in"> string</span>):<span class="hljs-built_in"> number</span> |<span class="hljs-built_in"> string</span> {
+    <span class="hljs-keyword">if</span> (typeof <span class="hljs-keyword">value</span> === <span class="hljs-string">'number'</span>) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">value</span> * <span class="hljs-number">10</span>
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">'_'</span> + <span class="hljs-keyword">value</span>
+    }
+}
+
+// 实际上是应该对参数<span class="hljs-built_in">是number</span> 则返回值是<span class="hljs-built_in"> number</span>; 参数是<span class="hljs-built_in"> string</span> ，则返回值是<span class="hljs-built_in"> string</span>
+<span class="hljs-keyword">function</span> calc (value:<span class="hljs-built_in"> number</span>):<span class="hljs-built_in"> number</span>;
+<span class="hljs-keyword">function</span> calc (value:<span class="hljs-built_in"> string</span>):<span class="hljs-built_in"> string</span>;
+<span class="hljs-keyword">function</span> calc (value:<span class="hljs-built_in"> number</span> |<span class="hljs-built_in"> string</span>):<span class="hljs-built_in"> number</span> |<span class="hljs-built_in"> string</span> {
+    <span class="hljs-keyword">if</span> (typeof <span class="hljs-keyword">value</span> === <span class="hljs-string">'number'</span>) {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">value</span> * <span class="hljs-number">10</span>
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">'_'</span> + <span class="hljs-keyword">value</span>
+    }
+}
+// 前两次声明是函数的定义，最后的声明是函数的实现；ts 会从最开始声明的进行匹配</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ul>
+<li>类型断言
+类型断言就是 ts 允许开发者覆盖它的推断，并且能以你任何你想要的方式分析它，这种机制被称为「类型断言」。</li>
+</ul>
+
+      <div class="hljs ts">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getLength</span> (<span class="hljs-title">value</span>: <span class="hljs-title">string</span> | <span class="hljs-title">number</span>): <span class="hljs-title">void</span> {</span>
+   <span class="hljs-comment"> // 断言方式有两种</span>
+   <span class="hljs-comment"> // 第一种是 &lt;type&gt; 的方式</span>
+    console.<span class="hljs-built_in">log</span>((&lt;<span class="hljs-keyword">string</span>&gt;<span class="hljs-built_in">value</span>).<span class="hljs-built_in">length</span>)
+   <span class="hljs-comment"> // 第二种是 值 as 类型</span>
+    console.<span class="hljs-built_in">log</span>((<span class="hljs-built_in">value</span> <span class="hljs-keyword">as</span> <span class="hljs-keyword">string</span>).<span class="hljs-built_in">length</span>)
+   <span class="hljs-comment"> // 因为第一种方式在 jsx 里面会存在误区，所以在 jsx 语法里面，只能使用第二种</span>
 }</pre></td>
             </tr>
           </tbody>
