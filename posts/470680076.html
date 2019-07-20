@@ -1,0 +1,316 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+git统计工具轮子 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">July 20, 2019</p>
+  <h1 class="title">git统计工具轮子</h1>
+  <div class="content"><p>最近弄了一个轮子，是用来统计 git 代码行数还有文件数目的一些占比，把这部分数据可视化到图表。<a href="https://github.com/jingzhiMo/visualize-commit">仓库链接</a></p>
+<h2 id="背景">背景</h2><p>在造这个轮子之前，曾经在 gitlab 上面看到一部分统计的数据，发现只是统计了 commit 的提交数量、文件占比的比例；对于代码行数的纬度统计比较少。因此基本的需求就出来了。</p>
+<h2 id="研发思路">研发思路</h2><ol>
+<li>分析脚本：统计仓库的代码行数，分析所有文件的提交数据与文件类型</li>
+<li>呈现静态页面：可视化分析脚本的数据</li>
+<li>发布 npm 包：方便用于命令行执行生成分析数据</li>
+</ol>
+<h2 id="分析脚本">分析脚本</h2><p>因为需要分析到每个文件行数的修改细节，因此这一部分一定需要 git 相关命令进行统计，目的是统计文件的每一个用户的提交行数；面向谷歌编程的我，找到以下命令：</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>$ git ls-files ${fileName} | <span class="hljs-keyword">while</span> <span class="hljs-keyword">read</span> f; <span class="hljs-keyword">do</span> git blame --line-porcelain $f | <span class="hljs-keyword">grep</span> <span class="hljs-string">'^author '</span>; done | <span class="hljs-keyword">sort</span> -f | uniq -ic | <span class="hljs-keyword">sort</span> -n
+
+<span class="hljs-comment"># 将 ${fileName} 替换为 README.md</span>
+$ git ls-files README.md | <span class="hljs-keyword">while</span> <span class="hljs-keyword">read</span> f; <span class="hljs-keyword">do</span> git blame --line-porcelain $f | <span class="hljs-keyword">grep</span> <span class="hljs-string">'^author '</span>; done | <span class="hljs-keyword">sort</span> -f | uniq -ic | <span class="hljs-keyword">sort</span> -n</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>输出结果：</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-symbol">10 </span>author <span class="hljs-keyword">Not</span> Committed Yet # 表示当前文件有<span class="hljs-number">10</span>行还没有提交。<span class="hljs-keyword">Not</span> Committed Yet 表示没有 commit 到仓库  
+<span class="hljs-symbol">43 </span>author jingzhiMo # 表示这个文件有<span class="hljs-number">43</span>行是作者 jingzhiMo 提交的</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>然后需要对仓库的所有文件进行遍历，这里选择了深度优先遍历来处理，把最底部的文件节点不断往上统计；这样可以统计到每个文件夹的详细信息。</p>
+<p><img src="https://i.loli.net/2019/07/20/5d32d70b8455c36155.png" alt="深度遍历"></p>
+<p>通常项目文件会有部分外部依赖文件或者部分不在 git 的跟踪下，这部分文件就不需要统计；最开始的思路是想通过项目的<code>.gitignore</code>判断文件是否在 git 跟踪下，不在就不进行统计，但是这个方法需要遍历<code>.gitignore</code>的规则，可能会判断出错。如果直接通过<code>git</code>判断就可以保证万无一失，利用<code>git ls-files</code>命令：</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-symbol">$</span> git ls-<span class="hljs-keyword">files</span> <span class="hljs-keyword">no</span>-track-<span class="hljs-keyword">file</span>.js # 命令行输出为空</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>除此之外，默认会去除<code>lock</code>文件与一些图片媒体文件，例如: <code>package-lock.json</code>与<code>yarn.lock</code>等。</p>
+<h2 id="静态页面呈现">静态页面呈现</h2><p>呈现数据主要使用的工具是 <code>echarts</code>；本地开发使用<code>create-react-app</code>来搭建基础开发环境；左侧文件夹显示使用树状组件呈现，找了一圈找不到大概适合的，于是自己写一个简单的树状组件。树状组件大体思路是利用递归组件实现，组件内部包含自己组件：</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre> <span class="hljs-comment">&lt;!-- &lt;Tree&gt; 组件对应的渲染元素 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- 当前节点名称 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">span</span>&gt;</span>file name or folder name<span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- children 当前文件夹对应的子文件夹--&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">Tree</span> <span class="hljs-attr">data</span>=<span class="hljs-string">{children}</span> /&gt;</span>
+  <span class="hljs-comment">&lt;!-- leaf 当前文件夹对应的文件--&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">Tree</span> <span class="hljs-attr">data</span>=<span class="hljs-string">{leaf}</span> /&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>每个节点都需要渲染自己的节点名称与直接子文件与直接文件夹；然后把对应子节点的数据继续传递到<code>Tree</code>组件，做到逐层数据展开，增强复用性。</p>
+<h2 id="发布npm包">发布 npm 包</h2><p>为了节俭用户运行命令的时间与运行复杂度，所以把静态资源构建那一步需要在本地执行，生成好<code>build</code>的文件夹；但是因为生成的分析文件是动态生成的，所以暂时的处理方式是固定动态引入的文件名称，通过脚本生成的文件覆盖原有资源文件：</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">&lt;!-- html入口文件 --&gt;</span>
+
+<span class="hljs-meta">&lt;!DOCTYPE html&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"source.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// source.js 运行文件调用该变量</span>
+<span class="hljs-built_in">window</span>._source = {
+  <span class="hljs-comment">// ...</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>由于<code>build</code>文件夹是不需要git跟踪，而需要上传到npm包，因此需要<code>.npmignore</code>与<code>.gitignore</code>配合使用才可以。</p>
+<h2 id="简单使用方法">简单使用方法</h2><ul>
+<li>使用 npx 命令生成</li>
+</ul>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-symbol">$</span> cd git-repository <span class="hljs-comment">/* 进入需要统计的 git 仓库文件夹 */</span>
+<span class="hljs-symbol">$</span> npx visualize-commit
+<span class="hljs-symbol">$</span> cd commit-analyze <span class="hljs-comment">/* 打开文件夹的 index.html 文件即可 */</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ul>
+<li>安装包到对应仓库</li>
+</ul>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>$ cd git-repository
+$ npm <span class="hljs-keyword">install</span> visualize-<span class="hljs-keyword">commit</span> <span class="hljs-comment">--save-dev</span>
+<span class="hljs-comment"># or</span>
+$ yarn <span class="hljs-keyword">add</span> visualize-<span class="hljs-keyword">commit</span> <span class="hljs-comment">--dev</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在<code>package.json</code>加入对应的脚本：</p>
+
+      <div class="hljs json">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>{
+  <span class="hljs-attr">"scripts"</span>: {
+    <span class="hljs-attr">"vsz"</span>: <span class="hljs-string">"vsz-commit"</span>
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>执行命令：</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>$ npm <span class="hljs-keyword">run</span><span class="bash"> vsz</span>
+<span class="hljs-comment"># or</span>
+$ yarn <span class="hljs-keyword">add</span><span class="bash"> vsz</span>
+$ cd commit-analyze /* 打开文件夹的 index.html 文件即可 */</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h2 id="展望">展望</h2><p>现在这个代码统计功能还比较简单，希望看到文章的小伙伴可以<a href="https://github.com/jingzhiMo/visualize-commit/issues">提issue</a>，使得统计的纬度更加多样化。现在给到自己将要做的功能可能有以下这些：</p>
+<ul>
+<li><ul>
+<li><input disabled="" type="checkbox"> 统计多个版本的记录，查看不同版本代码行数的变化</li>
+</ul>
+</li>
+<li><ul>
+<li><input disabled="" type="checkbox"> 统计不同版本用户的提交情况</li>
+</ul>
+</li>
+<li><ul>
+<li><input disabled="" type="checkbox"> 统计不同用户 commit 数量的变化（与github统计commit相似）</li>
+</ul>
+</li>
+<li><ul>
+<li><input disabled="" type="checkbox"> 提供配置参数，例如生成文件夹的名称，统计/忽略统计的文件类型，过滤规则自定义</li>
+</ul>
+</li>
+<li><ul>
+<li><input disabled="" type="checkbox"> 统计代码量前X排序的模块</li>
+</ul>
+</li>
+</ul>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
