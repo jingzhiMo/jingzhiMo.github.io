@@ -1,0 +1,884 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+vue组件的生命周期与hook执行顺序 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">August 11, 2019</p>
+  <h1 class="title">vue组件的生命周期与hook执行顺序</h1>
+  <div class="content"><p>这篇文章会先从最基础的vue组件的生命周期开始阐述，后续结合<code>keep-alive</code>与<code>vue-router</code>来梳理一下平常用到的生命周期hook，加强印象。</p>
+<h2 id="vue组件">vue 组件</h2><p>这是一个老生常谈的问题，有时候回顾一下，会有另外的收获；先引用官方的图：</p>
+<p><img src="https://cn.vuejs.org/images/lifecycle.png" alt="vue lifecycle"></p>
+<p><em>图片引用地址： <a href="https://cn.vuejs.org">https://cn.vuejs.org</a></em></p>
+<p>vue的生命周期分几类：</p>
+<ul>
+<li>create</li>
+<li>mount</li>
+<li>update</li>
+<li>destroy</li>
+<li>...</li>
+</ul>
+<h3 id="整体初始化过程">整体初始化过程</h3><p>图中简单描述了生命周期过程，我们从代码上面看一下初始化的过程</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// https://github.com/vuejs/vue/blob/dev/src/core/instance/init.js</span>
+<span class="hljs-comment">// 截一段相对关键的代码，加上简单的注释</span>
+<span class="hljs-comment">// @function initMixin</span>
+vm._self = vm
+<span class="hljs-function"><span class="hljs-title">initLifecycle</span><span class="hljs-params">(vm)</span></span>
+<span class="hljs-function"><span class="hljs-title">initEvents</span><span class="hljs-params">(vm)</span></span>
+<span class="hljs-function"><span class="hljs-title">initRender</span><span class="hljs-params">(vm)</span></span>
+<span class="hljs-function"><span class="hljs-title">callHook</span><span class="hljs-params">(vm, <span class="hljs-string">'beforeCreate'</span>)</span></span>
+<span class="hljs-function"><span class="hljs-title">initInjections</span><span class="hljs-params">(vm)</span></span> <span class="hljs-comment">// resolve injections before data/props</span>
+<span class="hljs-function"><span class="hljs-title">initState</span><span class="hljs-params">(vm)</span></span>
+<span class="hljs-function"><span class="hljs-title">initProvide</span><span class="hljs-params">(vm)</span></span> <span class="hljs-comment">// resolve provide after data/props</span>
+<span class="hljs-function"><span class="hljs-title">callHook</span><span class="hljs-params">(vm, <span class="hljs-string">'created'</span>)</span></span>
+
+<span class="hljs-comment">// ...</span>
+<span class="hljs-keyword">if</span> (vm.<span class="hljs-variable">$options</span>.el) {
+  vm.<span class="hljs-variable">$mount</span>(vm.<span class="hljs-variable">$options</span>.el)
+}
+</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="beforecreate之前">beforeCreate 之前</h3><p>在<code>beforeCreate</code>之前，主要做了三个动作：<code>initLifeCycle</code>, <code>initEvents</code>, <code>initRender</code>；这三个动作完成之后再执行<code>beforeCreate</code>的hook函数，这三个函数分别做的事情：</p>
+<p>TL;DR</p>
+<ol>
+<li>initLifecycle: 建立组件的父子关系，赋值部分标识数据到组件实例，<code>vm.$parent</code>, <code>vm.$refs</code>, <code>vm.$root</code>等</li>
+<li>initEvents: 初始化组件监听的事件</li>
+<li>initRender：初始化 <code>$slot</code>、<code>$attr</code>、<code>$listener</code></li>
+</ol>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+<span>57</span>
+<span>58</span>
+<span>59</span>
+<span>60</span>
+<span>61</span>
+<span>62</span>
+<span>63</span>
+<span>64</span>
+<span>65</span>
+<span>66</span>
+<span>67</span>
+<span>68</span>
+<span>69</span>
+<span>70</span>
+<span>71</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 1. initLifecycle (src/core/instance/lifecycle.js)</span>
+<span class="hljs-comment">// @function initLifecycle</span>
+export <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initLifecycle</span> <span class="hljs-params">(vm: Component)</span> </span>{
+  <span class="hljs-keyword">const</span> options = vm.$options
+
+  <span class="hljs-comment">// 建立父子组件的关系</span>
+  let <span class="hljs-keyword">parent</span> = options.<span class="hljs-keyword">parent</span>
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">parent</span> &amp;&amp; !options.<span class="hljs-keyword">abstract</span>) {
+    <span class="hljs-comment">// 对于抽象的组件，不断往上找父组件，找到不是抽象的父组件为止</span>
+    <span class="hljs-keyword">while</span> (<span class="hljs-keyword">parent</span>.$options.<span class="hljs-keyword">abstract</span> &amp;&amp; <span class="hljs-keyword">parent</span>.$parent) {
+      <span class="hljs-keyword">parent</span> = <span class="hljs-keyword">parent</span>.$parent
+    }
+    <span class="hljs-keyword">parent</span>.$children.push(vm)
+  }
+
+  <span class="hljs-comment">// balabala 初始化很多数据</span>
+  vm.$parent = <span class="hljs-keyword">parent</span>
+  vm.$root = <span class="hljs-keyword">parent</span> ? <span class="hljs-keyword">parent</span>.$root : vm
+
+  vm.$children = []
+  vm.$refs = {}
+
+  vm._watcher = <span class="hljs-keyword">null</span>
+  vm._inactive = <span class="hljs-keyword">null</span>
+  vm._directInactive = <span class="hljs-keyword">false</span>
+  vm._isMounted = <span class="hljs-keyword">false</span>
+  vm._isDestroyed = <span class="hljs-keyword">false</span>
+  vm._isBeingDestroyed = <span class="hljs-keyword">false</span>
+}
+
+<span class="hljs-comment">// 2. initEvents (src/core/instance/events.js)</span>
+<span class="hljs-comment">// @function initEvents</span>
+export <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initEvents</span> <span class="hljs-params">(vm: Component)</span> </span>{
+  vm._events = Object.create(<span class="hljs-keyword">null</span>)
+  vm._hasHookEvent = <span class="hljs-keyword">false</span>
+  <span class="hljs-comment">// init parent attached events</span>
+  <span class="hljs-comment">// 初始化组件监听的事件</span>
+  <span class="hljs-keyword">const</span> listeners = vm.$options._parentListeners
+  <span class="hljs-keyword">if</span> (listeners) {
+    updateComponentListeners(vm, listeners)
+  }
+}
+
+
+<span class="hljs-comment">// 3. initRender (src/core/instance/render.js)</span>
+<span class="hljs-comment">// @function initRender</span>
+<span class="hljs-comment">// 中间去掉一些声明变量，主要保留一些赋值到vm的数据</span>
+export <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initRender</span> <span class="hljs-params">(vm: Component)</span> </span>{
+  vm._vnode = <span class="hljs-keyword">null</span> <span class="hljs-comment">// the root of the child tree</span>
+  vm._staticTrees = <span class="hljs-keyword">null</span> <span class="hljs-comment">// v-once cached trees</span>
+
+  <span class="hljs-comment">//...</span>
+  <span class="hljs-comment">// 赋值 slot 的值与对应的 slot 对应的数据</span>
+  vm.$slots = resolveSlots(options._renderChildren, renderContext)
+  vm.$scopedSlots = emptyObject
+
+  <span class="hljs-comment">//...</span>
+  <span class="hljs-comment">// 赋值从组件传过来的属性值与没有显式被组件监听的事件，分别赋值到$attr与$listener</span>
+  <span class="hljs-comment">/* istanbul ignore else */</span>
+  <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span>) {
+    defineReactive(vm, <span class="hljs-string">'$attrs'</span>, parentData &amp;&amp; parentData.attrs || emptyObject, () =&gt; {
+      !isUpdatingChildComponent &amp;&amp; warn(`$attrs is readonly.`, vm)
+    }, <span class="hljs-keyword">true</span>)
+    defineReactive(vm, <span class="hljs-string">'$listeners'</span>, options._parentListeners || emptyObject, () =&gt; {
+      !isUpdatingChildComponent &amp;&amp; warn(`$listeners is readonly.`, vm)
+    }, <span class="hljs-keyword">true</span>)
+  } <span class="hljs-keyword">else</span> {
+    defineReactive(vm, <span class="hljs-string">'$attrs'</span>, parentData &amp;&amp; parentData.attrs || emptyObject, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">true</span>)
+    defineReactive(vm, <span class="hljs-string">'$listeners'</span>, options._parentListeners || emptyObject, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">true</span>)
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="beforecreate到created">beforeCreate 到 created</h3><p>执行完这三个初始化函数，就可以触发<code>beforeCreate</code>的hook函数，可以看到还没有初始化<code>$data</code>的相关数据；在<code>beforeCreate</code>与<code>created</code>之间，执行的函数有：<code>initInjections</code>, <code>initState</code>, <code>initProvide</code>;</p>
+<p>### </p>
+<p>TL;DR</p>
+<ol>
+<li>initInjections： 把组件注入的数据，挂载到当前组件实例</li>
+<li>initState：初始化<code>data</code>, <code>computed</code>, <code>methods</code>, <code>watcher</code></li>
+<li>initProvide：将provide的数据挂载到组件实例的<code>_provided</code>字段</li>
+</ol>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 1. initInjections (src/core/instance/inject.js)</span>
+<span class="hljs-comment">// @function initInjections</span>
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initInjections</span> (<span class="hljs-params">vm: Component</span>) </span>{
+  <span class="hljs-comment">// 拿到注入的数据</span>
+  <span class="hljs-keyword">const</span> result = resolveInject(vm.$options.inject, vm)
+  <span class="hljs-keyword">if</span> (result) {
+    <span class="hljs-comment">// 标识inject的属性与方法在当前组件不需要成为 observer，不用监听变化进行响应</span>
+    toggleObserving(<span class="hljs-literal">false</span>)
+    <span class="hljs-built_in">Object</span>.keys(result).forEach(<span class="hljs-function"><span class="hljs-params">key</span> =&gt;</span> {
+        <span class="hljs-comment">// ...</span>
+        <span class="hljs-comment">// 绑定注入的数据到当前组件</span>
+        defineReactive(vm, key, result[key])
+    })
+
+    <span class="hljs-comment">// 把 observer 的标识位置为 true</span>
+    toggleObserving(<span class="hljs-literal">true</span>)
+  }
+}
+
+<span class="hljs-comment">// 2. initState (src/core/instance/state.js)</span>
+<span class="hljs-comment">// @function initState</span>
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initState</span> (<span class="hljs-params">vm: Component</span>) </span>{
+  <span class="hljs-comment">// 初始化依赖的props，methods</span>
+  vm._watchers = []
+  <span class="hljs-keyword">const</span> opts = vm.$options
+  <span class="hljs-keyword">if</span> (opts.props) initProps(vm, opts.props)
+  <span class="hljs-keyword">if</span> (opts.methods) initMethods(vm, opts.methods)
+  <span class="hljs-comment">// 初始化 data</span>
+  <span class="hljs-keyword">if</span> (opts.data) {
+    initData(vm)
+  } <span class="hljs-keyword">else</span> {
+    observe(vm._data = {}, <span class="hljs-literal">true</span> <span class="hljs-comment">/* asRootData */</span>)
+  }
+  <span class="hljs-comment">// 初始化计算属性</span>
+  <span class="hljs-keyword">if</span> (opts.computed) initComputed(vm, opts.computed)
+  <span class="hljs-comment">// 初始化 watch 的数据</span>
+  <span class="hljs-keyword">if</span> (opts.watch &amp;&amp; opts.watch !== nativeWatch) {
+    initWatch(vm, opts.watch)
+  }
+}
+
+<span class="hljs-comment">// 3. initProvide (src/core/instance/inject.js)</span>
+<span class="hljs-comment">// @function initProvide</span>
+<span class="hljs-keyword">export</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initProvide</span> (<span class="hljs-params">vm: Component</span>) </span>{
+  <span class="hljs-keyword">const</span> provide = vm.$options.provide
+  <span class="hljs-keyword">if</span> (provide) {
+   <span class="hljs-comment">// 对 provide 是函数的情况，执行函数赋值到 _provided；否则直接赋值</span>
+    vm._provided = <span class="hljs-keyword">typeof</span> provide === <span class="hljs-string">'function'</span>
+      ? provide.call(vm)
+      : provide
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>执行完这个三个函数之后，就会触发<code>created</code>的hook函数，这个时候就可以拿到<code>data</code>与<code>methods</code>等数据；现在再回去<code>initMixin</code>函数：</p>
+<h3 id="mount与update">mount 与 update</h3>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 忽略已分析代码</span>
+call<span class="hljs-constructor">Hook(<span class="hljs-params">vm</span>, '<span class="hljs-params">created</span>')</span>
+<span class="hljs-comment">// ... </span>
+<span class="hljs-keyword">if</span> (vm.$options.el) {
+  vm.<span class="hljs-constructor">$mount(<span class="hljs-params">vm</span>.$<span class="hljs-params">options</span>.<span class="hljs-params">el</span>)</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>当有<code>el</code>的元素的时候，就触发<code>$mount</code>方法，否则到后面主动调用方法再触发；这个<code>$mount</code>方法在：<code>src/core/instance/lifecycle.js</code></p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 定义挂载组件的方法</span>
+<span class="hljs-comment">// mountComponent (src/core/instance/lifecycle.js)</span>
+<span class="hljs-comment">// @function mountComponent</span>
+export <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">mountComponent</span> <span class="hljs-params">(
+  vm: Component,
+  el: ?Element,
+  hydrating?: boolean
+)</span>: <span class="hljs-title">Component</span> </span>{
+  vm.$el = el
+  <span class="hljs-comment">// 没有 render 函数</span>
+  <span class="hljs-keyword">if</span> (!vm.$options.render) {
+    vm.$options.render = createEmptyVNode
+    <span class="hljs-comment">// ...</span>
+  }
+  <span class="hljs-comment">// 触发 beforeMount hook 函数</span>
+  callHook(vm, <span class="hljs-string">'beforeMount'</span>)
+
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-comment">// 定义数据发生变化的回调方法</span>
+  updateComponent = () =&gt; {
+    <span class="hljs-comment">// 调用该方法更新当前的组件，执行完毕之后，需要通过 scheduler 来触发 updated 的 hook，为什么不是马上触发hook，是因为需要保证子组件都更新了，才调用当前组件的 updated，详细可以看一下源码，位置如下</span>
+    <span class="hljs-comment">// src/core/instance/lifecycle.js </span>
+    <span class="hljs-comment">// @function Vue.prototype._update</span>
+    vm._update(vm._render(), hydrating)
+  }
+
+  <span class="hljs-comment">// we set this to vm._watcher inside the watcher's constructor</span>
+  <span class="hljs-comment">// since the watcher's initial patch may call $forceUpdate (e.g. inside child</span>
+  <span class="hljs-comment">// component's mounted hook), which relies on vm._watcher being already defined</span>
+  <span class="hljs-comment">// 新建一个 watcher，用来监听数据发生变化</span>
+  <span class="hljs-comment">// 注意 beforeUpdate 的hook也是在这里进行监听调用</span>
+  <span class="hljs-keyword">new</span> Watcher(vm, updateComponent, noop, {
+    <span class="hljs-comment">// 在执行 updateComponent 之前先执行 before 函数，也就是触发 beforeUpdate</span>
+    before () {
+      <span class="hljs-keyword">if</span> (vm._isMounted &amp;&amp; !vm._isDestroyed) {
+        callHook(vm, <span class="hljs-string">'beforeUpdate'</span>)
+      }
+    }
+  }, <span class="hljs-keyword">true</span> <span class="hljs-comment">/* isRenderWatcher */</span>)
+  hydrating = <span class="hljs-keyword">false</span>
+
+  <span class="hljs-comment">// manually mounted instance, call mounted on self</span>
+  <span class="hljs-comment">// mounted is called for render-created child components in its inserted hook</span>
+  <span class="hljs-comment">// 挂载的对象如果不是为空，则触发 mounted 回调方法</span>
+  <span class="hljs-keyword">if</span> (vm.$vnode == <span class="hljs-keyword">null</span>) {
+    vm._isMounted = <span class="hljs-keyword">true</span>
+    callHook(vm, <span class="hljs-string">'mounted'</span>)
+  }
+  <span class="hljs-keyword">return</span> vm
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="destroy">destroy</h3><p>TL;DR</p>
+<ol>
+<li>触发 beforeDestroy hook</li>
+<li>移除父组件与该组件的引用关系</li>
+<li>实例标识<code>_isBeingDestroyed</code>更改</li>
+<li>移除实例watcher</li>
+<li>移除 vnode 节点</li>
+<li>触发 destroy hook</li>
+<li>移除<code>$el</code>与<code>$vnode</code>引用</li>
+</ol>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// src/core/instance/lifecycle.js</span>
+<span class="hljs-comment">// @function Vue.prototype.$destroy</span>
+Vue.prototype.$destroy = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">const</span> vm: Component = this
+  <span class="hljs-keyword">if</span> (vm._isBeingDestroyed) {
+    <span class="hljs-keyword">return</span>
+  }
+  <span class="hljs-comment">// 触发 beforeDestroy 的 hook</span>
+  callHook(vm, <span class="hljs-string">'beforeDestroy'</span>)
+  vm._isBeingDestroyed = <span class="hljs-keyword">true</span>
+  <span class="hljs-comment">// remove self from parent</span>
+  <span class="hljs-comment">// 移除父组件与当前组件的关系</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">parent</span> = vm.$parent
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">parent</span> &amp;&amp; !<span class="hljs-keyword">parent</span>._isBeingDestroyed &amp;&amp; !vm.$options.<span class="hljs-keyword">abstract</span>) {
+    remove(<span class="hljs-keyword">parent</span>.$children, vm)
+  }
+  <span class="hljs-comment">// teardown watchers</span>
+  <span class="hljs-comment">// 移除所有watcher</span>
+  <span class="hljs-keyword">if</span> (vm._watcher) {
+    vm._watcher.teardown()
+  }
+  let i = vm._watchers.length
+  <span class="hljs-keyword">while</span> (i--) {
+    vm._watchers[i].teardown()
+  }
+  <span class="hljs-comment">// remove reference from data ob</span>
+  <span class="hljs-comment">// frozen object may not have observer.</span>
+  <span class="hljs-keyword">if</span> (vm._data.__ob__) {
+    vm._data.__ob__.vmCount--
+  }
+  <span class="hljs-comment">// call the last hook...</span>
+  vm._isDestroyed = <span class="hljs-keyword">true</span>
+  <span class="hljs-comment">// invoke destroy hooks on current rendered tree</span>
+  <span class="hljs-comment">// 移除 vnode 内容</span>
+  vm.__patch__(vm._vnode, <span class="hljs-keyword">null</span>)
+  <span class="hljs-comment">// fire destroyed hook</span>
+  callHook(vm, <span class="hljs-string">'destroyed'</span>)
+  <span class="hljs-comment">// turn off all instance listeners.</span>
+  vm.$off()
+  <span class="hljs-comment">// remove __vue__ reference</span>
+  <span class="hljs-keyword">if</span> (vm.$el) {
+    vm.$el.__vue__ = <span class="hljs-keyword">null</span>
+  }
+  <span class="hljs-comment">// release circular reference (#6759)</span>
+  <span class="hljs-keyword">if</span> (vm.$vnode) {
+    vm.$vnode.<span class="hljs-keyword">parent</span> = <span class="hljs-keyword">null</span>
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>至此，基本的声明周期就差不多了，后续的内容主要是对hook的触发顺序进行一个巩固记忆</p>
+<h2 id="基础切换组件">基础切换组件</h2><p>当从一个组件a切换到组件b的时候，执行的顺序是：</p>
+<ol>
+<li><code>b-component</code> beforeCreate</li>
+<li><code>b-component</code> created</li>
+<li><code>b-component</code> beforeMount</li>
+<li><code>a-component</code> <strong>beforeDestroy</strong></li>
+<li><code>a-component</code> <strong>destroyed</strong></li>
+<li><code>b-component</code> mounted</li>
+</ol>
+<p>注意从a切换到b的时候，并不是a的<code>destroy</code>的相关方法马上执行，而是等到b组件的<code>beforeMount</code>函数执行后再调用之前的<code>destroy</code>的相关方法；当旧的组件被销毁之后，再执行新的组件的<code>mounted</code>的挂载方法，因为挂载完毕之后就会显示组件对应的内容</p>
+<h2 id="keepalive">keep-alive</h2><p>当使用 keep-alive 来缓存组件的时候，keep-alive里面的生命周期会有点不一样；</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>&lt;<span class="hljs-meta">keep</span>-alive&gt;
+    &lt;component-a v-<span class="hljs-meta">if</span>=<span class="hljs-string">"componentName === 'component-a'"</span>&gt;&lt;/component-a&gt;
+    &lt;component-<span class="hljs-keyword">b </span>v-<span class="hljs-meta">if</span>=<span class="hljs-string">"componentName === 'component-b'"</span>&gt;&lt;/component-<span class="hljs-keyword">b&gt;
+</span>&lt;/<span class="hljs-meta">keep</span>-alive&gt;</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>当切换不同的<code>componentName</code>变量的时候，在没有使用<code>keep-alive</code>的时候，触发周期如前面所说的；但使用<code>keep-alive</code>之后，一个组件进入的周期就变成了：</p>
+<ol>
+<li>beforeCreate</li>
+<li>created</li>
+<li>beforeMount</li>
+<li>mounted</li>
+<li><strong>activated</strong></li>
+</ol>
+<p>注意这里多了一个<code>activated</code>的hook调用，这一个hook是仅在<code>keep-alive</code>中使用的，表示当前组件被激活；对应这另外一个hook就是，<code>deactivated</code>，表示当前组件被停用，那么从<code>component-a</code>切换到<code>component-b</code>的过程中，生命周期hook调用顺序就变成了：</p>
+<p><code>component-a</code>初始化：</p>
+<ol>
+<li>beforeCreate</li>
+<li>created</li>
+<li>beforeMount</li>
+<li>mounted</li>
+<li>activated</li>
+</ol>
+<p>从<code>component-a</code>切换到：<code>component-b</code>：</p>
+<ol>
+<li><code>component-b</code> beforeCreate</li>
+<li><code>component-b</code> created</li>
+<li><code>component-b</code> beforeMount</li>
+<li><code>component-a</code> <strong>deactivated</strong></li>
+<li><code>component-b</code> mounted</li>
+<li><code>component-b</code> activated</li>
+</ol>
+<p>可以注意到，这个时候没有了之前看到的<code>destroy</code>类的触发，而是<code>deactivated</code>；<code>mounted</code>之后，也是跟之前类似，也会调用<code>activated</code>方法</p>
+<p>然后从<code>component-b</code>再切换到： <code>component-a</code>:</p>
+<ol>
+<li><code>component-b</code> deactivated</li>
+<li><code>component-a</code> activated</li>
+</ol>
+<p>因为这个时候<code>component-a</code>已经初始化了，所以没有触发<code>create</code>与<code>mount</code>类的hook，而是先<code>component-b</code>停用，再<code>component-a</code>激活；后续不断切换也是只反复调用这两个hook...</p>
+<h3 id="keepalive的最大缓存数量max">keep-alive的最大缓存数量 max</h3><p><code>keep-alive</code>可以设置一个最大缓存的数量，当超出设置的最大缓存的数量，则最久没有被访问到的实例会被销毁：</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>&lt;keep-alive :max=<span class="hljs-string">"2"</span>&gt;
+    &lt;<span class="hljs-keyword">component</span>-a v-<span class="hljs-keyword">if</span>=<span class="hljs-string">"componentName === 'component-a'"</span>&gt;&lt;/<span class="hljs-keyword">component</span>-a&gt;
+    &lt;<span class="hljs-keyword">component</span>-b v-<span class="hljs-keyword">if</span>=<span class="hljs-string">"componentName === 'component-b'"</span>&gt;&lt;/<span class="hljs-keyword">component</span>-b&gt;
+    &lt;<span class="hljs-keyword">component</span>-c v-<span class="hljs-keyword">if</span>=<span class="hljs-string">"componentName === 'component-c'"</span>&gt;&lt;/<span class="hljs-keyword">component</span>-c&gt;
+&lt;/keep-alive&gt;</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>从<code>component-a</code>切换到<code>component-b</code>的hook调用顺序与没有设置<code>max</code>类似；再从<code>component-b</code>切换到<code>component-c</code>的时候，调用顺序为：</p>
+<ol>
+<li><code>component-a</code> <strong>beforeDestroy</strong></li>
+<li><code>component-a</code> <strong>destroyed</strong></li>
+<li><code>component-c</code> beforeCreate</li>
+<li><code>component-c</code> created</li>
+<li><code>component-c</code> beforeMount</li>
+<li><code>component-b</code> deactivated</li>
+<li><code>component-c</code> mounted</li>
+<li><code>component-c</code> activated</li>
+</ol>
+<p>由于设置了最大的缓存数量为2，当切换到<code>component-c</code>的时候，首先触发的是<code>component-a</code>的<code>destroy</code>的相关方法；再执行初始化<code>component-c</code>，然后<code>component-b</code>失活</p>
+<ol>
+<li><code>component-a</code> =&gt; <code>component-b</code>： 与没有max一致</li>
+<li><code>component-b</code> =&gt; <code>component-c</code>：首先<code>component-a</code>的destroy相关hook被调用，后续的调用顺序是先初始化<code>component-c</code>，再让<code>component-b失活</code></li>
+<li><code>component-c</code> =&gt; <code>component-b</code>: 仅执行<code>deactivated</code>与<code>activated</code>的方法</li>
+<li><code>component-b</code> =&gt; <code>component-a</code>；首先<code>componet-c</code>的destroy相关hook被调用，后续hook调用顺序是先初始化<code>component-a</code>，再让<code>component-b</code>失活</li>
+</ol>
+<h2 id="router">router</h2><p>在vue-router当中，定义了好多hook，称之为导航守卫，现在简单结合一下组件的生命周期梳理一下：</p>
+<p>实验例子：</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">router-link</span> <span class="hljs-attr">:to</span>=<span class="hljs-string">"</span></span></span><span class="hljs-template-variable">{name: 'foo'}</span><span class="xml"><span class="hljs-tag"><span class="hljs-string">"</span>&gt;</span>jump to foo<span class="hljs-tag">&lt;/<span class="hljs-name">router-link</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">router-link</span> <span class="hljs-attr">:to</span>=<span class="hljs-string">"</span></span></span><span class="hljs-template-variable">{name: 'bar'}</span><span class="xml"><span class="hljs-tag"><span class="hljs-string">"</span>&gt;</span>jump to bar<span class="hljs-tag">&lt;/<span class="hljs-name">router-link</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">router-view</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">router-view</span>&gt;</span></span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>当点击跳转到<code>/foo</code>的时候，<code>foo</code>组件的生命周期与路由钩子触发顺序为：</p>
+<ol>
+<li><strong>beforeRouteEnter</strong>  优先触发路由的导航守卫 hook</li>
+<li>beforeCreate</li>
+<li>created</li>
+<li>beforeMount</li>
+<li>mounted</li>
+</ol>
+<p>然后点击跳转到<code>/bar</code>，<code>foo</code>与<code>bar</code>组件的生命周期与路由钩子触发顺序为：</p>
+<ol>
+<li><strong>foo component beforeRouteLeave</strong></li>
+<li><strong>bar component beforeRouteEnter</strong></li>
+<li>bar component beforeCreate</li>
+<li>bar component created</li>
+<li>bar component beforeMount</li>
+<li>foo component beforeDestroy</li>
+<li>foo component destroyed</li>
+<li>bar component mounted</li>
+</ol>
+<p>可以看到先触发<code>foo beforeRouteLeave</code>再到<code>bar beforeRouteEnter</code>；而后续3-8点，与之前组件切换类似</p>
+<h3 id="keepalive包含routerview">keep-alive 包含 router-view</h3><p>实验代码更改为：</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">ul</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">router-link</span> <span class="hljs-attr">:to</span>=<span class="hljs-string">"</span></span></span><span class="hljs-template-variable">{name: 'foo'}</span><span class="xml"><span class="hljs-tag"><span class="hljs-string">"</span>&gt;</span>jump to foo<span class="hljs-tag">&lt;/<span class="hljs-name">router-link</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">li</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">router-link</span> <span class="hljs-attr">:to</span>=<span class="hljs-string">"</span></span></span><span class="hljs-template-variable">{name: 'bar'}</span><span class="xml"><span class="hljs-tag"><span class="hljs-string">"</span>&gt;</span>jump to bar<span class="hljs-tag">&lt;/<span class="hljs-name">router-link</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">li</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">ul</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">keep-alive</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">router-view</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">router-view</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">keep-alive</span>&gt;</span></span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>首次进入<code>/foo</code>路由</p>
+<ol>
+<li>beforeRouteEnter</li>
+<li>beforeCreate</li>
+<li>created</li>
+<li>beforeMount</li>
+<li>mounted</li>
+<li><strong>activated</strong></li>
+</ol>
+<p>进入的顺序没有特别，最后多了一个<code>activated</code>的调用，与之前使用keep-alive类似</p>
+<p>然后从<code>/foo</code>进入<code>/bar</code>：</p>
+<ol>
+<li>foo component beforeRouteLeave</li>
+<li>bar component beforeRouteEnter</li>
+<li>bar component beforeCreate</li>
+<li>bar component created</li>
+<li>bar component beforeMount</li>
+<li><strong>foo component deactivated</strong></li>
+<li>bar component mounted</li>
+<li>bar component activated</li>
+</ol>
+<p>再从<code>/bar</code>进入<code>/foo</code>：</p>
+<ol>
+<li>bar component beforeRouteLeave</li>
+<li>foo component beforeRouteEnter</li>
+<li>bar component deactivated</li>
+<li>foo component activated</li>
+</ol>
+<p>路由的优先级始终是在最高级别，然后再到组件的初始化过程；若组件已经初始化且在缓存当中，则到keep-alive的<code>activated</code>的相关hook</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
