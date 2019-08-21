@@ -781,7 +781,62 @@ Vue.prototype.$destroy = <span class="hljs-function"><span class="hljs-keyword">
 <li>beforeMount</li>
 <li>mounted</li>
 </ol>
-<p>然后点击跳转到<code>/bar</code>，<code>foo</code>与<code>bar</code>组件的生命周期与路由钩子触发顺序为：</p>
+<p>需要注意的是，有时候我们在<code>beforeRouteEnter</code>的钩子做一些处理，例如判断用户是否有权限进入该组件，没有权限就跳转去别的页面，有权限则进入页面，伪代码如下：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre>import router from &#39;router&#39; &#x2F;&#x2F; vue-router object
+export default {
+    beforeRouteEnter (to, from, next) {
+        console.log(&#39;beforeRouteEnter&#39;)
+        requestPermission().then(allowAccessed &#x3D;&gt; {
+            if (allowAccessed) {
+                next(vm &#x3D;&gt; {
+                    console.log(&#39;beforeRouteEnter next&#39;)
+                    vm.allow &#x3D; true
+                })
+            } else {
+                router.push({ name: &#39;homepage&#39; })
+            }
+        })
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>那么这个时候触发的顺序为：</p>
+<ol>
+<li>beforeRouteEnter</li>
+<li>beforeCreate</li>
+<li>created</li>
+<li>beforeMount</li>
+<li>mounted</li>
+<li><strong>beforeRouteEnter next</strong></li>
+</ol>
+<p><code>next</code>回调函数是最后才执行；因为在<code>next</code>所传的函数里面，已经可以拿到当前组件的实例</p>
+<p>ok，回到之前的例子，然后点击从<code>foo</code>跳转到<code>/bar</code>，<code>foo</code>与<code>bar</code>组件的生命周期与路由钩子触发顺序为：</p>
 <ol>
 <li><strong>foo component beforeRouteLeave</strong></li>
 <li><strong>bar component beforeRouteEnter</strong></li>
