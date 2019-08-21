@@ -783,7 +783,7 @@ Vue.prototype.$destroy = <span class="hljs-function"><span class="hljs-keyword">
 </ol>
 <p>需要注意的是，有时候我们在<code>beforeRouteEnter</code>的钩子做一些处理，例如判断用户是否有权限进入该组件，没有权限就跳转去别的页面，有权限则进入页面，伪代码如下：</p>
 
-      <div class="hljs">
+      <div class="hljs javascript">
         <table>
           <tbody>
             <tr>
@@ -806,18 +806,18 @@ Vue.prototype.$destroy = <span class="hljs-function"><span class="hljs-keyword">
 <span>16</span>
 </pre>
               </td>
-              <td class="code"><pre>import router from &#39;router&#39; &#x2F;&#x2F; vue-router object
-export default {
-    beforeRouteEnter (to, from, next) {
-        console.log(&#39;beforeRouteEnter&#39;)
-        requestPermission().then(allowAccessed &#x3D;&gt; {
-            if (allowAccessed) {
-                next(vm &#x3D;&gt; {
-                    console.log(&#39;beforeRouteEnter next&#39;)
-                    vm.allow &#x3D; true
+              <td class="code"><pre><span class="hljs-keyword">import</span> router <span class="hljs-keyword">from</span> <span class="hljs-string">'router'</span> <span class="hljs-comment">// vue-router object</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+    beforeRouteEnter (to, <span class="hljs-keyword">from</span>, next) {
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'beforeRouteEnter'</span>)
+        requestPermission().then(<span class="hljs-function"><span class="hljs-params">allowAccessed</span> =&gt;</span> {
+            <span class="hljs-keyword">if</span> (allowAccessed) {
+                next(<span class="hljs-function"><span class="hljs-params">vm</span> =&gt;</span> {
+                    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'beforeRouteEnter next'</span>)
+                    vm.allow = <span class="hljs-literal">true</span>
                 })
-            } else {
-                router.push({ name: &#39;homepage&#39; })
+            } <span class="hljs-keyword">else</span> {
+                router.push({ <span class="hljs-attr">name</span>: <span class="hljs-string">'homepage'</span> })
             }
         })
     }
