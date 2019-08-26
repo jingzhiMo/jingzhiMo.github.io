@@ -1,0 +1,470 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+一切都从tree-shaking说起… - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">August 26, 2019</p>
+  <h1 class="title">一切都从tree-shaking说起…</h1>
+  <div class="content"><p>前阵子去回顾一下<code>tree-shaking</code>的简单原理，然后<em>顺藤摸瓜</em>，逐步把之前不清晰或者不明白的打包基础工具梳理了一遍。</p>
+<h2 id="treeshaking">tree-shaking</h2><p>tree-shaking 就是可以把一些没有用到的代码在打包的过程剔除，进而减少最终的代码体积，例如：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// a.js</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> foo = <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {}
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> bar = <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {}
+
+<span class="hljs-comment">// b.js</span>
+<span class="hljs-keyword">import</span> { foo } <span class="hljs-keyword">from</span> <span class="hljs-string">'./a.js'</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>因为<code>b.js</code>不包含<code>bar</code>函数，所以最后会被剔除，具体可以看<a href="https://webpack.js.org/guides/tree-shaking/#clarifying-tree-shaking-and-sideeffects">webpack 这篇文章</a>；但是实现tree-shaking的基础是使用ES Module；平常nodeJs所用到的CommonJs的模块定义方式暂时是不能够应用到tree-shaking。ES Module 能实现的主要原因有三个：</p>
+<ol>
+<li><code>import</code>,<code>export</code>语句只能在模块顶层的语句出现</li>
+<li>import 的模块名只能是字符串常量</li>
+<li>import binding 是 immutable的</li>
+</ol>
+<p>第一点大概意思是，在模块中，import 与 export 语句不能够嵌套在其他块当中</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// ES Module</span>
+<span class="hljs-comment">// correctly</span>
+<span class="hljs-keyword">import</span> { foo } <span class="hljs-keyword">from</span> <span class="hljs-string">'./a.js'</span>
+
+<span class="hljs-comment">// error</span>
+<span class="hljs-keyword">if</span> (value) {
+    <span class="hljs-keyword">import</span> { foo } <span class="hljs-keyword">from</span> <span class="hljs-string">'./a.js'</span>
+}
+
+<span class="hljs-comment">// CommonJs</span>
+<span class="hljs-comment">// correctly</span>
+<span class="hljs-keyword">var</span> foo = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./a.js'</span>).foo
+
+<span class="hljs-comment">// correctly too</span>
+<span class="hljs-keyword">if</span> (value) {
+    <span class="hljs-keyword">var</span> foo = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./a.js'</span>).foo
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>第二点的大概意思是，导入模块的时候，不能够使用变量进行拼接，只能是字符串常量：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// correctly</span>
+<span class="hljs-keyword">import</span> foo <span class="hljs-keyword">from</span> <span class="hljs-string">'./a.js'</span>
+<span class="hljs-comment">// error</span>
+<span class="hljs-keyword">import</span> foo <span class="hljs-keyword">from</span> <span class="hljs-string">'some_module'</span> + SUFFIX</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>第三点原因，可以结合对模块循环引用的处理不同，来说明一下；</p>
+<p>CommonJs对模块的处理是：在遇到<code>require</code>的时候，就进入到对应模块，然后执行依赖模块的代码，引用的模块只会执行一次，后续再依赖相同模块的时候，就不会执行依赖模块的代码；</p>
+<p>ES Module在遇到<code>import</code>的时候并不会去马上执行依赖模块代码，而至拿到依赖模块的变量引用，当本模块对依赖模块的变量进行计算的时候，才会根据引用去拿数据。</p>
+<p>直接文字说明没有代码可能比较晦涩，具体可以参考<a href="http://www.ruanyifeng.com/blog/2015/11/circular-dependency.html">阮一峰的文章</a>解释循环引用问题。</p>
+<p>另外对于ES Module想了解更多的，可以查看<a href="https://exploringjs.com/es6/ch_modules.html">exploringjs的文章</a>，讲解得十分清晰，而且带有例子代码。</p>
+<p>tree-shaking大概情况就是这样子了，但是实际上，很多依赖的库为了兼容大多数情况，最后都是打包成CommonJs，所以发现很多都没什么用...当然，有部分库会分不同的入口文件，例如<code>main</code>就是CommonJs打包模块的入口，<code>module</code>表示ES Module打包的入口：</p>
+
+      <div class="hljs json">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// package.json</span>
+{
+<span class="hljs-symbol">    name:</span> <span class="hljs-string">"package-name"</span>,
+<span class="hljs-symbol">    main:</span> <span class="hljs-string">"dist/index-cmd.js"</span>,
+<span class="hljs-symbol">    module:</span> <span class="hljs-string">"dist/index-esm.js"</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这个时候我们需要在webpack设置优先规则：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// webpack.config.js</span>
+<span class="hljs-keyword">module</span>.<span class="hljs-keyword">exports</span> = {
+    <span class="hljs-comment">// ...</span>
+    resolve: {
+        <span class="hljs-comment">// 这是默认配置，可以根据需要进行更改</span>
+        <span class="hljs-comment">// 解析路径的时候解析顺序从左往右优先级降低</span>
+        mainFields: [<span class="hljs-string">'module'</span>, <span class="hljs-string">'main'</span>]
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这样子就能够处理那些导出包括ES Module 的库了。</p>
+<p>ok，现在再回头看一下webpack的处理过程：<code>babel =&gt; tree-shaking =&gt; 压缩</code>；我们先从压缩的看起，无意中发现现在webpack默认的压缩工具改了！！！现在默认是：<a href="https://github.com/terser-js/terser"><code>terser</code></a>与对应的<a href="https://github.com/webpack-contrib/terser-webpack-plugin"><code>terser plugin</code></a>，我对压缩工具的处理还停留在<code>uglifyJs</code>...简单看了一下terser的描述，大概意思就是，<code>uglify-es</code>已经停止维护了，<code>uglify-js</code>又不支持对ES6+的处理，所以就fork<code>uglify-es</code>，新建的一个库：</p>
+<p><a href="https://github.com/terser-js/terser#why-choose-terser">why-choose-terser</a></p>
+<blockquote>
+<p>uglify-es is no longer maintained and uglify-js does not support ES6+.</p>
+</blockquote>
+<blockquote>
+<p>terser is a fork of uglify-es that mostly retains API and CLI compatibility with uglify-es and uglify-js@3.</p>
+</blockquote>
+<h2 id="babel">Babel</h2><p>模块一开始就被babel来处理，但是默认babel会处理为CommonJs，所以配置需要更改。然后也顺便熟悉一下babel的部分插件，此处用<code>@babel/preset-env</code>为例：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// babel.config.js</span>
+<span class="hljs-keyword">module</span>.<span class="hljs-keyword">exports</span> = {
+    presets: [<span class="hljs-string">'@babel/env'</span>, {
+        modules: <span class="hljs-keyword">false</span> <span class="hljs-comment">// 不转换代码中的模块处理方式</span>
+    }]
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>看到这里，也顺便熟悉一下babal的<code>@babel/preset-env</code>和<code>@babel/plugin-transform-runtime</code>；</p>
+<h3 id="babel/presetenv">@babel/preset-env</h3><p><code>@babel/preset-env</code> 是一堆插件的组合，通常能够支持最新稳定的 js 语法，而不需要手动去配置；如果对于一些还没有完全确定的js语法，暂时不支持</p>
+<blockquote>
+<p>It is important to note that @babel/preset-env does not support stage-x plugins.</p>
+</blockquote>
+<p>需要注意的是，babel默认是不处理API，只支持语法，例如<code>class</code>语法，箭头函数语法；一些API，例如<code>Promise</code>(ie: ???)，<code>Set</code>，<code>String.prototype.includes</code>这些，默认不会转义，需要使用<code>polyfill</code>，这个后面就讲到。</p>
+<h3 id="babel/plugintransformruntime">@babel/plugin-transform-runtime</h3><p><code>@babel/plugin-transform-runtime</code>能够把一部分helper函数，使用模块引入的方式。</p>
+<blockquote>
+<p>A plugin that enables the re-use of Babel&#39;s injected helper code to save on codesize.</p>
+</blockquote>
+<p>例如在不使用的情况下（这里用class语法的helper函数作为例子）：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">function</span> <span class="hljs-constructor">_createClass(Constructor, <span class="hljs-params">protoProps</span>, <span class="hljs-params">staticProps</span>)</span> { <span class="hljs-keyword">if</span> (protoProps) <span class="hljs-constructor">_defineProperties(Constructor.<span class="hljs-params">prototype</span>, <span class="hljs-params">protoProps</span>)</span>; <span class="hljs-keyword">if</span> (staticProps) <span class="hljs-constructor">_defineProperties(Constructor, <span class="hljs-params">staticProps</span>)</span>; return Constructor; }</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>如果不使用<code>@babel/plugin-transform-runtime</code>插件的时候，这个<code>_createClass</code>函数，在转换的时候，每个包含class文件都会引入这个helper，到最后webpack打包的时候就会有多个这样子的函数，而最后打包的命名规则通常与文件夹与文件名有关系，例如：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 使用前</span>
+<span class="hljs-comment">// index.js</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">index_createClass</span> <span class="hljs-params">()</span> </span>{}
+
+<span class="hljs-comment">// util.js</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">util_createClass</span> <span class="hljs-params">()</span> </span>{}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>最后打包出来就很多个这样类似函数，<code>@babel/plugin-transform-runtime</code>就是处理这种情况，能够统一引入，而不是直接把函数内容复制到文件：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre>var createClass = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">__webpack</span>.</span></span>require<span class="hljs-constructor">__(0)</span> <span class="hljs-comment">// 在文件顶部引入，0 是 webpack 定义模块的id</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>默认的情况下，<code>@babel/plugin-transform-runtime</code>插件是通过CommonJs方式引用，我们也可以改成ES Module的方式：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// babel.config.js</span>
+<span class="hljs-keyword">module</span>.<span class="hljs-keyword">exports</span> = {
+    <span class="hljs-comment">// ...</span>
+    plugins: [
+        [<span class="hljs-string">'@babel/plugin-transform-runtime'</span>, {
+            useESModules: <span class="hljs-keyword">true</span>
+        }]
+    ]
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="polyfill">polyfill</h3><p>从babel7.4.0开始就放弃了<code>@babel/polyfill</code>的使用，取而代之的是使用<a href="https://github.com/zloirock/core-js"><code>core-js</code></a>来实现polyfill，例子：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// babel.config.js</span>
+<span class="hljs-keyword">module</span>.<span class="hljs-keyword">exports</span> = {
+    <span class="hljs-comment">// ...</span>
+    presets: [
+        [<span class="hljs-string">'@babel/env'</span>, {
+            modules: <span class="hljs-keyword">false</span>,
+            corejs: <span class="hljs-number">2</span>,
+            useBuiltIns: <span class="hljs-string">'usage'</span>
+        }]
+    ]
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>corejs</code>与<code>useBuiltIns</code>需要配合使用，<code>corejs</code>通常可以指定两个版本<code>2/3</code>；<code>corejs@3</code>版本比 2 厉害的地方在于，可以把实例的方法也处理了，例如<code>String.prototype.includes</code>，这个方法属于字符串实例的方法，如果用<code>corejs@2</code>是不能够对这种方法处理的，只能处理一些全局的API，例如<code>Set</code>,<code>Map</code>这些；在<code>@babel/preset-env</code>通过配合<code>corejs + useBuiltIns</code>实现的polyfill，能够根据所需要支持的浏览器（通常是<code>.browserslistrc</code>）与浏览器不支持的API引入对应的polyfill。</p>
+<p>例如，支持的浏览器列表中有一项是：<code>safari &gt; 9</code>，而且代码中用到了<code>Set</code>相关，那么就会引入<code>Set</code>的polyfill；如果支持的浏览器列表都是非常新的chrome，那么就不会引入<code>Set</code>的polyfill。还有一个地方需要注意的是，<code>preset</code>中引入的polyfill是会污染全局的API，例如上面所说到的<code>includes</code>方法，会直接在原有的原型链中添加该方法。能否不污染原有的API而引入polyfill？</p>
+<p>使用<code>@babel/plugin-transform-runtime</code>插件：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// babel.config.js</span>
+<span class="hljs-keyword">module</span>.<span class="hljs-keyword">exports</span> = {
+    <span class="hljs-comment">// ...</span>
+    <span class="hljs-comment">// ...</span>
+    presets: [
+        [<span class="hljs-string">'@babel/env'</span>, {
+            modules: <span class="hljs-keyword">false</span>
+        }]
+    ]
+    plugins: [
+        [<span class="hljs-string">'@babel/plugin-transform-runtime'</span>, {
+            corejs: <span class="hljs-number">3</span>, <span class="hljs-comment">// 使用polyfill</span>
+            useESModules: <span class="hljs-keyword">true</span>
+        }]
+    ]
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>处理完之后，原有的API会发生改变，例如：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 18 只是一个模块的id，会随打包代码不同而改变</span>
+<span class="hljs-keyword">var</span> <span class="hljs-keyword">set</span> = __webpack_require__(<span class="hljs-number">18</span>)
+<span class="hljs-keyword">var</span> set_default = __webpack_require.n(<span class="hljs-keyword">set</span>)
+
+<span class="hljs-keyword">var</span> <span class="hljs-keyword">set</span> = <span class="hljs-keyword">new</span> <span class="hljs-type">Set</span>([<span class="hljs-string">'foo'</span>])
+<span class="hljs-comment">// 会转义为：</span>
+<span class="hljs-keyword">var</span> <span class="hljs-keyword">set</span> = <span class="hljs-keyword">new</span> <span class="hljs-type">set_default</span>.a([<span class="hljs-string">'foo'</span>]) <span class="hljs-comment">// 这里举个例子，可能 a 变量会根据环境不同改变</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>可以看出，原有的代码，使用新的变量进行代替了，在文件顶部，则会引入对应的模块，这样子只是局部更改，没有污染全局变量；那么有什么不好的？</p>
+<p>那就是不能根据<code>.browserslistrc</code>的浏览器进行按需引入，无论浏览器支持与否，都会进行引入对应的模块；假设应用只支持较新版本chrome，当使用<code>@babel/plugin-transform-runtime</code>配合<code>corejs</code>的时候，也会把已支持的API打包到最终的文件...因此有可能使得打包文件变大，所以需要根据情况进行取舍。<a href="https://github.com/babel/babel/issues/9853#issuecomment-501365267">这个issue的回答</a>也有给到一些关于使用<code>@babel/preset-env</code>与<code>@babel/plugin-transform-runtime</code>的一些建议，可以看一下。</p>
+<h2 id="小结">小结</h2><p>为了减少打包后的体积，首先想到到<code>tree-shaking</code>，但是发现现实的骨干使得情况不能那么简单，还需要配合<code>webpack</code>, <code>terser</code>, <code>babel</code>来处理，每一层都必不可少，了解整个打包流程才使得得到最终的减少打包体积效果...</p>
+<h2 id="参考文章">参考文章</h2><ul>
+<li><a href="http://www.ruanyifeng.com/blog/2015/11/circular-dependency.html">http://www.ruanyifeng.com/blog/2015/11/circular-dependency.html</a></li>
+<li><a href="https://exploringjs.com/es6/ch_modules.html">https://exploringjs.com/es6/ch_modules.html</a></li>
+<li><a href="https://github.com/terser-js/terser#why-choose-terser">https://github.com/terser-js/terser#why-choose-terser</a></li>
+<li><a href="https://juejin.im/post/5a5652d8f265da3e497ff3de">https://juejin.im/post/5a5652d8f265da3e497ff3de</a></li>
+<li><a href="https://github.com/babel/babel/issues/9853">https://github.com/babel/babel/issues/9853</a></li>
+</ul>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
