@@ -229,7 +229,7 @@
           </tbody>
         </table>
       </div>
-    <p>看到这里，也顺便熟悉一下babal的<code>@babel/preset-env</code>和<code>@babel/plugin-transform-runtime</code>；</p>
+    <p>看到这里，也顺便熟悉一下babel的<code>@babel/preset-env</code>和<code>@babel/plugin-transform-runtime</code>；</p>
 <h3 id="babel/presetenv">@babel/preset-env</h3><p><code>@babel/preset-env</code> 是一堆插件的组合，通常能够支持最新稳定的 js 语法，而不需要手动去配置；如果对于一些还没有完全确定的js语法，暂时不支持</p>
 <blockquote>
 <p>It is important to note that @babel/preset-env does not support stage-x plugins.</p>
@@ -287,9 +287,11 @@
             <tr>
               <td class="line">
                 <pre><span>1</span>
+<span>2</span>
 </pre>
               </td>
-              <td class="code"><pre>var createClass = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">__webpack</span>.</span></span>require<span class="hljs-constructor">__(0)</span> <span class="hljs-comment">// 在文件顶部引入，0 是 webpack 定义模块的id</span></pre></td>
+              <td class="code"><pre><span class="hljs-comment">// 使用后</span>
+var createClass = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">__webpack</span>.</span></span>require<span class="hljs-constructor">__(0)</span> <span class="hljs-comment">// 在文件顶部引入，0 是 webpack 定义模块的id</span></pre></td>
             </tr>
           </tbody>
         </table>
@@ -360,7 +362,7 @@
           </tbody>
         </table>
       </div>
-    <p><code>corejs</code>与<code>useBuiltIns</code>需要配合使用，<code>corejs</code>通常可以指定两个版本<code>2/3</code>；<code>corejs@3</code>版本比 2 厉害的地方在于，可以把实例的方法也处理了，例如<code>String.prototype.includes</code>，这个方法属于字符串实例的方法，如果用<code>corejs@2</code>是不能够对这种方法处理的，只能处理一些全局的API，例如<code>Set</code>,<code>Map</code>这些；在<code>@babel/preset-env</code>通过配合<code>corejs + useBuiltIns</code>实现的polyfill，能够根据所需要支持的浏览器（通常是<code>.browserslistrc</code>）与浏览器不支持的API引入对应的polyfill。</p>
+    <p><code>corejs</code>与<code>useBuiltIns</code>需要配合使用，<code>corejs</code>通常可以指定两个版本<code>2/3</code>；<code>corejs@3</code>版本比<code>corejs@2</code>厉害的地方在于，可以把实例的方法也处理了，例如<code>String.prototype.includes</code>，这个方法属于字符串实例的方法，如果用<code>corejs@2</code>是不能够对这种方法处理的，只能处理一些全局的API，例如<code>Set</code>,<code>Map</code>这些；在<code>@babel/preset-env</code>通过配合<code>corejs + useBuiltIns</code>实现的polyfill，能够根据所需要支持的浏览器（通常是<code>.browserslistrc</code>的内容）与浏览器不支持的API引入对应的polyfill。</p>
 <p>例如，支持的浏览器列表中有一项是：<code>safari &gt; 9</code>，而且代码中用到了<code>Set</code>相关，那么就会引入<code>Set</code>的polyfill；如果支持的浏览器列表都是非常新的chrome，那么就不会引入<code>Set</code>的polyfill。还有一个地方需要注意的是，<code>preset</code>中引入的polyfill是会污染全局的API，例如上面所说到的<code>includes</code>方法，会直接在原有的原型链中添加该方法。能否不污染原有的API而引入polyfill？</p>
 <p>使用<code>@babel/plugin-transform-runtime</code>插件：</p>
 
@@ -384,12 +386,10 @@
 <span>13</span>
 <span>14</span>
 <span>15</span>
-<span>16</span>
 </pre>
               </td>
               <td class="code"><pre><span class="hljs-comment">// babel.config.js</span>
 <span class="hljs-keyword">module</span>.<span class="hljs-keyword">exports</span> = {
-    <span class="hljs-comment">// ...</span>
     <span class="hljs-comment">// ...</span>
     presets: [
         [<span class="hljs-string">'@babel/env'</span>, {
@@ -435,7 +435,7 @@
         </table>
       </div>
     <p>可以看出，原有的代码，使用新的变量进行代替了，在文件顶部，则会引入对应的模块，这样子只是局部更改，没有污染全局变量；那么有什么不好的？</p>
-<p>那就是不能根据<code>.browserslistrc</code>的浏览器进行按需引入，无论浏览器支持与否，都会进行引入对应的模块；假设应用只支持较新版本chrome，当使用<code>@babel/plugin-transform-runtime</code>配合<code>corejs</code>的时候，也会把已支持的API打包到最终的文件...因此有可能使得打包文件变大，所以需要根据情况进行取舍。<a href="https://github.com/babel/babel/issues/9853#issuecomment-501365267">这个issue的回答</a>也有给到一些关于使用<code>@babel/preset-env</code>与<code>@babel/plugin-transform-runtime</code>的一些建议，可以看一下。</p>
+<p>那就是<strong>不能</strong>根据<code>.browserslistrc</code>的浏览器进行按需引入，无论浏览器支持与否，都会进行引入对应的模块；假设应用只支持较新版本chrome，当使用<code>@babel/plugin-transform-runtime</code>配合<code>corejs</code>的时候，也会把已支持的API打包到最终的文件...因此有可能使得打包文件变大，所以需要根据情况进行取舍。<a href="https://github.com/babel/babel/issues/9853#issuecomment-501365267">这个issue的回答</a>也有给到一些关于使用<code>@babel/preset-env</code>与<code>@babel/plugin-transform-runtime</code>的一些建议，可以看一下。</p>
 <h2 id="小结">小结</h2><p>为了减少打包后的体积，首先想到到<code>tree-shaking</code>，但是发现现实的骨干使得情况不能那么简单，还需要配合<code>webpack</code>, <code>terser</code>, <code>babel</code>来处理，每一层都必不可少，了解整个打包流程才使得得到最终的减少打包体积效果...</p>
 <h2 id="参考文章">参考文章</h2><ul>
 <li><a href="http://www.ruanyifeng.com/blog/2015/11/circular-dependency.html">http://www.ruanyifeng.com/blog/2015/11/circular-dependency.html</a></li>
