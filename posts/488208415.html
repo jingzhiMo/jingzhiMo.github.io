@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+造了一个路由切换的轮子 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">September 02, 2019</p>
+  <h1 class="title">造了一个路由切换的轮子</h1>
+  <div class="content"><p>之前一段时间就大概把这个轮子弄好了，但是一直没有整理成文章。今天完善一下使用这个轮子的例子，顺便发现之前的几个bug，一同修复。看来后面还是需要把测试用例补充，否则很难避免使用起来遗漏的地方。目前这个工具托管在<a href="https://github.com/jingzhiMo/friendly-query">friendly-query</a>，欢迎大家尝试使用并提issue。</p>
+<h2 id="背景">背景</h2><p> 通常路由库可以处理从：<code>/path1</code> =&gt; <code>path2</code>的跳转切换不同的页面；但是对<code>/path1?foo=1</code>切换到<code>/path2?foo=2</code>这种情况支持不是很好。如果页面对应的参数不增加到url中，用户在页面更改部分参数后，刷新页面，用户之前选择的这一部分参数就会被重置而不会选中后的页面处理。
+ 在开发的过程中，想实现页面的部分表单参数同步到url的query参数；</p>
+<ol>
+<li>当用户在浏览器点击前进或者后退按钮，则需要监听<code>popstate</code>的事件，然后根据回调事件来监听参数发生变化，根据更改后的url参数，再进行处理；参数发生改变可能只影响一部分，通常只需要触发该部分的回调就可以了；</li>
+<li>而且url的参数都是字符串，而实际可能还需要把字符串转换为需要的复杂数据类型；异步请求数据的时候，可能也需要把复杂的数据类型转换为字符串类型。</li>
+</ol>
+<p>总体来说，这个工具就是解决以上两个问题</p>
+<h2 id="应用过程">应用过程</h2><p><img src="https://i.loli.net/2019/09/02/CNIewij2azrWSub.png" alt="image.png"></p>
+<p>上面图主要描述了三种情况：</p>
+<ol>
+<li>初始化进入页面 <code>enter page</code></li>
+<li>页面数据发生改变<code>update data</code></li>
+<li>用户点击浏览器前进/后退按钮<code>popstate</code></li>
+</ol>
+<h3 id="初始化进入页面">初始化进入页面</h3><ul>
+<li>初始化进入页面的时候，需要调用<code>friendly-query</code>的<code>init</code>方法生成实例</li>
+<li>然后调用实例的<code>instance.load()</code>方法，该方法会从url上获取所有参数，并根据初始化传入的转换的数据类型，进行处理；返回的数据则为我们定义的数据类型</li>
+<li>有时候还会加多一步，把对应的数据，存到对应的<code>store</code></li>
+<li>调用异步请求方法，通常在方法里面需要调用<code>instance.convert</code>方法，把原有复杂的数据类型转换为字符串类型，把参数发送到后端</li>
+</ul>
+<h3 id="页面数据发生改变">页面数据发生改变</h3><p>通常这一步是用户触发更改不同的参数，前端根据不同的参数请求相应的数据</p>
+<ul>
+<li>更新用户更改后的数据</li>
+<li>通过<code>instance.convert</code>方法，获取新的数据转换后的字符串参数</li>
+<li>根据生成的字符串参数，往<code>history</code>添加记录；添加记录这一步可能部分路由已支持；若不支持，则需要手动调用：<code>history.pushState()</code>添加记录</li>
+<li>调用异步请求方法，发送更新后的参数到后端，以获取新的展示内容</li>
+</ul>
+<h3 id="用户点击浏览器前进/后退按钮">用户点击浏览器前进/后退按钮</h3><ul>
+<li>用户触发前进/后退按钮，触发<code>popstate</code>事件（监听事件这一步，在<code>init</code>的时候进行了绑定）</li>
+<li>调用<code>callback</code>函数；这个<code>callback</code>函数为初始化<code>init</code>传入的参数；若对参数进行分多组处理，则改变的参数对应的分组回调才被调用，例如：</li>
+</ul>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-selector-tag">init</span>([{
+    <span class="hljs-attribute">type</span>: {
+        <span class="hljs-attribute">foo</span>: {}
+    },
+    callback () {}
+}, {
+    <span class="hljs-attribute">type</span>: {
+        <span class="hljs-attribute">bar</span>: {}
+    },
+    callback () {}
+}])</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>若在<code>popstate</code>事件发生的时候，<code>foo</code>参数相比旧url发生了改变，则<code>foo</code>对应分组的<code>callback</code>会调用；<code>bar</code>对应的分组的<code>callback</code>不会被调用；这种情况适用于页面有多个不同请求，并且这些请求都需要更新到url。</p>
+<h2 id="处理过程">处理过程</h2><p><img src="https://i.loli.net/2019/09/02/UJwuGcBVXSEzCgM.png" alt="image.png"></p>
+<p>从图可以看出，核心方法是<code>load</code>与<code>convert</code>的处理，是字符串数据与复杂数据之间桥梁。</p>
+<p><code>instance.load</code>方法的核心是<code>parse</code>的方法，<code>parse</code>不是只有一个，而是对于多种不同的数据类型，从字符串转换为需要类型的转换函数，例如：<code>Int</code>与<code>Array</code>的<code>parse</code>过程是不同的，<code>parse</code>函数主要接收三个参数：</p>
+<ul>
+<li><code>{String}  str</code> url 对应参数的数据</li>
+<li><code>{Any}  value</code> 初始化传入该参数的默认数据</li>
+<li><code>{Object}  option</code> 该参数对应的数据类型的配置</li>
+</ul>
+<p>与<code>parse</code>对应的处理函数<code>stringify</code>，在<code>instance.convert()</code>实现，则是把不同的数据类型转换为字符串，例如把数组：<code>[&#39;foo&#39;, &#39;bar&#39;]</code>转换为字符串：<code>&#39;foo,bar&#39;</code>，该函数主要接收两个参数：</p>
+<ul>
+<li><code>{Array|Object} groupQuery</code> 需要从设定的数据类型转换为url参数所用的字符串类型</li>
+<li><code>{Boolean} isMerged</code> 对转换后的数组字符串数据合并到一个对象中，默认合并</li>
+</ul>
+<h3 id="更改类型配置">更改类型配置</h3><p>默认支持的类型有：</p>
+<ol>
+<li><code>Int</code></li>
+<li><code>Float</code></li>
+<li><code>String</code></li>
+<li><code>Date</code></li>
+<li><code>Boolean</code></li>
+<li><code>Array</code></li>
+<li><code>IntArray</code></li>
+<li><code>FloatArray</code></li>
+</ol>
+<p>每种类型都有自己的处理规则，例如<code>Array</code>的配置当中，默认分隔符是逗号：<code>separator: &#39;,&#39;</code>；在<code>parse</code>的时候，会根据逗号<code>,</code>来分割字符串，在<code>stringify</code>的时候，会根据逗号<code>,</code>来拼接字符串。如果想更改为别的分隔符，例如更改为连接符号<code>-</code>，则可以在<code>init</code>的时候，传入第二个参数，对需要更改的规则进行处理：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-selector-tag">init</span>([
+    <span class="hljs-comment">// ...</span>
+], {
+    <span class="hljs-attribute">Array</span>: {
+        <span class="hljs-attribute">separator</span>: <span class="hljs-string">'-'</span>
+    },
+    <span class="hljs-attribute">IntArray</span>: {
+        <span class="hljs-comment">// ...</span>
+    }
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>不同数据类型详细的配置，可以看<a href="https://github.com/jingzhiMo/friendly-query#default-support-data-type">这里</a></p>
+<h3 id="扩充类型">扩充类型</h3><p>如果上述默认的类型都不能支持项目所用，可以使用<code>extend</code>的全局方法来扩充所需要的类型，下面这个例子是扩充一个<code>DateArray</code>的类型：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+</pre>
+              </td>
+              <td class="code"><pre>// dateformat 为一个日期格式类型处理的库
+<span class="hljs-keyword">import</span> dateformat <span class="hljs-keyword">from</span> <span class="hljs-string">'dateformat'</span>
+extend({
+    DateArray: {
+        // 从字符串转换为 <span class="hljs-keyword">Array</span> 的方法
+        parse (str, <span class="hljs-keyword">value</span>, <span class="hljs-keyword">option</span>) {
+            <span class="hljs-keyword">if</span> (!str) <span class="hljs-keyword">return</span> <span class="hljs-keyword">value</span>
+
+            <span class="hljs-keyword">return</span> str.split(<span class="hljs-keyword">option</span>.separator).map(item =&gt; {
+                <span class="hljs-keyword">return</span> <span class="hljs-built_in">new</span> <span class="hljs-type">Date</span>(item)
+            })
+        },
+
+        // 从 <span class="hljs-keyword">Array</span> 转换为字符串的方法
+        stringify (<span class="hljs-keyword">value</span>, <span class="hljs-keyword">option</span>) {
+            <span class="hljs-keyword">if</span> (!<span class="hljs-keyword">value</span>.length) <span class="hljs-keyword">return</span> <span class="hljs-string">''</span>
+
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">value</span>.map(item =&gt; dateformat(item, <span class="hljs-keyword">option</span>.<span class="hljs-keyword">format</span>)).<span class="hljs-keyword">join</span>(<span class="hljs-keyword">option</span>.separator)
+        },
+        <span class="hljs-keyword">option</span>: {
+            // 分隔符
+            separator: <span class="hljs-string">','</span>,
+            // 转换的时间格式
+            <span class="hljs-keyword">format</span>: <span class="hljs-string">'yyyy/mm/dd hh:MM'</span>
+        }
+    }
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><strong>需要注意的是，使用<code>extend</code>扩充的类型，会全局影响，因此最好在项目入口定义新的类型</strong></p>
+<p><strong>目前暂时只支持<code>HTML5 history</code>的模式，暂还没支持<code>hash</code>的路由模式</strong></p>
+<p>更详细的API可以查看<a href="https://github.com/jingzhiMo/friendly-query#api">这里</a></p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
