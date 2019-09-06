@@ -101,7 +101,7 @@
         </table>
       </div>
     <p>若在<code>popstate</code>事件发生的时候，<code>foo</code>参数相比旧url发生了改变，则<code>foo</code>对应分组的<code>callback</code>会调用；<code>bar</code>对应的分组的<code>callback</code>不会被调用；这种情况适用于页面有多个不同请求，并且这些请求都需要更新到url。</p>
-<h2 id="处理过程">处理过程</h2><p><img src="https://i.loli.net/2019/09/02/UJwuGcBVXSEzCgM.png" alt="image.png"></p>
+<h2 id="处理过程">处理过程</h2><p><img src="https://i.loli.net/2019/09/06/PnFc3WexVKg84Gk.png" alt="image.png"></p>
 <p>从图可以看出，核心方法是<code>load</code>与<code>convert</code>的处理，是字符串数据与复杂数据之间桥梁。</p>
 <p><code>instance.load</code>方法的核心是<code>parse</code>的方法，<code>parse</code>不是只有一个，而是对于多种不同的数据类型，从字符串转换为需要类型的转换函数，例如：<code>Int</code>与<code>Array</code>的<code>parse</code>过程是不同的，<code>parse</code>函数主要接收三个参数：</p>
 <ul>
