@@ -1,0 +1,215 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+http缓存与http2特性浅析 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">September 07, 2019</p>
+  <h1 class="title">http缓存与http2特性浅析</h1>
+  <div class="content"><p>这篇文章主要梳理一下现在http缓存相关的header，还有http2的特点与简单原理分析。</p>
+<h2 id="http缓存">http缓存</h2><p>先讲一下缓存，用于协商缓存的请求头有很多个，其中比较常用是以下几个：</p>
+<ol>
+<li>cache-control (通用首部)</li>
+<li>expired (响应首部)</li>
+<li>pragma (通用首部)</li>
+<li>etag (响应首部) &amp;&amp; if-none-match (请求首部)</li>
+<li>last-modified (响应首部) &amp;&amp; if-modified-since (请求首部)</li>
+</ol>
+<p><em>通用首部指既能够在请求首部出现，也可以在响应首部出现</em></p>
+<p>这里先说以下浏览器缓存判断逻辑</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">mockCache</span> </span>() {
+    <span class="hljs-comment">// 浏览器本地缓存命中</span>
+    <span class="hljs-keyword">if</span> (cacheHit) {
+        <span class="hljs-keyword">return</span> cache
+    }
+
+    <span class="hljs-comment">// 缓存没命中，去检测新鲜度</span>
+    <span class="hljs-keyword">if</span> (checkFreshness) {
+        <span class="hljs-comment">// 缓存仍然有效</span>
+        <span class="hljs-keyword">return</span> cache
+    }
+
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span><span class="hljs-type">Response</span>   
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><img src="https://i.loli.net/2019/09/07/s9MgEWSjtZcIVRk.png" alt="image.png">
+<img src="https://i.loli.net/2019/09/07/DZSIeF84lOnYVd5.png" alt="image.png">
+<em>图片来源：http权威指南</em></p>
+<p>浏览器会先查看请求是否命中本地缓存，若命中，则直接使用本地缓存，这个请求返回的http状态码是<code>200</code>，而响应的内容与该请求上一次有效返回一致，常见的有：<code>from memory cached</code>，<code>from disk cached</code></p>
+<p>若缓存在本地没有命中，则会去检测新鲜度，也叫协商缓存，通常是<code>etag &amp;&amp; if-none-match</code>与<code>last-modify &amp;&amp; if-modified-since</code>这两对组合去判断，前者优先级更高；如果缓存仍然有效，则响应的http状态码是<code>304</code>；如果缓存已经失效，那么响应的http状态码是<code>200</code>，服务器返回最新的内容。</p>
+<p>用于判断缓存是否命中的优先级为：</p>
+<p><code>pragma</code> &gt; <code>cache-control</code> &gt; <code>expired</code></p>
+<p>用于判断新鲜度的优先级为：</p>
+<p><code>etag</code> &gt; <code>last-modified</code></p>
+<h2 id="http2">http2</h2><p>接下来说一下http2的相关特点，主要有以下三点：</p>
+<ol>
+<li>二进制分帧与多路复用</li>
+<li>server push</li>
+<li>header压缩</li>
+</ol>
+<h3 id="二进制分帧与多路复用">二进制分帧与多路复用</h3><p>http1.1的请求头与内容等是已字符串的形式传输，以空行为分隔符；而http2是以二进制的方式传输，把请求头与请求内容都封装成帧；</p>
+<p><img src="https://i.loli.net/2019/09/07/lKBuvjyi7LOFgRJ.png" alt="image.png"></p>
+<p><em><a href="https://developers.google.com/web/fundamentals/performance/http2/">图片来源</a></em></p>
+<p>对与新的二进制分帧的数据传输模式，需要熟悉几个概念：</p>
+<ol>
+<li>帧(frame)：http2的最小通信单位，每个帧都包含帧头，至少也会标识出当前帧所属的数据流。通常有header与body对应的frame。</li>
+<li>消息(message)：与逻辑请求或响应消息对应的完整的一系列帧。通常一个请求或者一个响应，会包含一个或多个帧；对于这些组合起来的帧，就是称为消息。</li>
+<li>流(stream)：已建立的连接内的双向字节流，可以承载一条或多条消息。通常是包含多条消息，例如&quot;一个请求+一个响应&quot;组成一个流；而一个TCP连接中，会有很多的流。</li>
+</ol>
+<p><img src="https://i.loli.net/2019/09/07/9ONoFQ6pL7gGTuk.png" alt="image.png">
+<em><a href="https://developers.google.com/web/fundamentals/performance/http2/">图片来源</a></em></p>
+<p>从图上我们可以看出，发送的时候，很多时候都是并非按顺序的传输，帧与帧之间不需要等待，这样子可以达到快速的传输目的。</p>
+<h4 id="qa">Q&amp;A</h4><ol>
+<li>乱序传输会影响结果否？</li>
+</ol>
+<p>不会，因为每一个帧都带有头部信息，这些头部信息能够给到接收的一端重新组装。</p>
+<ol start="2">
+<li>都是并发的发送，能否设置优先级优先处理？</li>
+</ol>
+<p>能，数据流与帧都能够设置优先级，优先级使用1到256之间的整数表示，数字越大，处理的优先级越高。</p>
+<ol start="3">
+<li>对于一些有依赖的资源，例如： A资源需要等到B资源拿到完成后才能发起的情况怎么处理？</li>
+</ol>
+<p>对于有依赖关系的数据流来说，会优先把依赖的资源优先获得分配，然后再对原有资源进行整理。</p>
+<p><img src="https://i.loli.net/2019/09/07/ciuQwTkpLJISbyW.png" alt="image.png"><em><a href="https://developers.google.com/web/fundamentals/performance/http2/">图片来源</a></em></p>
+<p>例如左一情况，数据流A的优先级比数据流B优先级高，从<code>weight</code>数值知道，数据流 B 获得的资源是 A 所获资源的三分之一。</p>
+<p>例如左而情况，数据流C依赖与数据流D，尽管C比D优先级高，但是还是数据流D优先获取完整数据，再到C获取。</p>
+<h4 id="多路复用">多路复用</h4><p>从上面的二进制分帧的处理可以看出，多个http请求可以利用一个tcp进行数据传输，形成多路复用；而http1.1，只能够一个tcp对应一个http，而浏览器对同时建立的tcp连接数通常限制为6；尽管在keep-alive的加持下，能够复用已存在的tcp链接，但是总体并发请求的效率不如http2。</p>
+<h3 id="serverpush">server push</h3><p>http1.1都是基于“请求-响应”来处理数据，而http2，服务器可以主动发送资源到客户端，客户端下次需要数据的时候，就可以直接使用，不需要重新发起请求。例如请求<code>index.html</code>，<code>index.html</code>包含<code>style.css</code>与<code>app.js</code>文件；当允许server push的时候，浏览器请求<code>index.html</code>的同时，也返回了<code>style.css</code>与<code>app.js</code>，等到浏览器解析html文件的时候，需要对应的资源文件，就可以快速获取。</p>
+<h3 id="header压缩">header压缩</h3><p>很多情况下，当我们连续发出多个http请求的时候，请求的header信息会重复，例如cookie,http method,scheme等。如果请求的body内容越少，那么相当于header的内容大小在这次请求的占比越高，利用率就变得更低了。</p>
+<p>而http2，可以把重复相同的请求头不发送，只发送与之前曾经发过不同的请求头，具体例子如图
+<img src="https://i.loli.net/2019/09/07/Dxg8tIYGzdPZCWl.png" alt="image.png">
+<em><a href="https://developers.google.com/web/fundamentals/performance/http2/">图片来源</a></em></p>
+<p>第二次请求与第一次请求相比，只是<code>:path</code>的值发生了改变，那么第二次请求的时候，只需要发出<code>:path: /new_resource</code>的请求头；通常的情况也适用于响应头。http2使用<a href="https://tools.ietf.org/html/draft-ietf-httpbis-header-compression-12">hpack</a>的算法来实现这种<code>&quot;diff header&quot;</code>，下面会简单说一下实现的过程：</p>
+<p>客户端只传不同的header，那么服务器是怎么拿到完整的header？</p>
+<p>客户端与服务器都需要会维护一个静态字典(static table)与一个动态字典(dynamic table)；静态字典是包含常见的头部名称与值的组合，例如<code>:scheme: http</code>,<code>:method: GET</code>，<code>:status: 200</code>，更多静态字典可见<a href="https://httpwg.org/specs/rfc7541.html#static.table.definition">这里</a>。而动态字典是由双方来协定添加。字典的内容，是通过<a href="https://zh.wikipedia.org/wiki/%E9%9C%8D%E5%A4%AB%E6%9B%BC%E7%BC%96%E7%A0%81">哈夫曼编码(Huffman Coding)</a>处理后，再添加到字典中。我们看一个例子：</p>
+<p><img src="https://i.loli.net/2019/09/07/xJeqDLn4SkTiAPa.png" alt="image.png"></p>
+<p><em><a href="https://imququ.com/post/header-compression-in-http2.html">图片来源</a></em></p>
+<p>在请求发送前的请求头为：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre>:method: GET
+:scheme: https
+:host: example.com
+:path: &#x2F;resource
+user-agent: Mozilla&#x2F;5.0 ...
+custom-hdr: some-value</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>经过静态字典的编码之后：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>:method: GET &#x3D;&gt; 2
+:sheme: https &#x3D;&gt; 7
+...
+:path: &#x2F;resouce &#x3D;&gt; 19: Huffman(&quot;&#x2F;resource&quot;)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这里的2和7是静态字典中的索引值，通过索引值的发送，可以大大降低header内容的大小;而对于<code>:path</code>，因为<code>:path</code>也在静态字典中，所以key值就是索引值，而<code>/resource</code>因为不在静态字典用，使用哈夫曼编码处理：<code>Huffman(&quot;/resource&quot;)</code>；对于自定义的<code>custom-hdr</code>，key与value值都是用哈夫曼编码。这次使用哈夫曼编码处理的值，会加入到对应的动态字典里面中，当下一个请求发出的时候，就可以利用动态字典中的索引来表示，也大大减少了header的内容大小。</p>
+<h2 id="参考链接">参考链接：</h2><ul>
+<li><a href="https://developers.google.com/web/fundamentals/performance/http2/">https://developers.google.com/web/fundamentals/performance/http2/</a></li>
+<li><a href="https://imququ.com/post/header-compression-in-http2.html">https://imququ.com/post/header-compression-in-http2.html</a></li>
+</ul>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
