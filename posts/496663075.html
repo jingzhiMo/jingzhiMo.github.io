@@ -1,0 +1,444 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+msn-cache实现与service worker生命周期简述 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">September 21, 2019</p>
+  <h1 class="title">msn-cache实现与service worker生命周期简述</h1>
+  <div class="content"><p><code>msn-cache</code>是最近弄的一个小工具，用于处理<code>memory</code>,<code>storage</code>,<code>netword</code>数据，<code>msn</code>也就是这三个单词的首字母。获取缓存数据处理过程的优先级是<code>memory</code> =&gt; <code>storage</code> =&gt; <code>network</code>。至于怎样降级获取数据的详细处理，可以往下看一下</p>
+<h2 id="msncache处理过程">msn-cache 处理过程</h2><p><img src="https://i.loli.net/2019/09/21/zm7bIX6ZDS4v9jO.png" alt="image.png"></p>
+<p>在降级处理过程，主要有两个难点：</p>
+<ol>
+<li>cache 的算法处理</li>
+<li>storage数据处理</li>
+</ol>
+<h3 id="cache的算法处理">cache 的算法处理</h3><p>目前支持的算法有<code>LRU</code>与<code>FIFO</code>那么怎么验证这个算法是正确的？<code>LRU</code>算法相对比较复杂，这边是通过在leetcode提交验证，若通过leetcode的验证，则表明通过。leetcode <a href="https://leetcode.com/problems/lru-cache/">题目地址</a>，但是leetcode暂时不支持ts语法，因此要把ts转换为js，再粘贴到leetcode运行。<code>LRU</code>的运行效率对比同语言还算不错。<code>FIFO</code>算法在leetcode没有找到相关题目，暂时只能手工测试，后续考虑加上单元测试。
+<img src="https://i.loli.net/2019/09/21/IvtEJRaU4hW276r.png" alt="image.png"></p>
+<p>简单使用例子：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">import</span> MCache <span class="hljs-keyword">from</span> <span class="hljs-string">'msn-cache'</span>
+
+<span class="hljs-keyword">const</span> mc = <span class="hljs-keyword">new</span> MCache({
+  name: <span class="hljs-string">'LRU'</span>, <span class="hljs-comment">// FIFO</span>
+  capacity: <span class="hljs-number">2</span>,
+  storage: <span class="hljs-string">'sessionStorage'</span>
+})
+
+<span class="hljs-comment">// get value from cache</span>
+mc.get(<span class="hljs-string">'key'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> { <span class="hljs-comment">/* request function */</span> })
+<span class="hljs-comment">// put new key-value in cache</span>
+mc.put(<span class="hljs-string">'key'</span>, value)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在实例化的时候，只需要指定cache算法的名称则可，而不同算法的具体实现对于实例调用<code>mc.get</code>,<code>mc.put</code>都是透明的。</p>
+<p>算法说明：</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU)"><em>LRU算法</em></a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cache_replacement_policies#Least-frequently_used_(LFU)"><em>LFU算法</em></a></li>
+<li><a href="https://en.wikipedia.org/wiki/Cache_replacement_policies#First_in_first_out_(FIFO)"><em>FIFO算法</em></a></li>
+</ul>
+<h3 id="storage处理">storage处理</h3><p>在工具的使用，可以选用<code>localStorage</code>,<code>sessionStorage</code>两种。由于这两种的存储方法不能存储对象类型的数据。在<code>put data in storage</code>的过程中，会执行<code>JSON.stringify(data)</code>方法对数据进行转换；而从<code>storage</code>提取数据的过程，会执行<code>JSON.parse(string)</code>方法转换：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre>let storage = <span class="hljs-string">'sessionStorage'</span>
+let data = {
+    foo: <span class="hljs-string">'foo'</span>
+}
+<span class="hljs-keyword">window</span>[<span class="hljs-keyword">storage</span>].setItem(<span class="hljs-type">JSON</span>.stringify(data))
+data = <span class="hljs-type">JSON</span>.parse(<span class="hljs-keyword">window</span>[<span class="hljs-keyword">storage</span>].getItem())</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>因此，如果数据无法转换，则不能够使用，例如: <code>JSON.parse(undefined)</code>，不能转换成功；不过程序目前已针对<code>undefined</code>的情况进行处理。</p>
+<h4 id="storage的注意点">storage的注意点</h4><p><code>localStorage</code>相对<code>sessionStorage</code>很好理解，只要用户不删除，是一直存在的；但有时候缓存的数据会失效；而<code>msn-cache</code>从<code>localStorage</code>能够拿到旧数据，就不会发出新的请求更新数据；针对这种情况，目前提供<code>clearStorage</code>用于清除存在<code>storage</code>的数据，用户可以选择需要的时候，对<code>storage</code>数据进行清理，具体API可以看<a href="https://github.com/jingzhiMo/msn-cache#api">API文档</a>。</p>
+<p><code>sessionStorage</code>的定义是，在会话过程中，一直存在；那么怎么定义“会话”？</p>
+<p>用户在初始状态： A；sessionStorage数据为：<code>foo: &#39;foo&#39;</code></p>
+<ol>
+<li>用户在页面A按下刷新，属于同一个会话，此时能够拿到<code>foo: &#39;foo&#39;</code></li>
+<li>用户点击页面的超链接B，该链接新开tab打开了，此时B页面，能够拿到<code>foo: &#39;foo&#39;</code>；原有属于A的session storage数据也带过去了</li>
+<li>在B页面，新增数据<code>bar: &#39;bar&#39;</code>；此时切换到A页面tab，A页面不能拿到<code>bar: &#39;bar&#39;</code></li>
+<li>此时，用户在A页面，按住<code>ctrl</code>，点击超链接C，该链接从新tab打开，C页面不能拿到<code>foo: &#39;foo&#39;</code></li>
+<li>此时，用户主动新开tab，同样打开A页面，命名为A2，A2页面不能获取<code>foo: &#39;foo&#39;</code></li>
+</ol>
+<p><em>注意，页面之间跳转均属于同一个域名</em></p>
+<p>由此，我们可以知道<code>sessionStorage</code>的规则：</p>
+<ol>
+<li>在同一个tab刷新，属于同一个session，storage数据不会清除</li>
+<li>用户正常操作（指不受组合键等处理新页面）打开新页面，新页面会把源页面的storage数据带过去；但新页面的storage数据不会同步到源页面</li>
+<li>用户主动新开tab或者按住ctrl键等方式新开tab，不属于同一个session，相当于重新初始化</li>
+</ol>
+<p>因此用户需要根据上述规则，需要根据情况是否对数据进行清除或初始化。</p>
+<h3 id="network">network</h3><p>说了这么久，好像都没有跟network有关系？实际上<code>msn-cache</code>确实没有对<code>network</code>做缓存，只是把<code>network</code>请求当成最后一个找不到缓存的获取途径，使用的方法如下：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">let</span> mc = <span class="hljs-keyword">new</span> MCache({<span class="hljs-comment">/* ... */</span>})
+mc.get(<span class="hljs-string">'key'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-keyword">return</span> fetch(<span class="hljs-string">'/api/foo'</span>)
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>mc.get</code>方法第二参数是一个方法，如果从<code>storage</code>也获取不到数据，就会执行该方法，获取该方法返回的值，作为<code>mc.get</code>的数据。从network数据缓存，我们延伸到<code>service worker</code>。</p>
+<h2 id="serviceworker">service worker</h2><p>service worker是什么？</p>
+<p>是worker的一种，不能操作DOM，与主线程的通信是利用<code>postMessage</code>方法；能够拦截请求，配合<code>cache storage</code>，能够做到离线缓存。</p>
+<p><em>在应用部署service worker，需要应用使用<code>https</code>，若在本地开发使用<code>localhost</code>则不需要</em></p>
+<p>下面看一个简单的例子：页面中注册一个service worker，这个sw在安装成功之后，主动缓存<code>/cat.svg</code>；当页面请求<code>/dog.svg</code>的时候，返回<code>/cat.svg</code>。<code>caches</code>是指<code>cacheStorage</code>，与<code>localStorage</code>这些属于<code>storage</code>类型。</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 例子1:</span>
+<span class="hljs-comment">// index.js</span>
+navigator.serviceWorker.register(<span class="hljs-string">'/sw.js'</span>).then(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">registration</span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'register successful.'</span>)
+}, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'register failed.'</span>, err)
+});
+setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-keyword">let</span> img = <span class="hljs-keyword">new</span> Image()
+    img.src = <span class="hljs-string">'/dog.svg'</span>
+    img.onload = <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'img'</span>).src = <span class="hljs-string">'/dog.svg'</span>   
+    }
+}, <span class="hljs-number">3000</span>)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// sw.js</span>
+self.addEventListener(<span class="hljs-string">'install'</span>, <span class="hljs-function"><span class="hljs-params">event</span> =&gt;</span> {
+    <span class="hljs-comment">// sw 已安装</span>
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'sw installed'</span>)
+    event.waitUntil(caches.open(<span class="hljs-string">'v1'</span>).then(<span class="hljs-function"><span class="hljs-params">cache</span> =&gt;</span> {
+        cache.add(<span class="hljs-string">'/cat.svg'</span>)
+    }))
+})
+self.addEventListener(<span class="hljs-string">'activate'</span>, <span class="hljs-function"><span class="hljs-params">event</span> =&gt;</span> {
+    <span class="hljs-comment">// sw 已激活</span>
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'sw activated'</span>)
+})
+
+<span class="hljs-comment">// 拦截fetch事件</span>
+self.addEventListener(<span class="hljs-string">'fetch'</span>, <span class="hljs-function"><span class="hljs-params">event</span> =&gt;</span> {
+    <span class="hljs-keyword">const</span> url = <span class="hljs-keyword">new</span> URL(event.request.url);
+
+    <span class="hljs-comment">// 拦截dog.svg请求，对这个请求返回cat.svg</span>
+    <span class="hljs-keyword">if</span> (url.pathname == <span class="hljs-string">'/dog.svg'</span>) {
+        event.respondWith(caches.match(<span class="hljs-string">'/cat.svg'</span>));
+    }
+});</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h4 id="clientsclaim">clients.claim</h4><p>从上述例子中，当初始值进入页面的时候，经过3秒之后（假定sw已经安装并激活完毕），会去请求<code>/dog.svg</code>，但是会发现，这个时候返回的图片，还是<code>/dog.svg</code>原图，并不是我们在<code>fetch</code>事件拦截，预计返回的<code>/cat.svg</code>；而当我们重新刷新页面的时候，请求<code>/dog.svg</code>才按照预计返回<code>/cat.svg</code>内容。</p>
+<p>这是因为第一次进入页面，sw激活完毕的时候，并没有马上拿到应用的控制权，在请求<code>/dog.svg</code>中，请求并没有被拦截到，这是sw默认的处理方式；而如果第一次sw加载即马上控制页面，则需要调用<code>clients.claim()</code>方法。</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre>self.addEventListener(<span class="hljs-string">'activate'</span>, <span class="hljs-function"><span class="hljs-params">event</span> =&gt;</span> {
+    <span class="hljs-comment">// 主动获取控制权</span>
+    clients.claim()
+    <span class="hljs-comment">// sw 已激活</span>
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'sw activated'</span>)
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <blockquote>
+<p>注：我看到很多人添加 clients.claim() 作为样板文件，但我自己很少这么做。该事件只是在首次加载时非常重要，由于渐进式增强，即使没有 Service Worker，页面也能顺利运行。</p>
+</blockquote>
+<h4 id="serviceworker生命周期">service worker 生命周期</h4><p>在主线程监听到sw的变化：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+</pre>
+              </td>
+              <td class="code"><pre>navigator.serviceWorker.register('/sw.js').then(registration =&gt; {
+    var serviceWorker;
+    if (registration.installing) {
+        console.<span class="hljs-keyword">log</span>('init <span class="hljs-keyword">state</span> is installing')
+        serviceWorker = registration.installing;
+    } else if (registration.installed) {
+        serviceWorker = registration.installed;
+        console.<span class="hljs-keyword">log</span>('init <span class="hljs-keyword">state</span> is installed')
+    } else if (registration.waiting) {
+        serviceWorker = registration.waiting;
+        console.<span class="hljs-keyword">log</span>('init <span class="hljs-keyword">state</span> is waiting')
+    } else if (registration.active) {
+        serviceWorker = registration.active;
+        console.<span class="hljs-keyword">log</span>('init <span class="hljs-keyword">state</span> is active')
+    }
+    serviceWorker.addEventListener('statechange', function (e) {
+        console.<span class="hljs-keyword">log</span>('状态变化为', e.target.<span class="hljs-keyword">state</span>)
+    });
+}).catch(err =&gt; {
+    console.<span class="hljs-keyword">log</span>('register sw error', err)
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在主线程中，监听首次加载sw的状态变化为：
+<img src="https://i.loli.net/2019/09/21/lsJEt9BIx8SbMP2.png" alt="image.png"></p>
+<p>而在sw中，首次加载的主要事件变化是两个：</p>
+<p><img src="https://i.loli.net/2019/09/21/hXk6c9rpAjyY3EK.png" alt="image.png"></p>
+<ol>
+<li><code>installed</code> sw已经安装成功，通常会在这个时候主动缓存资源，而且<code>installed</code>事件在一个sw中，<strong>只会触发一次</strong></li>
+<li><code>activate</code> sw 已经正常激活，准备好去处理<code>fetch</code>等事件</li>
+</ol>
+<p>那么，如果有需要更新到新的sw，状态是怎么发生变化？例如<code>sw.js</code>资源发生变化，然后主动刷新页面，新的sw中的<code>install</code>事件会进行触发，而<code>activate</code>事件不会马上触发；那么再次刷新呢？还是不会触发新的sw的<code>activate</code>事件，而在主线程的log中，发现初始状态为<code>waiting</code>；无论刷新多少次，都是这样子...</p>
+<p>事实上，如果sw对应的文件发生变化，旧的worker还是会继续控制浏览器；同时新的worker会进行加载，加载完毕后(sw线程的<code>install</code>事件触发)不会把原有的控制权抢过去，而是处于<code>waiting</code>，这个时候拿到的缓存，也是旧worker对应的缓存；<code>fetch</code>事件的拦截也是旧worker处理。</p>
+<p>等待旧的worker控制的所有页面都被关闭（是的，你没看错，是控制的所有页面），待下次打开该页面的时候，新的worker才会接收新的控制权；这样子的处理逻辑，是保证只有一个worker控制资源。</p>
+<p><img src="https://i.loli.net/2019/09/21/X49pSInqtsocFRO.gif" alt="picMadeByMatools.gif"></p>
+<p><em>图片来源：<a href="https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle">https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle</a></em></p>
+<p>那么，如果真的有需求是需要获取到新的worker的时候，马上让新的worker控制所有缓存数据，怎么处理？</p>
+<h4 id="skipwaiting">skipWaiting</h4><p>使用<code>skipWaiting()</code>方法跳过等待；从上面的描述可以知道，新的worker安装完毕之后，就会进入等待状态，当所有由旧worker控制的页面退出则接受控制；这个阶段，新的worker一直处于<code>waiting</code>状态；</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">const</span> cacheVersion = <span class="hljs-string">'v2'</span>
+<span class="hljs-keyword">const</span> urlCache = [
+  <span class="hljs-string">'/cat.svg'</span>,
+  <span class="hljs-string">'/dog.svg'</span>,
+  <span class="hljs-string">'/cow.svg'</span>
+]
+self.addEventListener(<span class="hljs-string">'install'</span>, <span class="hljs-function"><span class="hljs-params">event</span> =&gt;</span> {
+    <span class="hljs-comment">// 跳过等待，安装完毕之后马上由新的worker控制</span>
+    self.skipWaiting()
+    <span class="hljs-comment">// 缓存新版本数据</span>
+    event.waitUntil(caches.open(<span class="hljs-string">'v2'</span>)
+        .then(<span class="hljs-function"><span class="hljs-params">cache</span> =&gt;</span> cache.addAll(urlCache)))
+})
+self.addEventListener(<span class="hljs-string">'activate'</span>, <span class="hljs-function"><span class="hljs-params">event</span> =&gt;</span> {
+  <span class="hljs-comment">// 新的worker激活完成</span>
+    event.waitUntil(caches.keys().then(<span class="hljs-function"><span class="hljs-params">keys</span> =&gt;</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">Promise</span>.all(keys.map(<span class="hljs-function"><span class="hljs-params">item</span> =&gt;</span> {
+            <span class="hljs-comment">// 删除旧版本数据</span>
+            <span class="hljs-keyword">if</span> (cacheVersion !== item) {
+                <span class="hljs-keyword">return</span> caches.delete(item)
+            }
+        }))
+  }))
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="参考文章">参考文章</h3><ul>
+<li><p><a href="https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle">https://developers.google.com/web/fundamentals/primers/service-workers/lifecycle</a></p>
+</li>
+<li><p><a href="https://developers.google.com/web/fundamentals/primers/service-workers/?hl=zh-cn">https://developers.google.com/web/fundamentals/primers/service-workers/?hl=zh-cn</a></p>
+</li>
+</ul>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
