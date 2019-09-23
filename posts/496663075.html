@@ -114,11 +114,11 @@ data = <span class="hljs-type">JSON</span>.parse(<span class="hljs-keyword">wind
       </div>
     <p>因此，如果数据无法转换，则不能够使用，例如: <code>JSON.parse(undefined)</code>，不能转换成功；不过程序目前已针对<code>undefined</code>的情况进行处理。</p>
 <h4 id="storage的注意点">storage的注意点</h4><p><code>localStorage</code>相对<code>sessionStorage</code>很好理解，只要用户不删除，是一直存在的；但有时候缓存的数据会失效；而<code>msn-cache</code>从<code>localStorage</code>能够拿到旧数据，就不会发出新的请求更新数据；针对这种情况，目前提供<code>clearStorage</code>用于清除存在<code>storage</code>的数据，用户可以选择需要的时候，对<code>storage</code>数据进行清理，具体API可以看<a href="https://github.com/jingzhiMo/msn-cache#api">API文档</a>。</p>
-<p><code>sessionStorage</code>的定义是，在会话过程中，一直存在；那么怎么定义“会话”？</p>
+<h5 id="sessionstorage的会话适用范围">sessionStorage 的“会话”适用范围</h5><p><code>sessionStorage</code>的定义是，在会话过程中，一直存在；那么怎么定义“会话”？</p>
 <p>用户在初始状态： A；sessionStorage数据为：<code>foo: &#39;foo&#39;</code></p>
 <ol>
 <li>用户在页面A按下刷新，属于同一个会话，此时能够拿到<code>foo: &#39;foo&#39;</code></li>
-<li>用户点击页面的超链接B，该链接新开tab打开了，此时B页面，能够拿到<code>foo: &#39;foo&#39;</code>；原有属于A的session storage数据也带过去了</li>
+<li>用户点击页面的超链接B，该链接新开tab打开了，此时B页面，能够拿到<code>foo: &#39;foo&#39;</code>；原有属于A的session storage数据也带过去了；</li>
 <li>在B页面，新增数据<code>bar: &#39;bar&#39;</code>；此时切换到A页面tab，A页面不能拿到<code>bar: &#39;bar&#39;</code></li>
 <li>此时，用户在A页面，按住<code>ctrl</code>，点击超链接C，该链接从新tab打开，C页面不能拿到<code>foo: &#39;foo&#39;</code></li>
 <li>此时，用户主动新开tab，同样打开A页面，命名为A2，A2页面不能获取<code>foo: &#39;foo&#39;</code></li>
