@@ -1,0 +1,1180 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+从vuex源码简析启动与使用 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">September 27, 2019</p>
+  <h1 class="title">从vuex源码简析启动与使用</h1>
+  <div class="content"><p>下面从源码简单分析一下vuex的启动与使用过程，适合对<code>vuex</code>有使用经验看一下；适当回顾，也是对提高很有帮助。</p>
+<p>在<code>src</code>目录下的<code>index.js</code>文件主要内容是：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+</pre>
+              </td>
+              <td class="code"><pre>export default {
+<span class="hljs-built_in">  Store,</span>
+<span class="hljs-built_in">  install,</span>
+<span class="hljs-title">  version:</span> '__VERSION__',
+<span class="hljs-built_in">  mapState,</span>
+<span class="hljs-built_in">  mapMutations,</span>
+<span class="hljs-built_in">  mapGetters,</span>
+<span class="hljs-built_in">  mapActions,</span>
+  createNamespacedHelpers
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>其中<code>mapXxx</code>这些是工具函数，暂不展开说明；<code>vuex</code>的主要内容是在<code>Store</code>中，就从这个文件为入口进行分析：</p>
+<h2 id="安装挂载store">安装挂载store</h2>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// store.js</span>
+<span class="hljs-keyword">export</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Store</span> </span>{
+    <span class="hljs-keyword">constructor</span> () {
+        <span class="hljs-keyword">if</span> (!Vue &amp;&amp; <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">window</span> !== <span class="hljs-string">'undefined'</span> &amp;&amp; <span class="hljs-built_in">window</span>.Vue) {
+          install(<span class="hljs-built_in">window</span>.Vue)
+        }
+
+        <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span>) {
+          assert(Vue, <span class="hljs-string">`must call Vue.use(Vuex) before creating a store instance.`</span>)
+          assert(<span class="hljs-keyword">typeof</span> <span class="hljs-built_in">Promise</span> !== <span class="hljs-string">'undefined'</span>, <span class="hljs-string">`vuex requires a Promise polyfill in this browser.`</span>)
+          assert(<span class="hljs-keyword">this</span> <span class="hljs-keyword">instanceof</span> Store, <span class="hljs-string">`store must be called with the new operator.`</span>)
+        }
+
+        <span class="hljs-comment">// ...</span>
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>当调用<code>new Store()</code>的时候；先看第二个<code>if</code>，这里通过判断当前运行的环境，例如在开发环境中，不是通过<code>new</code>,不支持<code>Promise</code>等情况进行warning提示</p>
+<p>在构造器的第一个<code>if</code>当中，帮助用户自动安装<code>vuex</code>到<code>vue</code>中，安装的主要函数是<code>install</code>，我们继续来看这个函数：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">install</span> (<span class="hljs-params">_Vue</span>) </span>{
+  <span class="hljs-keyword">if</span> (Vue &amp;&amp; _Vue === Vue) {
+    <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span>) {
+      <span class="hljs-built_in">console</span>.error(
+        <span class="hljs-string">'[vuex] already installed. Vue.use(Vuex) should be called only once.'</span>
+      )
+    }
+    <span class="hljs-keyword">return</span>
+  }
+  Vue = _Vue
+  applyMixin(Vue)
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在<code>install</code>函数当中，在非生产环境当中，也会判断是否有重复安装；若没有重复安装，则调用<code>applyMixin</code>方法。</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+</pre>
+              </td>
+              <td class="code"><pre>// applyMixin <span class="hljs-function"><span class="hljs-keyword">function</span></span>
+export default <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(Vue)</span> {</span>
+  const <span class="hljs-keyword">version</span> = Number(Vue.<span class="hljs-keyword">version</span>.<span class="hljs-keyword">split</span>(<span class="hljs-string">'.'</span>)[<span class="hljs-number">0</span>])
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">version</span> &gt;= <span class="hljs-number">2</span>) {
+    Vue.mixin({ beforeCreate: vuexInit })
+  } <span class="hljs-keyword">else</span> {
+    const _init = Vue.prototype._init
+    Vue.prototype._init = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(options = {})</span> {</span>
+      <span class="hljs-keyword">options</span>.init = <span class="hljs-keyword">options</span>.init
+        ? [vuexInit].concat(<span class="hljs-keyword">options</span>.init)
+        : vuexInit
+      _init.<span class="hljs-keyword">call</span>(this, <span class="hljs-keyword">options</span>)
+    }
+  }
+
+  /**
+   * Vuex init hook, injected into each instances init hooks <span class="hljs-keyword">list</span>.
+   */
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">vuexInit</span> <span class="hljs-params">()</span> {</span>
+    const <span class="hljs-keyword">options</span> = this.$<span class="hljs-keyword">options</span>
+    // store injection
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">options</span>.store) {
+      this.$store = typeof <span class="hljs-keyword">options</span>.store === <span class="hljs-string">'function'</span>
+        ? <span class="hljs-keyword">options</span>.store()
+        : <span class="hljs-keyword">options</span>.store
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-keyword">options</span>.parent &amp;&amp; <span class="hljs-keyword">options</span>.parent.$store) {
+      this.$store = <span class="hljs-keyword">options</span>.parent.$store
+    }
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>对于<code>applyMixin</code>的处理分两种情况，如果是大于<a href="mailto:%60vue@2.x">`vue@2.x</a><code>版本，会使用全局混入的方法处理，把初始化的过程加入到组件的</code>beforeCreate<code>钩子；而对于</code><a href="mailto:vue@1.x">vue@1.x</a><code>版本，会在原型链中添加</code>_init<code>方法；这两种情况都是调用了</code>vuexInit`的函数；</p>
+<p><code>vuexInit</code>的函数的处理是把<code>store</code>挂载到每个组件的<code>this.$store</code>中；大概的逻辑是，每个组件调用的时候，都会从父组件<code>(this.$options.parent)</code>获取<code>$store</code>，那样子就可以做到把<code>$store</code>逐级往下传递：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>root
+|-- foo
+    |-- bar
+    |-- baz</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>组件渲染也是从上层往下层渲染，例如上面的结构，根组件是通过<code>this.$options.store</code>获取<code>$store</code>; <code>foo</code>组件的父组件是<code>root</code>，那么从<code>root</code>中获取<code>$store</code>的引用；而渲染到<code>bar</code>,<code>baz</code>的时候，就从<code>foo</code>组件中获取。</p>
+<p>安装过程小结：在调用<code>new Store()</code>的时候，会判断当前环境支持情况，是否重复安装等情况进行判断，若不符合要求会报warning或error；安装的时候注入全局<code>mixin</code>或者更改<code>Vue.prototype</code>方法，对新增组件完成添加<code>$store</code>的过程。</p>
+<h2 id="根据配置生成模块">根据配置生成模块</h2><p>通过上一步安装Store之后，之后就根据用户传入的配置进行初始化。下面的代码片段仍然属于<code>Store</code>的构造器</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Store</span> </span>{
+  <span class="hljs-keyword">constructor</span> () {
+    <span class="hljs-comment">// 安装Store...</span>
+    <span class="hljs-keyword">this</span>._committing = <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">this</span>._actions = Object.create(<span class="hljs-literal">null</span>)
+    <span class="hljs-keyword">this</span>._actionSubscribers = []
+    <span class="hljs-keyword">this</span>._mutations = Object.create(<span class="hljs-literal">null</span>)
+    <span class="hljs-keyword">this</span>._wrappedGetters = Object.create(<span class="hljs-literal">null</span>)
+    <span class="hljs-comment">// 生成模块</span>
+    <span class="hljs-keyword">this</span>._modules = new ModuleCollection(options)
+    <span class="hljs-keyword">this</span>._modulesNamespaceMap = Object.create(<span class="hljs-literal">null</span>)
+    <span class="hljs-keyword">this</span>._subscribers = []
+    <span class="hljs-keyword">this</span>._watcherVM = new Vue()
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这一段的代码片段没什么特别，把一些属性挂载到<code>this</code>，也就是<code>Store</code>实例；其中有一段<code>this._modules = new ModuleCollection(options)</code>需要调用到外部<code>class</code>生成：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// module-collection.js</span>
+export <span class="hljs-keyword">default</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ModuleCollection</span> </span>{
+  constructor (rawRootModule) {
+    <span class="hljs-comment">// rawRootModule 为用户传入的配置，{ state, mutations, modules } 等</span>
+    <span class="hljs-built_in">this</span>.register([], rawRootModule, <span class="hljs-literal">false</span>)
+  }
+  register (path, rawModule, runtime = <span class="hljs-literal">true</span>) {
+    <span class="hljs-comment">// balabala</span>
+    <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span>) {
+      assertRawModule(path, rawModule)
+    }
+
+    const <span class="hljs-keyword">new</span><span class="hljs-type">Module</span> = <span class="hljs-keyword">new</span> <span class="hljs-type">Module</span>(rawModule, runtime)
+    <span class="hljs-keyword">if</span> (path.length === <span class="hljs-number">0</span>) {
+      <span class="hljs-built_in">this</span>.root = <span class="hljs-keyword">new</span><span class="hljs-type">Module</span>
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-comment">// 绑定到对应的父模块</span>
+      const parent = <span class="hljs-built_in">this</span>.<span class="hljs-keyword">get</span>(path.slice(<span class="hljs-number">0</span>, <span class="hljs-number">-1</span>))
+      parent.addChild(path[path.length - <span class="hljs-number">1</span>], <span class="hljs-keyword">new</span><span class="hljs-type">Module</span>)
+    }
+
+    <span class="hljs-comment">// register nested modules</span>
+    <span class="hljs-keyword">if</span> (rawModule.modules) {
+      forEachValue(rawModule.modules, (rawChildModule, key) =&gt; {
+        <span class="hljs-built_in">this</span>.register(path.concat(key), rawChildModule, runtime)
+      })
+    }
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>构造器中没什么特别，调用<code>register</code>方法，而传过去的方法是三个：</p>
+<ul>
+<li><code>path = []</code> 模块的路径，根目录为空值 []，非根目录则为模块嵌套的路径：[&#39;foo&#39;, &#39;bar&#39;]</li>
+<li><code>rawModule = rawRootModule</code> rawRootModule 为该模块的配置，根目录的配置为用户传入的所有配置</li>
+<li><code>runtime = false</code></li>
+</ul>
+<p>忽略掉环境的判断，可以看到还需要调用新模块方法：<code>new Module()</code>；这一块我们暂时忽略，知道是根据当前的配置生成一个模块，后面回头再看；</p>
+<p>由于初始化的<code>path</code>数组为空，因此只需要在<code>ModuleCollection</code>的实例的<code>root</code>属性添加新模块引用；执行到<code>if (rawModule.modules)</code>，若根模块有<code>modules</code>，则表示有子模块，就会遍历所有的子模块，同样调用<code>register</code>；当子模块调用的时候，需要把子模块，挂载到父模块中。例如：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+</pre>
+              </td>
+              <td class="code"><pre>new Vuex.Store({
+  <span class="hljs-keyword">state</span>: {},
+  mutations,
+  modules: {
+    foo: {
+      <span class="hljs-keyword">state</span>: {},
+      modules: {
+        bar: {
+          <span class="hljs-keyword">state</span>: {}
+        }
+      }
+    },
+    baz: {
+      <span class="hljs-keyword">state</span>: {}
+    }
+  }
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>对于这个配置，根目录下有<code>foo</code>与<code>baz</code>模块，<code>foo</code>模块有<code>bar</code>模块；对于这种结构生成的<code>ModuleCollection</code>实例简略信息为：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre>{
+  <span class="hljs-attribute">root</span>: {
+    state: {},
+    _<span class="hljs-selector-tag">children</span>: {
+      <span class="hljs-attribute">foo</span>: {
+        state: {},
+        _<span class="hljs-selector-tag">children</span>: {
+          <span class="hljs-attribute">bar</span>: {}
+        }
+      },
+      <span class="hljs-selector-tag">baz</span>: {
+        <span class="hljs-attribute">state</span>: {}
+      }
+    }
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>至此，<code>ModuleCollection</code>已完成；我们回头看一下刚才<code>new Module()</code>的处理：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Module</span> </span>{
+  <span class="hljs-keyword">constructor</span> (rawModule, runtime) {
+    <span class="hljs-keyword">this</span>.runtime = runtime
+    <span class="hljs-keyword">this</span>._children = Object.create(<span class="hljs-literal">null</span>)
+    <span class="hljs-keyword">this</span>._rawModule = rawModule
+    <span class="hljs-keyword">const</span> rawState = rawModule.state
+
+    <span class="hljs-keyword">this</span>.state = (typeof rawState === <span class="hljs-string">'function'</span> ? rawState() : rawState) || {}
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>只是把构造函数的参数挂载到实例，其中<code>_rawModule</code>是指该模块对应的配置，<code>mutations</code>,<code>state</code>这些。</p>
+<p>小结：通过<code>new ModuleCollection()</code>传入用户的配置，调用<code>register</code>递归把子模块注册完毕，形成模块间的父子关系，最后挂载到<code>store._modules</code>属性中</p>
+<h2 id="绑定commit与dispatch方法">绑定commit与dispatch方法</h2><p>对配置的模块关系处理完毕之后，就需要给<code>store</code>绑定<code>commit</code>与<code>dispatch</code></p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">class</span> Store {
+  <span class="hljs-keyword">constructor</span> (<span class="hljs-params"></span>) {
+    <span class="hljs-comment">// ...</span>
+    <span class="hljs-keyword">const</span> store = <span class="hljs-keyword">this</span>
+    <span class="hljs-keyword">const</span> { dispatch, commit } = <span class="hljs-keyword">this</span>
+    <span class="hljs-keyword">this</span>.dispatch = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">boundDispatch</span> (<span class="hljs-params"><span class="hljs-keyword">type</span>, payload</span>) </span>{
+      <span class="hljs-keyword">return</span> dispatch.call(store, <span class="hljs-keyword">type</span>, payload)
+    }
+    <span class="hljs-keyword">this</span>.commit = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">boundCommit</span> (<span class="hljs-params"><span class="hljs-keyword">type</span>, payload, options</span>) </span>{
+      <span class="hljs-keyword">return</span> commit.call(store, <span class="hljs-keyword">type</span>, payload, options)
+    }
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这里先提取原型链的<code>commit</code>和<code>dispatch</code>方法，然后重新赋值，使用<code>call</code>方法保证了<code>commit</code>与<code>dispatch</code>方法执行的上下文为<code>store</code>的实例</p>
+<h2 id="根据模块关系注册muationsactionsgetters">根据模块关系注册muations、actions、getters</h2>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+<span>57</span>
+<span>58</span>
+<span>59</span>
+<span>60</span>
+<span>61</span>
+<span>62</span>
+<span>63</span>
+<span>64</span>
+<span>65</span>
+<span>66</span>
+<span>67</span>
+<span>68</span>
+<span>69</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// store.js</span>
+<span class="hljs-keyword">class</span> Store {
+  <span class="hljs-keyword">constructor</span> (<span class="hljs-params"></span>) {
+    <span class="hljs-comment">// ..</span>
+    <span class="hljs-keyword">const</span> state = <span class="hljs-keyword">this</span>._modules.root.state
+
+    <span class="hljs-comment">// 递归把所有模块的mutations等注册</span>
+    installModule(<span class="hljs-keyword">this</span>, state, [], <span class="hljs-keyword">this</span>._modules.root)
+  }
+}
+
+<span class="hljs-comment">// installModule</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">installModule</span> (<span class="hljs-params">store, rootState, path, <span class="hljs-built_in">module</span>, hot</span>) </span>{
+  <span class="hljs-keyword">const</span> isRoot = !path.length
+  <span class="hljs-comment">// 获取模块的路径，例如；['foo', 'bar'] =&gt; 生成 /foo/bar</span>
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">namespace</span> = store._modules.getNamespace(path)
+
+  <span class="hljs-comment">// register in namespace map</span>
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">module</span>.namespaced) {
+    <span class="hljs-keyword">if</span> (store._modulesNamespaceMap[<span class="hljs-keyword">namespace</span>] &amp;&amp; process.env.NODE_ENV !== <span class="hljs-string">'production'</span>) {
+      <span class="hljs-built_in">console</span>.error(<span class="hljs-string">`[vuex] duplicate namespace <span class="hljs-subst">${<span class="hljs-keyword">namespace</span>}</span> for the namespaced module <span class="hljs-subst">${path.join(<span class="hljs-string">'/'</span>)}</span>`</span>)
+    }
+    store._modulesNamespaceMap[<span class="hljs-keyword">namespace</span>] = <span class="hljs-keyword">module</span>
+  }
+
+  // set state
+  if (!isRoot &amp;&amp; !hot) {
+    <span class="hljs-keyword">const</span> parentState = getNestedState(rootState, path.slice(<span class="hljs-number">0</span>, <span class="hljs-number">-1</span>))
+    <span class="hljs-keyword">const</span> moduleName = path[path.length - <span class="hljs-number">1</span>]
+    store._withCommit(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+      Vue.set(parentState, moduleName, <span class="hljs-built_in">module</span>.state)
+    })
+  }
+
+  <span class="hljs-keyword">const</span> local = <span class="hljs-built_in">module</span>.context = makeLocalContext(store, <span class="hljs-keyword">namespace</span>, path)
+
+  <span class="hljs-comment">// 注册mutation</span>
+  <span class="hljs-comment">// 添加一个_mutation属性到store</span>
+  <span class="hljs-comment">// 把同名的mutation放到同一个数组</span>
+  <span class="hljs-comment">// store._mutations = [</span>
+  <span class="hljs-comment">//   handler1,</span>
+  <span class="hljs-comment">//   handler2</span>
+  <span class="hljs-comment">// ]</span>
+  <span class="hljs-built_in">module</span>.forEachMutation(<span class="hljs-function">(<span class="hljs-params">mutation, key</span>) =&gt;</span> {
+    <span class="hljs-keyword">const</span> namespacedType = <span class="hljs-keyword">namespace</span> + key
+    registerMutation(store, namespacedType, mutation, local)
+  })
+
+  <span class="hljs-comment">// 注册 action</span>
+  <span class="hljs-comment">// 添加一个 _action属性到store，与 mutation 类似</span>
+  <span class="hljs-built_in">module</span>.forEachAction(<span class="hljs-function">(<span class="hljs-params">action, key</span>) =&gt;</span> {
+    <span class="hljs-keyword">const</span> <span class="hljs-keyword">type</span> = action.root ? key : <span class="hljs-keyword">namespace</span> + key
+    <span class="hljs-keyword">const</span> handler = action.handler || action
+    registerAction(store, <span class="hljs-keyword">type</span>, handler, local)
+  })
+
+  <span class="hljs-comment">// 注册 getters</span>
+  <span class="hljs-comment">// 添加一个 _wrappedGetters 属性到 store，与mutation和action有点不同</span>
+  <span class="hljs-comment">// 只能有一个getters</span>
+  <span class="hljs-built_in">module</span>.forEachGetter(<span class="hljs-function">(<span class="hljs-params">getter, key</span>) =&gt;</span> {
+    <span class="hljs-keyword">const</span> namespacedType = <span class="hljs-keyword">namespace</span> + key
+    registerGetter(store, namespacedType, getter, local)
+  })
+
+  <span class="hljs-comment">// 递归安装模块</span>
+  <span class="hljs-built_in">module</span>.forEachChild(<span class="hljs-function">(<span class="hljs-params">child, key</span>) =&gt;</span> {
+    installModule(store, rootState, path.concat(key), child, hot)
+  })
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>来分析一下<code>installModule</code>，部分有写注释到代码；<code>if (module.namespaced)</code>是用来判断是否有重名的模块，在非生产环境提示（真的很多提示...），然后来到关键一步：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre>const local = <span class="hljs-keyword">module</span>.context = make<span class="hljs-constructor">LocalContext(<span class="hljs-params">store</span>, <span class="hljs-params">namespace</span>, <span class="hljs-params">path</span>)</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>通过<code>makeLocalContext</code>函数，对当前模块对应的<code>commit</code>与<code>dispatch</code>再做一层处理，使得适配对子模块路径调用，例如<code>commit(&#39;/foo/bar&#39;)</code>；对模块的<code>state</code>与<code>getters</code>做数据劫持处理；这个暂时先跳过，我们先知道这个函数的作用。</p>
+<p>接下来<code>installModule</code>就对<code>mutations</code>,<code>actions</code>,<code>getters</code>进行注册，分别赋值到:</p>
+<ul>
+<li><code>mutations</code> =&gt; <code>store._mutations</code></li>
+<li><code>actions</code> =&gt; <code>store._actions</code></li>
+<li><code>getters</code> =&gt; <code>store._wrappedGetters</code></li>
+</ul>
+<p>那么<code>store._actions</code>里面是什么？这是一个hash数据，key是<code>action</code>的名称，value是这个<code>action</code>的handler调用函数。</p>
+<p>为什么一个<code>action</code>对应多个handler？因为vuex对module处理的时候，如果模块没有明确声明<code>namespaced: true</code>，那么这个handler获取到的<code>state</code>也是<code>&#39;root&#39;</code>下的数据</p>
+<p>这些handler有什么特别？为了传入更多的参数，例如我们调用的时候是：<code>store.dispatch(&#39;type&#39;)</code>，但在<code>store</code>的<code>action</code>，可以接收更多的参数；因为注册<code>actions</code>的时候，再套一层函数，设置handler在调用传入参数。</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>store: {
+  actions: {
+   <span class="hljs-built_in"> type </span>({ commit, rootState }) {}
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>mutations</code>与<code>actions</code>比较相似，允许多个同名，但是<code>getters</code>只能允许有一个。</p>
+<p>当注册完以上数据的时候，则对所有子模块递归处理，那么子模块的<code>actions</code>等也处理完毕；最后得到所有的<code>actions</code>；最终形成的数据：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>store.<span class="hljs-symbol">_actions</span> = {
+  <span class="hljs-string">'action1'</span>: [fn1, fn2], // 重名action加入到数组
+  <span class="hljs-string">'foo/action1'</span>: [fn3] // 这个是因为有命名空间<span class="hljs-string">`foo`</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>小结：通过<code>installModule</code>递归安装所有模块；通过<code>makeLocalContext</code>获取到对应模块的上下文，使得<code>commit</code>与<code>dispatch</code>能够获取到子模块的数据；根据命名空间的设定，生成带路径的调用<code>type</code>，分别挂载到<code>store</code>对应字段；并对handler的参数进行调整。</p>
+<h2 id="makelocalcontext">makeLocalContext</h2><p>从上面可以知道,<code>makeLocalContext</code>是设定模块的上下文，处理过程如下：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">makeLocalContext</span> (<span class="hljs-params">store, <span class="hljs-keyword">namespace</span>, path</span>) </span>{
+  <span class="hljs-keyword">const</span> noNamespace = <span class="hljs-keyword">namespace</span> === <span class="hljs-string">''</span>
+
+  <span class="hljs-keyword">const</span> local = {
+    <span class="hljs-comment">// 没有指定命名空间，则使用与root根路径下的调用一致</span>
+    dispatch: noNamespace ? store.dispatch : <span class="hljs-function">(<span class="hljs-params">_type, _payload, _options</span>) =&gt;</span> {
+      <span class="hljs-keyword">const</span> args = unifyObjectStyle(_type, _payload, _options)
+      <span class="hljs-keyword">const</span> { payload, options } = args
+      <span class="hljs-keyword">let</span> { <span class="hljs-keyword">type</span> } = args
+
+      <span class="hljs-comment">// 子模块调用</span>
+      <span class="hljs-keyword">if</span> (!options || !options.root) {
+        <span class="hljs-comment">// 拼接调用路径</span>
+        <span class="hljs-keyword">type</span> = <span class="hljs-keyword">namespace</span> + <span class="hljs-keyword">type</span>
+        <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span> &amp;&amp; !store._actions[<span class="hljs-keyword">type</span>]) {
+          <span class="hljs-built_in">console</span>.error(<span class="hljs-string">`[vuex] unknown local action type: <span class="hljs-subst">${args.<span class="hljs-keyword">type</span>}</span>, global type: <span class="hljs-subst">${<span class="hljs-keyword">type</span>}</span>`</span>)
+          <span class="hljs-keyword">return</span>
+        }
+      }
+
+      <span class="hljs-keyword">return</span> store.dispatch(<span class="hljs-keyword">type</span>, payload)
+    },
+
+    commit: noNamespace ? store.commit : <span class="hljs-function">(<span class="hljs-params">_type, _payload, _options</span>) =&gt;</span> {
+      <span class="hljs-comment">// ...</span>
+    }
+  }
+
+  <span class="hljs-comment">// getters and state object must be gotten lazily</span>
+  <span class="hljs-comment">// because they will be changed by vm update</span>
+  <span class="hljs-built_in">Object</span>.defineProperties(local, {
+    getters: {
+      <span class="hljs-keyword">get</span>: noNamespace
+        ? <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> store.getters
+        : <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> makeLocalGetters(store, <span class="hljs-keyword">namespace</span>)
+    },
+    state: {
+      <span class="hljs-keyword">get</span>: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> getNestedState(store.state, path)
+    }
+  })
+
+  <span class="hljs-keyword">return</span> local
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>对<code>dispatch</code>的处理，如果没有指定命名空间，那么<code>action</code>接收到的<code>state</code>等是与<code>root</code>下一致；如果指定命名空间，则对原来调用的<code>type</code>进行拼接，加上对应的命名空间；对应上面所有的：<code>store._actions</code>的hash的key值；</p>
+<p>对于<code>commit</code>的处理，与<code>dispatch</code>一致；而对<code>getters</code>和<code>state</code>的处理，需要对数据进行劫持，延迟更新。</p>
+<p>至此，安装模块已经完毕，我们继续回到<code>Store</code>的构造函数</p>
+<h2 id="resetstorevm">resetStoreVM</h2>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+<span>55</span>
+<span>56</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">class</span> Store {
+  <span class="hljs-keyword">constructor</span> (<span class="hljs-params"></span>) {
+    <span class="hljs-comment">// ...</span>
+    resetStoreVM(<span class="hljs-keyword">this</span>, state)
+  }
+}
+
+<span class="hljs-comment">// resetStoreVm</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">resetStoreVM</span> (<span class="hljs-params">store, state, hot</span>) </span>{
+  <span class="hljs-keyword">const</span> oldVm = store._vm
+
+  store.getters = {}
+  <span class="hljs-keyword">const</span> wrappedGetters = store._wrappedGetters
+  <span class="hljs-keyword">const</span> computed = {}
+  <span class="hljs-comment">// 对 getters 进行计算属性的处理</span>
+  forEachValue(wrappedGetters, <span class="hljs-function">(<span class="hljs-params">fn, key</span>) =&gt;</span> {
+    computed[key] = partial(fn, store)
+    <span class="hljs-built_in">Object</span>.defineProperty(store.getters, key, {
+      <span class="hljs-keyword">get</span>: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> store._vm[key],
+      enumerable: <span class="hljs-literal">true</span> <span class="hljs-comment">// for local getters</span>
+    })
+  })
+
+  <span class="hljs-keyword">const</span> silent = Vue.config.silent
+  Vue.config.silent = <span class="hljs-literal">true</span>
+  store._vm = <span class="hljs-keyword">new</span> Vue({
+    data: {
+      $$state: state
+    },
+    computed
+  })
+  Vue.config.silent = silent
+
+  <span class="hljs-comment">// 开启严格模式，不允许不通过commit修改数据</span>
+  <span class="hljs-keyword">if</span> (store.strict) {
+    enableStrictMode(store)
+  }
+
+  <span class="hljs-keyword">if</span> (oldVm) {
+    <span class="hljs-keyword">if</span> (hot) {
+      store._withCommit(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+        oldVm._data.$$state = <span class="hljs-literal">null</span>
+      })
+    }
+    Vue.nextTick(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> oldVm.$destroy())
+  }
+}
+
+<span class="hljs-comment">// enableStrictMode</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">enableStrictMode</span> (<span class="hljs-params">store</span>) </span>{
+  store._vm.$watch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{ <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>._data.$$state }, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span>) {
+      assert(store._committing, <span class="hljs-string">`do not mutate vuex store state outside mutation handlers.`</span>)
+    }
+  }, { deep: <span class="hljs-literal">true</span>, sync: <span class="hljs-literal">true</span> })
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>resetStoreVM</code>主要做的是：</p>
+<ol>
+<li>把<code>getters</code>转换为<code>store._vm</code>的计算方法；</li>
+<li>在严格模式下，对<code>store</code>的state数据进行深度监听；对于直接修改<code>state</code>数据的时候，进行错误提示。</li>
+</ol>
+<p>至此，<code>new Store()</code>的流程基本走完，还有插件的处理，这里就暂不展开说明。</p>
+<h2 id="执行commit与dispatch">执行commit与dispatch</h2><h3 id="执行commit">执行commit</h3><p>上面说到，如果直接修改<code>state</code>的时候，会进行错误提示；那么为什么通过<code>commit</code>就不会呢？</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+</pre>
+              </td>
+              <td class="code"><pre>commit (_type, _payload, _options) {
+  <span class="hljs-comment">// check object-style commit</span>
+  <span class="hljs-keyword">const</span> {
+    <span class="hljs-keyword">type</span>,
+    payload,
+    options
+  } = unifyObjectStyle(_type, _payload, _options)
+
+  <span class="hljs-keyword">const</span> mutation = { <span class="hljs-keyword">type</span>, payload }
+  <span class="hljs-comment">// 获取调用的handler</span>
+  <span class="hljs-keyword">const</span> entry = <span class="hljs-keyword">this</span>._mutations[<span class="hljs-keyword">type</span>]
+  <span class="hljs-keyword">if</span> (!entry) {
+    <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span>) {
+      <span class="hljs-built_in">console</span>.error(<span class="hljs-string">`[vuex] unknown mutation type: <span class="hljs-subst">${<span class="hljs-keyword">type</span>}</span>`</span>)
+    }
+    <span class="hljs-keyword">return</span>
+  }
+  <span class="hljs-comment">// 通过 _withCommit 方法调用handler</span>
+  <span class="hljs-keyword">this</span>._withCommit(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    entry.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">commitIterator</span> (<span class="hljs-params">handler</span>) </span>{
+      handler(payload)
+    })
+  })
+
+  <span class="hljs-comment">// ...</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>从上面看到，<code>commit</code>的流程，就是从<code>store._mutation</code>拿到对应的handler数组，然后逐个执行；而循环执行所有handler是包裹在<code>_withCommit</code>方法里面：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre>_withCommit (fn) {
+  <span class="hljs-keyword">const</span> committing = <span class="hljs-keyword">this</span>._committing
+  <span class="hljs-keyword">this</span>._committing = <span class="hljs-literal">true</span>
+  fn()
+  <span class="hljs-keyword">this</span>._committing = committing
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>因为调用<code>_withCommit</code>的时候，会把标识位<code>this._committing</code>设定为<code>true</code>，执行中，会触发前面<code>resetStoreVM</code>说到的，深度监听<code>state</code>回调函数；该回调函数判断<code>this._committing</code>为<code>true</code>,则为正确的调用；<code>_withCommit</code>把函数执行完毕之后把标识位重新设定为<code>false</code>；这样子就可以做到，对不通过<code>commit</code>调用的提示。</p>
+<h2 id="执行dispatch">执行 dispatch</h2><p>vuex的异步操作，是放到<code>dispatch</code>调用：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+</pre>
+              </td>
+              <td class="code"><pre>dispatch (_type, _payload) {
+  <span class="hljs-comment">// check object-style dispatch</span>
+  <span class="hljs-keyword">const</span> {
+    <span class="hljs-keyword">type</span>,
+    payload
+  } = unifyObjectStyle(_type, _payload)
+
+  <span class="hljs-keyword">const</span> action = { <span class="hljs-keyword">type</span>, payload }
+  <span class="hljs-keyword">const</span> entry = <span class="hljs-keyword">this</span>._actions[<span class="hljs-keyword">type</span>]
+  <span class="hljs-keyword">if</span> (!entry) {
+    <span class="hljs-keyword">if</span> (process.env.NODE_ENV !== <span class="hljs-string">'production'</span>) {
+      <span class="hljs-built_in">console</span>.error(<span class="hljs-string">`[vuex] unknown action type: <span class="hljs-subst">${<span class="hljs-keyword">type</span>}</span>`</span>)
+    }
+    <span class="hljs-keyword">return</span>
+  }
+
+  <span class="hljs-comment">// .. try catch subscriber</span>
+
+  <span class="hljs-keyword">const</span> result = entry.length &gt; <span class="hljs-number">1</span>
+    ? <span class="hljs-built_in">Promise</span>.all(entry.map(<span class="hljs-function"><span class="hljs-params">handler</span> =&gt;</span> handler(payload)))
+    : entry[<span class="hljs-number">0</span>](payload)
+
+  <span class="hljs-keyword">return</span> result.then(<span class="hljs-function"><span class="hljs-params">res</span> =&gt;</span> {
+    <span class="hljs-comment">// ... try catch subscriber</span>
+    <span class="hljs-keyword">return</span> res
+  })
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>从代码可以看出，通过<code>dispatch</code>的<code>type</code>找到所有的handler，如果handler只有一个，则直接返回这个handler的调用处理；若有多个，则使用<code>Promise.all</code>包裹处理，最终作为一个<code>Promise</code>形式返回；用户设定的<code>actions</code>实际上并不会一定是<code>Promise</code>，这种情况，只有一个handler会出错吗？</p>
+<p>不会，因为handler在<code>registerAction</code>的时候，对返回值进行判断，若不是<code>Promise</code>，则直接返回<code>Promise.resolve(res)</code>，<code>res</code>为<code>actions</code>的返回值。</p>
+<p>除了主流程的执行，还有执行前后对<code>subscriber</code>执行的<code>try...catch</code>处理</p>
+<h2 id="总结">总结</h2><p>简单分析了一下vuex的源码的主要流程，发现其中很多处理都很巧妙；例如，上下文，执行参数的处理；值得学习...但是文章对插件的分析过程缺失，大家也可以去熟悉一下，END.</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
