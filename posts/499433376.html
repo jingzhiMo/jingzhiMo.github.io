@@ -35,6 +35,9 @@
   <p class="time">September 27, 2019</p>
   <h1 class="title">从vuex源码简析启动与使用</h1>
   <div class="content"><p>下面从源码简单分析一下vuex的启动与使用过程，适合对<code>vuex</code>有使用经验看一下；适当回顾，也是对提高很有帮助。</p>
+<p>先看一下简略初始化的流程，后面看完再回头过一遍：
+<img src="https://i.loli.net/2019/09/28/G1t7qFri2aAELQe.png" alt="image.png"></p>
+<p><em>图中左边是主要的流程，右边是对某个流程的重要关联，也属于主流程</em> </p>
 <p>在<code>src</code>目录下的<code>index.js</code>文件主要内容是：</p>
 
       <div class="hljs javascript">
