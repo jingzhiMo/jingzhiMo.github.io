@@ -94,6 +94,9 @@ http缓存与http2特性浅析 - jingzhiMo
 <p><code>pragma</code> &gt; <code>cache-control</code> &gt; <code>expired</code></p>
 <p>用于判断新鲜度的优先级为：</p>
 <p><code>etag</code> &gt; <code>last-modified</code></p>
+<h3 id="options请求的缓存"><code>options</code>请求的缓存</h3><p>这里需要特别说明一下<code>options</code>请求的缓存：<code>Access-Control-Max-Age: seconds</code>；主要用来缓存预检(Preflight)请求<code>options</code>。</p>
+<p>什么情况下会出现预检<code>options</code>请求？在设置跨域cors的时候，对于“复杂”请求，则会先发出预检；若对于“简单”请求，则不会发出。</p>
+<p><code>Access-Control-Max-Age</code>表示对该options预检请求进行缓存，在指定时间内，同一个请求则不再发出预检；该时间单位为秒；若返回<code>-1</code>，则表示，该请求不需要缓存，每次请求都需要预检。但是这个时间的最大值可能不一定受用于影响，据谷歌得到结果所知，chromium浏览器的最大缓存时间是10分钟(10 * 60s)，而firefox则是最大缓存时间是24小时(24 * 60 * 60s)。</p>
 <h2 id="http2">http2</h2><p>接下来说一下http2的相关特点，主要有以下三点：</p>
 <ol>
 <li>二进制分帧与多路复用</li>
