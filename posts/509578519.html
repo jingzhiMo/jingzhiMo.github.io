@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/css/style.css" />
 
   <title>
-浅析浏览器与nodejs的event-loop - jingzhiMo
+浅析浏览器与nodejs的event-loop相同与区别 - jingzhiMo
 </title>
 </head>
 
@@ -33,7 +33,7 @@
 
 <div id="post" class="center">
   <p class="time">October 20, 2019</p>
-  <h1 class="title">浅析浏览器与nodejs的event-loop</h1>
+  <h1 class="title">浅析浏览器与nodejs的event-loop相同与区别</h1>
   <div class="content"><p>这篇文章主要来聊一下事件循环；什么是事件循环？通常情况下，js是单线程处理主要任务，而除了同步逻辑之外，还有大部分异步逻辑；事件循环的规则就用于协调同步与异步任务的调用。js的事件循环在浏览器与nodejs不太一样，后面会展开说一下。</p>
 <p>异步任务分类比较多，在浏览器端，有DOM事件，也有定时器，<code>Promise</code>等。在nodejs，也有<code>process.nextTick</code>与<code>setImmediate</code>等。下面会逐步介绍一下</p>
 <h2 id="浏览器">浏览器</h2><p>先从一个比较简单的例子入手，该例子运行于浏览器端：</p>
