@@ -1,0 +1,618 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+浅析浏览器与nodejs的event-loop - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">October 20, 2019</p>
+  <h1 class="title">浅析浏览器与nodejs的event-loop</h1>
+  <div class="content"><p>这篇文章主要来聊一下事件循环；什么是事件循环？通常情况下，js是单线程处理主要任务，而除了同步逻辑之外，还有大部分异步逻辑；事件循环的规则就用于协调同步与异步任务的调用。js的事件循环在浏览器与nodejs不太一样，后面会展开说一下。</p>
+<p>异步任务分类比较多，在浏览器端，有DOM事件，也有定时器，<code>Promise</code>等。在nodejs，也有<code>process.nextTick</code>与<code>setImmediate</code>等。下面会逐步介绍一下</p>
+<h2 id="浏览器">浏览器</h2><p>先从一个比较简单的例子入手，该例子运行于浏览器端：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+</pre>
+              </td>
+              <td class="code"><pre>setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'timeout'</span>)
+}, <span class="hljs-number">0</span>)
+<span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function">(<span class="hljs-params">resolve</span>) =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'before resolve'</span>)
+    resolve()
+})
+.then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'after resolve'</span>)
+})
+
+<span class="hljs-keyword">const</span> now = <span class="hljs-built_in">Date</span>.now()
+
+<span class="hljs-comment">// 避免setTimeout受最小延迟4ms影响</span>
+<span class="hljs-keyword">while</span> (<span class="hljs-built_in">Date</span>.now() - now &lt; <span class="hljs-number">10</span>) {}
+
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'end'</span>)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>输出结果是什么？</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>before resolve
+end
+after resolve
+timeout</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>为什么是这样子的输出？这个例子大概是：先执行一个<code>0ms</code>延迟执行的定时器，紧接定义一个马上<code>resolve</code>的<code>promise</code>，然后就是一个<code>10ms</code>的循环block掉主线程；这个block是为了避免受定时器最小延迟因素影响。</p>
+<p>首先输出的值是：<code>before resolve</code>，这是因为传入<code>Promise</code>的构造函数会被同步执行，至于为什么，可以查找一下<code>Promise</code>的实现原理。接下来输出的值是<code>end</code>，这也是同步的一部分，问题不大。</p>
+<p>这里主要的疑惑是在定时器与<code>Promise</code>，按照最直观的感受是，定时器到时间而且先注册，<code>Promise</code>后面才注册，应该是先输出<code>timeout</code>，再输出<code>after resolve</code>。</p>
+<p>对于这个处理，需要引入一个<code>macro task(宏任务)</code>与<code>micro task(微任务)</code>的概念；现在知道有这回事，js把异步任务分成两种；而这两种任务的优先级不同；事件循环的时候，可以想象：线程快速轮询，判断是否有这两种任务，有则执行；那么执行的时候，<strong>总是优先</strong>执行微任务，用代码简单描述：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre>let macroTaskQueue = []
+let microTaskQueue = []
+
+<span class="hljs-keyword">while</span> <span class="hljs-comment">(macroTaskQueue.length)</span> {
+    <span class="hljs-comment">// 执行宏任务，按照FIFO顺序执行</span>
+    execute<span class="hljs-comment">(macroTaskQueue[0])</span>
+
+    <span class="hljs-comment">// 执行完毕检查是否有微任务，也是按照FIFO顺序执行</span>
+    <span class="hljs-keyword">while</span> <span class="hljs-comment">(microTaskQueue.length)</span> {
+        execute<span class="hljs-comment">(microTaskQueue[0])</span>
+        microTaskQueue.shift<span class="hljs-comment">()</span>
+    }
+
+    <span class="hljs-comment">// 执行完该宏任务，则从队列删除</span>
+    macroTaskQueue.shift<span class="hljs-comment">()</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>宏任务会首先执行，因为主线程开始是属于宏任务；执行完同步任务后，检查是否有微任务，有则一直执行，直到把微任务的队列清空，然后再检查是否有宏任务，有则执行...一直轮询这个过程。</p>
+<p>而<code>promise</code>属于微任务，<code>setTimeout</code>属于宏任务；回去刚才的例子，当执行完输出<code>end</code>之后，相当于第一个宏任务已经完成；而这个时候<code>setTimeout</code>也到了设定时间，需要加入到<code>macroTaskQueue</code>的队列中；<code>promise</code>也从<code>pending</code>变成<code>resolved</code>状态了，也需要加入到<code>microTaskQueue</code>队列中；因为<code>microTaskQueue</code>有任务，所以需要先执行，输出<code>after resolve</code>之后；<code>microTaskQueue</code>队列就为空了；然后就检查<code>macroTaskQueue</code>队列，发现有任务，这个时候就输出<code>timeout</code>。</p>
+<p>浏览器中的微任务通常有：</p>
+<ol>
+<li>promise</li>
+<li>mutation observer <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/MutationObserver">说明链接</a></li>
+</ol>
+<p>宏任务通常除了以上的，基本都是，例如：</p>
+<ol>
+<li>setTimeout</li>
+<li>ajax</li>
+<li>requestAnimationFrame 与 requestIdleCallback (这两个后面会说到)</li>
+<li>dom事件回调等</li>
+</ol>
+<h3 id="requestanimationframe与requestidlecallback">requestAnimationFrame 与 requestIdleCallback</h3><p><code>requestAnimationFrame</code>简称为<code>rAF</code>，表示：</p>
+<blockquote>
+<p>告诉浏览器——你希望执行一个动画，并且要求浏览器在下次重绘之前调用指定的回调函数更新动画</p>
+</blockquote>
+<p>具体的api说明可以看<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestAnimationFrame">mdn说明</a>。</p>
+<p><code>requestIdleCallback</code>简称<code>rIC</code>，表示浏览器渲染一帧的空闲时间进行调用；若执行没有超过给定的时间，则不会影响浏览器关键事件，例如动画和输入响应的。具体的api说明可以看<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestIdleCallback">mdn说明</a>。</p>
+<p>我们来看一个稍微复杂一点的例子：</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">&lt;!-- dom 结构--&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"outer"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'outer'</span>).addEventListener(<span class="hljs-string">'click'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'start'</span>)
+  requestIdleCallback(deadline =&gt; {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'rIC'</span>, deadline.didTimeout)
+  })
+  requestAnimationFrame(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'rAF'</span>)
+  })
+  setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'setTimeout'</span>)
+  }, <span class="hljs-number">0</span>)
+  Promise.resolve().<span class="hljs-keyword">then</span>(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'promise'</span>)
+  })
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'end'</span>)
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>大概的逻辑就是，对<code>#outer</code>的元素进行一个点击绑定，在点击的回调函数里面有各种异步操作，求输出的顺序。</p>
+<p>按照我们之前的微/宏任务的划分，可以大概知道顺序是：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>1. start
+2. end
+3. promise
+?. rIC&#x2F;rAF&#x2F;setTimeout</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>输出顺序的1,2,3很好理解，主线的宏任务与微任务优先级比较高；但是<code>rAF</code>, <code>rIC</code>, <code>setTimeout</code>的输出是怎样的呢？按照之前我们的定义，这三个都属于宏任务，如果这三个按顺序进入<code>macroTaskQueue</code>的队列的话，也就是逐个输出；那么这个时候输出是：<code>rIC</code> =&gt; <code>rAF</code> =&gt; <code>setTimeout</code>吗？当多次点击触发的时候会发现，顺序并不固定。</p>
+<p>这个时候就需要了解简单的原理：
+<img src="https://i.loli.net/2019/10/20/Ej6lpHQvkcI5OmG.png" alt="image.png">
+<a href="https://zhuanlan.zhihu.com/p/64917985">图片来源</a></p>
+<p>上面这张图会简单描述了，浏览器中刷新每一帧所做的事情；每一帧中，都会按顺序处理js事件，timer，rAF，渲染等。从这里我们可以看到，rAF是在<code>Paint</code>与<code>Layout</code>阶段之前处理的；</p>
+<p>再看下一张图：
+<img src="https://i.loli.net/2019/10/20/Xpk8xQK5m34hZlo.png" alt="image.png">
+<a href="https://developers.google.com/web/updates/2015/08/using-requestidlecallback">图片来源</a></p>
+<p>在一帧当中，如果动画渲染完毕，就会进入这一帧的<code>Idle</code>阶段，这个时候就会回调我们的<code>rIC</code>函数，这个函数接收的参数就可以知道当前帧是否有空闲时间、剩余多少空闲时间。</p>
+<p>从上面的图大概可以知道每一帧所处理的主要事情；这个时候我们回到输出代码的例子:</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre>?. rIC&#x2F;rAF&#x2F;setTimeout</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这个顺序的不确定性，与浏览器中每一帧的处理有关系；如果在下一帧开始之前，<code>setTimeout</code>已经加入到<code>macroTaskQueue</code>队列中，则这个时候，<code>rAF</code>与<code>rIC</code>也已经在这之后进入队列，这种情况所输出的顺序是：<code>setTimeout</code> =&gt; <code>rAF</code> =&gt; <code>rIC</code>；</p>
+<p>如果在下一帧开始之前，<code>setTimeout</code>的回调还没有被加入队列中，但是<code>rAF</code>与<code>rIC</code>也已经进队了；这个时候就会先输出<code>rAF</code> =&gt; <code>rIC</code>；而<code>setTimeout</code>则在这一帧完成之后，才被加入到队列，所以会下一帧处理<code>timer</code>的过程输出值；这种情况最后的输出值为：<code>rAF</code> =&gt; <code>rIC</code> =&gt; <code>setTimeout</code>；</p>
+<p>还有一种情况是，这一帧处理已经开始了，<code>setTimeout</code>的回调还没有加入到队列中，当执行完<code>rAF</code>之后，<code>setTimeout</code>才加入到队列，那么这个时候是会执行<code>timer</code>还是<code>rIC</code>；根据测试发现(chrome 77.0)，这个时候会去执行<code>timer</code>，再执行<code>rIC</code>；这种情况最后的输出值为：<code>rAF</code> =&gt; <code>setTimeout</code> =&gt; <code>rIC</code>.</p>
+<p>小结：</p>
+<ol>
+<li><code>rAF</code>与<code>setTimeout</code>的执行顺序取决于进入<code>macroTaskQueue</code>的顺序，而加入<code>macroTaskQueue</code>的顺序可能取决于这一帧的运行情况与<code>setTimeout</code>的时机；</li>
+<li>在执行<code>rIC</code>之前，总是把队列中的任务都执行完，包括<code>microTaskQueue</code>与<code>macroTaskQueue</code></li>
+</ol>
+<h3 id="dom事件顺序与队列关系">dom事件顺序与队列关系</h3><p>通常情况下，触发dom的回调事件除了在人工触发之外，还可以通过代码触发。例如点击事件，可以在元素上点击与主动触发<code>$element.click()</code>；我们看下面的例子：</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">&lt;!-- dom 结构 --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"outer"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"inner"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">click</span> (<span class="hljs-params">ev</span>) </span>{
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'start'</span>, ev.currentTarget.id)
+  <span class="hljs-built_in">Promise</span>.resolve().then(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'promise'</span>, ev.currentTarget.id)
+  })
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'end'</span>, ev.currentTarget.id)
+}
+<span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'outer'</span>).addEventListener(<span class="hljs-string">'click'</span>, click)
+<span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'inner'</span>).addEventListener(<span class="hljs-string">'click'</span>, click)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>当在界面点击<code>#inner</code>的时候，输出的顺序为：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre>1. start inner
+2. end inner
+3. promise inner
+4. start outer
+5. end outer
+6. promise outer</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>上面输出问题不大，因为冒泡的事件触发也属于宏任务，<code>Promise</code>的触发属于微任务，队列变化的简单过程为：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+</pre>
+              </td>
+              <td class="code"><pre>// 0. 点击inner
+macroTaskQueue = ['click(inner)', 'click(outer)']
+microTaskQueue = []
+
+// 1. inner的回调函数处理完毕，并出队
+macroTaskQueue = ['click(outer)']
+microTaskQueue = ['promise(inner)']
+
+// 2. 微任务先执行，并出队
+macroTaskQueue = ['click(outer)']
+microTaskQueue = []
+
+// 3. 再执行剩下outer，并出队
+macroTaskQueue = []
+microTaskQueue = ['promise(outer)']
+
+// 4. 执行微任务
+macroTaskQueue = []
+micoTaskQueue = []</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>如果使用代码主动触发：<code>$inner.click()</code>，输出的顺序为：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre>1. start inner
+2. end inner
+3. start outer
+4. end outer
+5. promise inner
+6. promise outer</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这个时候任务队列的初始情况就变成了：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-attr">macroTaskQueue</span> = [<span class="hljs-string">'click(inner);click(outer);'</span>]
+<span class="hljs-attr">microTaskQueue</span> = []</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>冒泡的事件都变成到一个宏任务，具体为什么，就后续再做研究了...浏览器的事件循环就暂时到这里。</p>
+<p>小结：</p>
+<ol>
+<li>通过点击处理的dom回调函数，事件冒泡属于多个宏任务</li>
+<li>通过主动代码触发的dom回调函数，事件冒泡则单个宏任务</li>
+</ol>
+<h2 id="nodejs">nodejs</h2><p>nodejs端的事件循环比浏览器会稍微复杂一点点，除了微/宏任务之外，还有不同的事件阶段，下面我们来看这张图
+<img src="https://i.loli.net/2019/10/20/BZzasO52eImrw1h.png" alt="image.png">
+<a href="https://nodejs.org/zh-cn/docs/guides/event-loop-timers-and-nexttick/">图片来源</a></p>
+<p>nodejs中的事件分为6个阶段：</p>
+<ol>
+<li>timers</li>
+<li>pending callbacks</li>
+<li>idle, prepare</li>
+<li>poll</li>
+<li>check</li>
+<li>close callbacks</li>
+</ol>
+<blockquote>
+<p>每个阶段都有一个 FIFO 队列来执行回调。虽然每个阶段都是特殊的，但通常情况下，当事件循环进入给定的阶段时，它将执行特定于该阶段的任何操作，然后在该阶段的队列中执行回调，直到队列用尽或最大回调数已执行。当该队列已用尽或达到回调限制，事件循环将移动到下一阶段，等等。</p>
+</blockquote>
+<p>简单的说是，执行到每个阶段，都需要把该阶段的队列回调执行完或者达到最大的执行数量，所以nodejs的队列至少有6个。为什么说说至少呢，因为这个截图中没有把<code>procese.nextTick()</code>与<code>Promise</code>相关列出来；这两种情况都会在进行下一阶段执行之前执行，而<code>nextTick</code>的优先级要比<code>Promise</code>要高，因此这个图就变成了：</p>
+<p><img src="https://i.loli.net/2019/10/20/BvQDx9XjtpRKVi8.png" alt="image.png"></p>
+<p><strong>上图没有把所有都用箭头标出来，只是列举了前三个，实际上所有阶段都会有这个检查</strong></p>
+<h3 id="每个阶段对应的回调类型">每个阶段对应的回调类型</h3><p>nodejs把“宏任务”分成了6种情况，这6种分别对应：</p>
+<ol>
+<li><code>timer</code> 专门执行定时器相关的回调函数：<code>setTimeout</code>,<code>setInterval</code></li>
+<li><code>pending callbacks</code>: 此阶段通常对系统操作执行回调（例如 TCP错误），例如，如果 TCP 套接字在尝试连接时接收到 <code>ECONNREFUSED</code>，则某些 *nix 的系统希望等待报告错误。这将被排队到这个阶段执行</li>
+<li><code>idle, prepare</code>: 系统相关执行，不了解，忽略</li>
+<li><code>poll</code>: 执行大部分<code>I/O callback</code>，除了<code>process.nextTick</code>,<code>microtask</code>，<code>timer</code>, <code>pending callbacks</code>, <code>close event</code>之外的所有回调都是在这里，例如，读取文件的回调等</li>
+<li><code>check</code>: 专门执行<code>setImmediate</code>的回调</li>
+<li><code>close callback</code>: 例如网络的<code>socket close</code>的回调事件在这里处理</li>
+</ol>
+<p>我们先看一个例子：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+</pre>
+              </td>
+              <td class="code"><pre>Promise.resolve().<span class="hljs-keyword">then</span>(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'promise'</span>)
+})
+process.nextTick(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'nexttick'</span>)
+})
+setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'timeout'</span>)
+})
+setImmediate(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'immediate'</span>)
+})
+<span class="hljs-built_in">console</span>.log(<span class="hljs-string">'finish'</span>)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ol>
+<li>输出<code>finish</code>，这个问题不大，因为刚开始的同步执行</li>
+<li>输出<code>nexttick</code>，在进入<code>timers</code>阶段之前执行，可以认为是微任务</li>
+<li>输出<code>promise</code>，与<code>nexttick</code>类似，也属于微任务，但是优先级相对低一点</li>
+<li>输出<code>timeout</code>或<code>immediate</code>，这个输出不稳定，两个先后顺序不确定</li>
+</ol>
+<p>在上面的输出结果可以看出，前3个输出都每啥问题；而对于<code>timeout</code>与<code>immediate</code>，为什么会不稳定呢？</p>
+<p>是因为js在准备进入检查队列的时候，<code>timeout</code>的回调函数不确定是否进入了<code>timers</code>阶段的队列；尽管设置了<code>setTimeout</code>的时间为0，实际上只至少1ms，因此有可能在1ms之后，js进程已经运行过了<code>timers</code>阶段，那么这个时候的输出结果就是<code>immediate</code>优先；若进入<code>timers</code>阶段已经耗费超过1ms，那么就会出现<code>timeout</code>的输出。</p>
+<p>再看下一个例子：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre>const fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>);
+
+fs.readFile(<span class="hljs-string">'./file.js'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'file callback'</span>)
+  setImmediate(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'immediate'</span>)
+  })
+  setTiemout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'timeout'</span>)
+  })
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>输出顺序为：</p>
+<ol>
+<li>file callback</li>
+<li>immediate</li>
+<li>timeout</li>
+</ol>
+<p>因为<code>fs.readFile</code>的回调属于<code>poll</code>阶段，而在这个阶段中，把<code>timeout</code>与<code>immediate</code>都加入不同的队列中；当<code>poll</code>阶段完成之后，进入<code>check</code>阶段，这个时候刚才添加的<code>immediate</code>已经进入队列，所以输出是<code>immediate</code>；当事件循环下次经过<code>timers</code>的时候，再把<code>timeout</code>输出。</p>
+<p>小结：</p>
+<ol>
+<li>nodejs把“宏任务”分为6个不同阶段，每个阶段都有对应类型的队列</li>
+<li><code>process.nextTick</code>与<code>Promise</code>属于微任务，优先级相对较高，其中<code>process.nextTick</code>对于<code>Promise</code>优先级更高；在进入每个事件阶段之前，都先执行微任务</li>
+</ol>
+<h2 id="参考文章">参考文章</h2><ul>
+<li><a href="https://developers.google.com/web/updates/2015/08/using-requestidlecallback">https://developers.google.com/web/updates/2015/08/using-requestidlecallback</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/64917985">https://zhuanlan.zhihu.com/p/64917985</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestIdleCallback">https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestIdleCallback</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestAnimationFrame">https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestAnimationFrame</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/rendering/optimize-javascript-execution?hl=zh-cn">https://developers.google.com/web/fundamentals/performance/rendering/optimize-javascript-execution?hl=zh-cn</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/performance/rendering">https://developers.google.com/web/fundamentals/performance/rendering</a></li>
+<li><a href="https://nodejs.org/zh-cn/docs/guides/event-loop-timers-and-nexttick/">https://nodejs.org/zh-cn/docs/guides/event-loop-timers-and-nexttick/</a></li>
+</ul>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
