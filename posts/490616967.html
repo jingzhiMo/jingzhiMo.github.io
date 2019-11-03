@@ -92,6 +92,10 @@ http缓存与http2特性浅析 - jingzhiMo
 <p>若缓存在本地没有命中，则会去检测新鲜度，也叫协商缓存，通常是<code>etag &amp;&amp; if-none-match</code>与<code>last-modify &amp;&amp; if-modified-since</code>这两对组合去判断，前者优先级更高；如果缓存仍然有效，则响应的http状态码是<code>304</code>；如果缓存已经失效，那么响应的http状态码是<code>200</code>，服务器返回最新的内容。</p>
 <p>用于判断缓存是否命中的优先级为：</p>
 <p><code>pragma</code> &gt; <code>cache-control</code> &gt; <code>expired</code></p>
+<p><em>2019.11.03更新cache-control字段</em></p>
+<p>这里需要特别说一下<code>cache-control</code>的值，<code>no-cache</code>,<code>no-store</code>，<code>must-revalidate</code>；当服务器响应的中的header包含<code>no-cahce</code>的时候，<strong>表示，下次该请求再次发出的时候，需要再次校验本地保存的缓存是否正确才能够使用</strong>，这里所说的校验，通常是通过<code>etag</code>, <code>last-modified</code>等的协商缓存进行协商；</p>
+<p>当服务器返回的响应中header中包含：<code>cache-control: no-store</code>，则<strong>表示浏览器不会存储该请求响应的内容</strong>，所以下次浏览器再次发出请求的时候，则不会带上<code>etag</code>的内容，相当于是一个新的请求</p>
+<p>当服务器返回的响应中header中包含：<code>cache-control: must-revalidate</code>，则<strong>表示当缓存过期(max-age: 0)的时候，需要需要重新进行校验</strong>，当返回<code>must-revalidate, max-age=0</code>的效果，相当于<code>cache-control: no-cache</code>.</p>
 <p>用于判断新鲜度的优先级为：</p>
 <p><code>etag</code> &gt; <code>last-modified</code></p>
 <h3 id="options请求的缓存"><code>options</code>请求的缓存</h3><p>这里需要特别说明一下<code>options</code>请求的缓存：<code>Access-Control-Max-Age: seconds</code>；主要用来缓存预检(Preflight)请求<code>options</code>。</p>

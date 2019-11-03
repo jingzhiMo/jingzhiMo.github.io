@@ -388,21 +388,21 @@ var createClass = <span class="hljs-module-access"><span class="hljs-module"><sp
 <span>15</span>
 </pre>
               </td>
-              <td class="code"><pre><span class="hljs-comment">// babel.config.js</span>
-<span class="hljs-keyword">module</span>.<span class="hljs-keyword">exports</span> = {
-    <span class="hljs-comment">// ...</span>
-    presets: [
-        [<span class="hljs-string">'@babel/env'</span>, {
-            modules: <span class="hljs-keyword">false</span>
-        }]
-    ]
-    plugins: [
-        [<span class="hljs-string">'@babel/plugin-transform-runtime'</span>, {
-            corejs: <span class="hljs-number">3</span>, <span class="hljs-comment">// 使用polyfill</span>
-            useESModules: <span class="hljs-keyword">true</span>
-        }]
-    ]
-}</pre></td>
+              <td class="code"><pre><span class="hljs-string">//</span> <span class="hljs-string">babel.config.js</span>
+<span class="hljs-string">module.exports</span> <span class="hljs-string">=</span> <span class="hljs-string">{</span>
+    <span class="hljs-string">//</span> <span class="hljs-string">...</span>
+    <span class="hljs-attr">presets:</span> <span class="hljs-string">[</span>
+        <span class="hljs-string">['@babel/env',</span> <span class="hljs-string">{</span>
+            <span class="hljs-attr">modules:</span> <span class="hljs-literal">false</span>
+        <span class="hljs-string">}]</span>
+    <span class="hljs-string">]</span>
+    <span class="hljs-attr">plugins:</span> <span class="hljs-string">[</span>
+        <span class="hljs-string">['@babel/plugin-transform-runtime',</span> <span class="hljs-string">{</span>
+            <span class="hljs-attr">corejs:</span> <span class="hljs-number">3</span><span class="hljs-string">,</span> <span class="hljs-string">//</span> <span class="hljs-string">使用polyfill</span>
+            <span class="hljs-attr">useESModules:</span> <span class="hljs-literal">true</span>
+        <span class="hljs-string">}]</span>
+    <span class="hljs-string">]</span>
+<span class="hljs-string">}</span></pre></td>
             </tr>
           </tbody>
         </table>

@@ -466,15 +466,15 @@ call<span class="hljs-constructor">Hook(<span class="hljs-params">vm</span>, '<s
               <td class="code"><pre><span class="hljs-comment">// 定义挂载组件的方法</span>
 <span class="hljs-comment">// mountComponent (src/core/instance/lifecycle.js)</span>
 <span class="hljs-comment">// @function mountComponent</span>
-export <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">mountComponent</span> <span class="hljs-params">(
+export <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">mountComponent</span> (<span class="hljs-params">
   vm: Component,
   el: ?Element,
   hydrating?: boolean
-)</span>: <span class="hljs-title">Component</span> </span>{
-  vm.$el = el
+</span>): <span class="hljs-title">Component</span> </span>{
+  vm.<span class="hljs-symbol">$el</span> = el
   <span class="hljs-comment">// 没有 render 函数</span>
-  <span class="hljs-keyword">if</span> (!vm.$options.render) {
-    vm.$options.render = createEmptyVNode
+  <span class="hljs-keyword">if</span> (!vm.<span class="hljs-symbol">$optio</span>ns.render) {
+    vm.<span class="hljs-symbol">$optio</span>ns.render = createEmptyVNode
     <span class="hljs-comment">// ...</span>
   }
   <span class="hljs-comment">// 触发 beforeMount hook 函数</span>
@@ -482,7 +482,7 @@ export <span class="hljs-function"><span class="hljs-keyword">function</span> <s
 
   <span class="hljs-comment">// ...</span>
   <span class="hljs-comment">// 定义数据发生变化的回调方法</span>
-  updateComponent = () =&gt; {
+  updateComponent = <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
     <span class="hljs-comment">// 调用该方法更新当前的组件，执行完毕之后，需要通过 scheduler 来触发 updated 的 hook，为什么不是马上触发hook，是因为需要保证子组件都更新了，才调用当前组件的 updated，详细可以看一下源码，位置如下</span>
     <span class="hljs-comment">// src/core/instance/lifecycle.js </span>
     <span class="hljs-comment">// @function Vue.prototype._update</span>
@@ -501,14 +501,14 @@ export <span class="hljs-function"><span class="hljs-keyword">function</span> <s
         callHook(vm, <span class="hljs-string">'beforeUpdate'</span>)
       }
     }
-  }, <span class="hljs-keyword">true</span> <span class="hljs-comment">/* isRenderWatcher */</span>)
-  hydrating = <span class="hljs-keyword">false</span>
+  }, <span class="hljs-literal">true</span> <span class="hljs-comment">/* isRenderWatcher */</span>)
+  hydrating = <span class="hljs-literal">false</span>
 
   <span class="hljs-comment">// manually mounted instance, call mounted on self</span>
   <span class="hljs-comment">// mounted is called for render-created child components in its inserted hook</span>
   <span class="hljs-comment">// 挂载的对象如果不是为空，则触发 mounted 回调方法</span>
-  <span class="hljs-keyword">if</span> (vm.$vnode == <span class="hljs-keyword">null</span>) {
-    vm._isMounted = <span class="hljs-keyword">true</span>
+  <span class="hljs-keyword">if</span> (vm.<span class="hljs-symbol">$v</span>node == <span class="hljs-literal">null</span>) {
+    vm._isMounted = <span class="hljs-literal">true</span>
     callHook(vm, <span class="hljs-string">'mounted'</span>)
   }
   <span class="hljs-keyword">return</span> vm
@@ -659,10 +659,10 @@ Vue.prototype.$destroy = <span class="hljs-function"><span class="hljs-keyword">
 <span>4</span>
 </pre>
               </td>
-              <td class="code"><pre>&lt;<span class="hljs-meta">keep</span>-alive&gt;
-    &lt;component-a v-<span class="hljs-meta">if</span>=<span class="hljs-string">"componentName === 'component-a'"</span>&gt;&lt;/component-a&gt;
-    &lt;component-<span class="hljs-keyword">b </span>v-<span class="hljs-meta">if</span>=<span class="hljs-string">"componentName === 'component-b'"</span>&gt;&lt;/component-<span class="hljs-keyword">b&gt;
-</span>&lt;/<span class="hljs-meta">keep</span>-alive&gt;</pre></td>
+              <td class="code"><pre><span class="hljs-tag">&lt;<span class="hljs-name">keep-alive</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">component-a</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"componentName === 'component-a'"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component-a</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">component-b</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"componentName === 'component-b'"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component-b</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">keep-alive</span>&gt;</span></pre></td>
             </tr>
           </tbody>
         </table>
@@ -714,11 +714,11 @@ Vue.prototype.$destroy = <span class="hljs-function"><span class="hljs-keyword">
 <span>5</span>
 </pre>
               </td>
-              <td class="code"><pre>&lt;keep-alive :max=<span class="hljs-string">"2"</span>&gt;
-    &lt;<span class="hljs-keyword">component</span>-a v-<span class="hljs-keyword">if</span>=<span class="hljs-string">"componentName === 'component-a'"</span>&gt;&lt;/<span class="hljs-keyword">component</span>-a&gt;
-    &lt;<span class="hljs-keyword">component</span>-b v-<span class="hljs-keyword">if</span>=<span class="hljs-string">"componentName === 'component-b'"</span>&gt;&lt;/<span class="hljs-keyword">component</span>-b&gt;
-    &lt;<span class="hljs-keyword">component</span>-c v-<span class="hljs-keyword">if</span>=<span class="hljs-string">"componentName === 'component-c'"</span>&gt;&lt;/<span class="hljs-keyword">component</span>-c&gt;
-&lt;/keep-alive&gt;</pre></td>
+              <td class="code"><pre><span class="hljs-tag">&lt;<span class="hljs-name">keep-alive</span> <span class="hljs-attr">:max</span>=<span class="hljs-string">"2"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">component-a</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"componentName === 'component-a'"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component-a</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">component-b</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"componentName === 'component-b'"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component-b</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">component-c</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"componentName === 'component-c'"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">component-c</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">keep-alive</span>&gt;</span></pre></td>
             </tr>
           </tbody>
         </table>

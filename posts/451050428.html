@@ -320,81 +320,81 @@ data<span class="hljs-selector-class">.foo</span> = <span class="hljs-number">12
 </pre>
               </td>
               <td class="code"><pre><span class="hljs-comment">// 是否在收集数据</span>
-<span class="hljs-selector-tag">var</span> isDep = false
+<span class="hljs-keyword">var</span> isDep = <span class="hljs-literal">false</span>
 <span class="hljs-comment">// 当前收集的回调函数</span>
-<span class="hljs-selector-tag">var</span> notify
+<span class="hljs-keyword">var</span> notify
 
 <span class="hljs-comment">// foo 的回调函数列表</span>
-<span class="hljs-selector-tag">var</span> fooNotify = []
+<span class="hljs-keyword">var</span> fooNotify = []
 
 <span class="hljs-comment">// 回调函数对应的字段</span>
-<span class="hljs-selector-tag">var</span> notifyProp
+<span class="hljs-keyword">var</span> notifyProp
 
-<span class="hljs-selector-tag">var</span> instance = {
-    data: {
-        foo: <span class="hljs-number">123</span>,
-        bar: <span class="hljs-string">'bar'</span>
+<span class="hljs-keyword">var</span> instance = {
+    <span class="hljs-attr">data</span>: {
+        <span class="hljs-attr">foo</span>: <span class="hljs-number">123</span>,
+        <span class="hljs-attr">bar</span>: <span class="hljs-string">'bar'</span>
     },
-    computed: {
+    <span class="hljs-attr">computed</span>: {
         fooMap () {
-            return instance<span class="hljs-selector-class">.data</span><span class="hljs-selector-class">.foo</span> + <span class="hljs-number">1</span>
+            <span class="hljs-keyword">return</span> instance.data.foo + <span class="hljs-number">1</span>
         },
         barMap () {
-            return instance<span class="hljs-selector-class">.data</span><span class="hljs-selector-class">.bar</span> + <span class="hljs-string">' baz'</span>
+            <span class="hljs-keyword">return</span> instance.data.bar + <span class="hljs-string">' baz'</span>
         }
     }
 }
 
 <span class="hljs-comment">// 劫持对象</span>
-function defineProperty (vm) {
-    let data = vm<span class="hljs-selector-class">.data</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">defineProperty</span> (<span class="hljs-params">vm</span>) </span>{
+    <span class="hljs-keyword">let</span> data = vm.data
 
     vm._data = {}
 
-    <span class="hljs-keyword">for</span> (let key <span class="hljs-keyword">in</span> data) {
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> key <span class="hljs-keyword">in</span> data) {
         <span class="hljs-comment">// 缓存原有的数据</span>
         vm._data[key] = data[key]
 
-        Object.defineProperty(data, key, {
-            get () {
+        <span class="hljs-built_in">Object</span>.defineProperty(data, key, {
+            <span class="hljs-keyword">get</span> () {
                 <span class="hljs-keyword">if</span> (isDep) {
                     fooNotify.push([notify, notifyProp])
                 }
-                return vm._data[key]
+                <span class="hljs-keyword">return</span> vm._data[key]
             },
-            set (value) {
+            <span class="hljs-keyword">set</span> (value) {
                 vm._data[key] = value
-                fooNotify.forEach(item =&gt; {
-                    vm<span class="hljs-selector-class">.computed</span>[item[<span class="hljs-number">1</span>]] = item[<span class="hljs-number">0</span>]()
+                fooNotify.forEach(<span class="hljs-function"><span class="hljs-params">item</span> =&gt;</span> {
+                    vm.computed[item[<span class="hljs-number">1</span>]] = item[<span class="hljs-number">0</span>]()
                 })
             }
         })
     }
-    return data
+    <span class="hljs-keyword">return</span> data
 }
 
 <span class="hljs-comment">// 初始化计算属性</span>
-function initComputed (vm) {
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">initComputed</span> (<span class="hljs-params">vm</span>) </span>{
     <span class="hljs-comment">// 依赖收集开始</span>
-    isDep = true
+    isDep = <span class="hljs-literal">true</span>
 
-    <span class="hljs-keyword">for</span> (let key <span class="hljs-keyword">in</span> vm.computed) {
-        let method = vm<span class="hljs-selector-class">.computed</span>[key]
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> key <span class="hljs-keyword">in</span> vm.computed) {
+        <span class="hljs-keyword">let</span> method = vm.computed[key]
 
         notify = method
         notifyProp = key
         <span class="hljs-comment">// 通过函数计算获取数据</span>
-        vm<span class="hljs-selector-class">.computed</span>[key] = method()
+        vm.computed[key] = method()
     }
 
     <span class="hljs-comment">// 依赖收集结束</span>
-    isDep = false
+    isDep = <span class="hljs-literal">false</span>
 }
 
 <span class="hljs-comment">// 劫持 data 数据</span>
-<span class="hljs-function"><span class="hljs-title">defineProperty</span><span class="hljs-params">(instance)</span></span>
+defineProperty(instance)
 <span class="hljs-comment">// 初始化计算属性</span>
-<span class="hljs-function"><span class="hljs-title">initComputed</span><span class="hljs-params">(instance)</span></span></pre></td>
+initComputed(instance)</pre></td>
             </tr>
           </tbody>
         </table>
@@ -1011,7 +1011,7 @@ Dep.target = <span class="hljs-string">''</span>
             <span class="hljs-attr">value</span>: <span class="hljs-literal">undefined</span>,
             <span class="hljs-attr">getter</span>: method,
             <span class="hljs-comment">// 这个属性的观察者</span>
-            ob: <span class="hljs-literal">undefined</span>
+            <span class="hljs-attr">ob</span>: <span class="hljs-literal">undefined</span>
         }
 
         <span class="hljs-built_in">Object</span>.defineProperty(vm.computed, key, {
