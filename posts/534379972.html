@@ -1,0 +1,524 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+create-react-app使用工具与过程分析 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">December 07, 2019</p>
+  <h1 class="title">create-react-app使用工具与过程分析</h1>
+  <div class="content"><p>最近在弄一个项目的模版，之前是以fork的方式新建；这种方式不太友好，所以想着参考cra，用cli的方式创建模版；也趁这个机会了解cra创建项目的过程。如果想了解概要过程，直接拉到页面底部即可。</p>
+<h2 id="工具概览">工具概览</h2><p>先大概了解cra所用到的工具，在<a href="https://github.com/facebook/create-react-app/blob/master/packages/create-react-app/createReactApp.js">入口文件</a>可以看到，下面写一些简单工具的简单描述与使用目的，对所使用工具熟悉，看源码起来会比较有帮助。熟悉的话可以跳过...</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// chalk 是一个美化终端输出文字，通常可以更改文字的颜色与背景色</span>
+<span class="hljs-keyword">const</span> chalk = <span class="hljs-built_in">require</span>(<span class="hljs-string">'chalk'</span>);
+<span class="hljs-comment">// commander 是一个对终端的参数输入进行处理工具，让输入参数更容易处理</span>
+<span class="hljs-keyword">const</span> commander = <span class="hljs-built_in">require</span>(<span class="hljs-string">'commander'</span>);
+<span class="hljs-comment">// 原生 dns 模块，emm，作用就是对域名相关dns解析吧</span>
+<span class="hljs-keyword">const</span> dns = <span class="hljs-built_in">require</span>(<span class="hljs-string">'dns'</span>);
+<span class="hljs-comment">// eninfo 获取系统的信息，设备信息，浏览器，node版本等；在debug的时候用到</span>
+<span class="hljs-keyword">const</span> envinfo = <span class="hljs-built_in">require</span>(<span class="hljs-string">'envinfo'</span>);
+<span class="hljs-comment">// execSync 调用子进程的一个方法</span>
+<span class="hljs-keyword">const</span> execSync = <span class="hljs-built_in">require</span>(<span class="hljs-string">'child_process'</span>).execSync;
+<span class="hljs-comment">// fs-extra 增强型 fs，提供一些更友好调用方法</span>
+<span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs-extra'</span>);
+<span class="hljs-comment">// hyperquest 将http请求应答过程变成stream形式返回</span>
+<span class="hljs-keyword">const</span> hyperquest = <span class="hljs-built_in">require</span>(<span class="hljs-string">'hyperquest'</span>);
+<span class="hljs-comment">// inquirer 用于在终端与用户交互的输入工具，例如，提问，y/N等</span>
+<span class="hljs-keyword">const</span> inquirer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'inquirer'</span>);
+<span class="hljs-comment">// 原生 os 模块，用于获取不同系统的结束标识：os.EOL</span>
+<span class="hljs-keyword">const</span> os = <span class="hljs-built_in">require</span>(<span class="hljs-string">'os'</span>);
+<span class="hljs-comment">// 原生 path 模块，用于路径拼接等处理</span>
+<span class="hljs-keyword">const</span> path = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>);
+<span class="hljs-comment">// semver 用于对版本的大小判断, 通常基于 x.y.z</span>
+<span class="hljs-keyword">const</span> semver = <span class="hljs-built_in">require</span>(<span class="hljs-string">'semver'</span>);
+<span class="hljs-comment">// cross-spawn 与child_process的spawn类似，增强型，兼容多系统</span>
+<span class="hljs-keyword">const</span> spawn = <span class="hljs-built_in">require</span>(<span class="hljs-string">'cross-spawn'</span>);
+<span class="hljs-comment">// tmp 获取系统的临时文件夹等 https://github.com/raszi/node-tmp</span>
+<span class="hljs-keyword">const</span> tmp = <span class="hljs-built_in">require</span>(<span class="hljs-string">'tmp'</span>);
+<span class="hljs-comment">// tar-pack 解压tar压缩包</span>
+<span class="hljs-keyword">const</span> unpack = <span class="hljs-built_in">require</span>(<span class="hljs-string">'tar-pack'</span>).unpack;
+<span class="hljs-comment">// 原生 url 模块，对url进行处理，返回对象形式等</span>
+<span class="hljs-keyword">const</span> <span class="hljs-built_in">url</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">'url'</span>);
+<span class="hljs-comment">// validateProjectName 判断 npm 包名称是否合法</span>
+<span class="hljs-keyword">const</span> validateProjectName = <span class="hljs-built_in">require</span>(<span class="hljs-string">'validate-npm-package-name'</span>);</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h2 id="创建流程">创建流程</h2><h3 id="输入处理">输入处理</h3>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">const</span> <span class="hljs-keyword">program</span> = new commander.Command(packageJson.<span class="hljs-keyword">name</span>)
+.arguments(<span class="hljs-string">'&lt;project-directory&gt;'</span>)
+.option(<span class="hljs-string">'--typescript'</span>)
+<span class="hljs-comment">// ...</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>可以看到处理输入的文件夹名称与部分配置等；通过<code>commander</code>的处理转换成对象形式，更容易操作</p>
+<h3 id="createapp函数">createApp函数</h3><p>当判断输入已经没问题之后，就执行<code>createApp</code>函数，</p>
+<ol>
+<li><p>函数执行首先是判断node版本，对于低版本进行提醒或退出，这个取决于是否用到<code>typescript</code>；这里判断node版本信息通过<code>semver</code>处理，需要node版本<code>&gt;=8.10.0</code>。</p>
+</li>
+<li><p>检查node版本之后，就会检测输入的文件夹名称是否负责npm包名称的规范，检测的方法为：<code>checkAppName</code>，其中利用到的工具库是<code>validateProjectName</code>；</p>
+</li>
+<li><p>接着处理目标文件夹，<code>fs.ensureDirSync(name)</code>，这里的<code>fs</code>是指<code>fs-extra</code>模块；<code>fs.ensureDirSync</code>方法的作用是：<em>如果目标文件夹不存在，则创建对应的文件夹</em>；</p>
+</li>
+<li><p>那如果目标文件夹存在怎么办？cra会对目标文件夹的文件进行判断，如果目标文件夹的文件不影响新建项目，则还是可以继续进行；cra会维护一些文件的白名单还有部分规则，具体可以看<a href="https://github.com/facebook/create-react-app/blob/9a817dd0d780ec401afb1f99dbc0f3bdbcd51683/packages/create-react-app/createReactApp.js#L913">isSafeToCreateProjectIn函数</a></p>
+</li>
+<li><p>文件夹准备完成之后，就会往目标文件夹写入一个简单的<code>package.json</code>文件</p>
+</li>
+</ol>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>{
+    <span class="hljs-attribute">name</span>: appName, // appName 就是目标文件夹的名称
+    version: <span class="hljs-string">'0.1.0'</span>,
+    private: true,
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>然后判断使用哪一个依赖管理器，默认是<code>yarn</code>，也可以指定<code>npm</code>和<code>pnpm</code>；依赖的<code>npm</code>版本需要大于5，<code>yarn</code>版本需要大于1.12.0；当处理完管理器之后；如果确定使用<code>yarn</code>且没有更改<code>yarn</code>的仓库地址（默认是：<code>https://registry.yarnpkg.com</code>）；则会拷贝<code>yarn.lock.cache</code>当作<code>yarn.lock</code>，用于保证安装依赖是正确的；如果不是指定<code>yarn</code>或者指定了别的仓库地址，则按最新版本安装。</p>
+<p>这里简单说一下<code>pnpm</code>，<code>npm</code>和<code>yarn</code>会熟悉一点，但是这个<code>pnpm</code>用得比较少。这个管理器号称速度比<code>yarn</code>和<code>npm</code>都要快3倍(2017年数据)，而且省空间；因为<code>yarn</code>不同项目如果依赖相同版本的npm包，如果本地已安装，是通过复制文件到不同的项目中去；而<code>pnpm</code>是通过硬链接代替复制。具体更详细可以看这篇文章<a href="https://medium.com/pnpm/why-should-we-use-pnpm-75ca4bfe7d93">why-should-we-use-pnpm?</a>。</p>
+<p>准备的工具和文件夹都ok了，就开始安装依赖~</p>
+<h3 id="run函数">run函数</h3><p><code>run</code>函数最开始是获取<code>react-scripts</code>与<code>cra-template</code>的安装路径与对应版本。<a href="https://github.com/facebook/create-react-app/blob/9a817dd0d780ec401afb1f99dbc0f3bdbcd51683/packages/create-react-app/createReactApp.js#L425">源码在这</a>。<em>需要注意的是，<code>cra-template</code>是从v3.3.0版本开始才增加，之前的版本中,cra-template的内容也是在<code>react-scripts</code>中。</em></p>
+<p>为什么要获取安装的路径呢？因为这两个安装包的安装路径，cra支持多种方式：</p>
+<ol>
+<li>默认从包管理仓库下载，大部分使用用户的选择</li>
+<li>通过本地路径下载(<code>file://</code>)，猜测是为了更方便的debug过程</li>
+<li>指定压缩包下载(<code>tar.gz</code>)文件，本地或http链接。</li>
+</ol>
+<p>获取完依赖包的信息之后，就开始下载</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>react
+react-dom
+react-scripts
+cra-template</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>如果指定是typescript的环境，则还会增加相应的包:</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>@types&#x2F;node
+@types&#x2F;react
+@types&#x2F;react-dom
+@types&#x2F;jest
+typescript</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="install函数">install函数</h3><p>当确认好使用的包管理工具，依赖的包版本与地址信息之后；进入<code>install</code>方法后，还需要对当前网络环境进行判断；因为使用<code>yarn</code>是支持离线下载的；这个判断就使用到<code>dns</code>模块，对<code>registry.yarnpkg.com</code>域名进行解析，若解析成功则为在线，反之则是离线。</p>
+<p>一切就绪就开始进行下载，执行下载的命令需要对上述工具与信息拼接，然后使用<code>spawn</code>方法调用起子进程，让子进程去执行我们的安装命令，例如我们平常的安装命令<code>yarn add lodash</code>。到这里会有一个疑问，看到文件顶部引入的<code>execSync</code>与<code>spawn</code>都是子进程的执行方法，这两个方法会有什么区别？</p>
+<p>这两个方法最主要的两个区别是：</p>
+<ol>
+<li><code>spawn()</code>返回的是一个流<code>stream</code>，<code>stream</code>会触发<code>data</code>和<code>end</code>等事件，通过触发事件返回数据；文章中称之为&quot;异步的异步&quot;</li>
+<li><code>exec()</code>返回是一个<code>buffer</code>，也就是对执行命令的输出一次性返回，这个<code>buffer</code>默认是200k；如果输出超过这个值，就会报错。文章中称之为&quot;同步的异步&quot;</li>
+</ol>
+<p>所以通常对于输出数据比较大的选用<code>spawn</code> 输出数据比较简单的，选用<code>exec</code>。更详细可以看这篇文章,<a href="https://www.hacksparrow.com/nodejs/difference-between-spawn-and-exec-of-node-js-child-rocess.html">difference-between-spawn-and-exec</a></p>
+<p>回到<code>install</code>函数，<code>spawn</code>执行安装，当安装完毕后，通过<code>close</code>事件确认是否安装成功：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre>// <span class="hljs-string">https:</span>//<span class="hljs-string">github.</span><span class="hljs-string">com/</span><span class="hljs-string">facebook/</span><span class="hljs-built_in">create-react-app/blob/9a817dd0d780ec401afb1f99dbc0f3bdbcd51683/packages/create-react-app/createReactApp.js#L402</span>
+<span class="hljs-string">const </span><span class="hljs-string">child </span>= <span class="hljs-string">spawn(</span><span class="hljs-string">command,</span> <span class="hljs-string">args,</span> { <span class="hljs-string">stdio:</span> <span class="hljs-string">'inherit'</span> });
+<span class="hljs-string">child.</span><span class="hljs-string">on(</span><span class="hljs-string">'close'</span>, <span class="hljs-string">code </span>=&gt; {
+  <span class="hljs-string">if </span>(<span class="hljs-string">code </span>!== 0) {
+    <span class="hljs-string">reject(</span>{
+      <span class="hljs-string">command:</span> `${<span class="hljs-string">command}</span> ${<span class="hljs-string">args.</span><span class="hljs-string">join(</span><span class="hljs-string">' '</span>)}`,
+    });
+    <span class="hljs-string">return;</span>
+  }
+  <span class="hljs-string">resolve(</span>);
+});</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>安装完毕之后，会回到原来的<code>run</code>函数，接着还有对环境进行检查：<code>checkNodeVersion</code>，检查当前node的环境版本是否符合<code>react-scripts</code>最低的node版本要求；</p>
+<p>环境检查完毕后，对所依赖的包<code>react-scripts</code>的版本修正：<code>setCaretRangeForRuntimeDeps</code>，例如下载<code>react-scripts</code>的时候指定<code>v3.3.0</code>版本，则在新建的项目中的<code>package.json</code>的<code>dependencies</code>修正为：<code>^3.3.0</code>。</p>
+<p>检查都通过之后，准备对模版文件进行处理；因为安装的<code>cra-template</code>已经包含了我们需要的源文件，是直接拷贝到目标文件就可以了？这个时候执行另外一段命令，<a href="https://github.com/facebook/create-react-app/blob/9a817dd0d780ec401afb1f99dbc0f3bdbcd51683/packages/create-react-app/createReactApp.js#L517">地址</a>：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre>await executeNodeScript(
+  {
+    cwd: process.cwd(),
+    args: nodeArgs,
+  },
+  [root, appName, verbose, originalDirectory, templateName],
+  `
+var init = require('${packageName}/scripts/init.js')<span class="hljs-comment">;</span>
+init.apply(<span class="hljs-name">null</span>, JSON.parse(<span class="hljs-name">process</span>.argv[<span class="hljs-number">1</span>]))<span class="hljs-comment">;</span>
+`
+)<span class="hljs-comment">;</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这段命令是执行<code>react-scripts/scripts/init.js</code>的方法。后续的操作就交给<code>init</code>方法处理，这个暂时先放一下，后面再展开；再看一下如果该段代码执行出错，或者在<code>install</code>过程中出错，就会跳到最后的<code>catch</code>方法：这个方法主要是对已生成的文件进行删除，错误代码处理过程：<a href="https://github.com/facebook/create-react-app/blob/9a817dd0d780ec401afb1f99dbc0f3bdbcd51683/packages/create-react-app/createReactApp.js#L538">源码</a></p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+</pre>
+              </td>
+              <td class="code"><pre>package.json
+yarn.lock
+node_modules</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>如果在目标文件夹已生成上面的文件列表，则会对这些文件移除；若移除后文件夹为空，则会对文件夹也删除。</p>
+<h3 id="reactscripts/script/initjs">react-scripts/script/init.js</h3><p>到这一步的时候，新建的项目中主动安装的依赖有：<code>react</code>,<code>react-dom</code>,<code>react-scripts</code>,<code>cra-template</code>
+这个方法主要是对<code>cra-template</code>的项目的模版文件进行处理，安装一些缺失的额外依赖与更改新建项目的<code>package.json</code>进行优化处理。</p>
+<ol>
+<li>更新package.json内容，<a href="https://github.com/facebook/create-react-app/blob/v3.3.0/packages/react-scripts/scripts/init.js#L126">源码地址</a></li>
+</ol>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// appPackage为package.json的内容，初始化为，后续安装依赖会有改变</span>
+<span class="hljs-comment">// {</span>
+<span class="hljs-comment">//   name: appName,</span>
+<span class="hljs-comment">//   version: '0.1.0',</span>
+<span class="hljs-comment">//   private: true,</span>
+<span class="hljs-comment">// }</span>
+<span class="hljs-comment">// 设置npm script命令</span>
+appPackage.scripts = <span class="hljs-built_in">Object</span>.assign(
+  {
+    start: <span class="hljs-string">'react-scripts start'</span>,
+    build: <span class="hljs-string">'react-scripts build'</span>,
+    test: <span class="hljs-string">'react-scripts test'</span>,
+    eject: <span class="hljs-string">'react-scripts eject'</span>,
+  },
+  templateScripts
+);
+appPackage.eslintConfig = {
+  <span class="hljs-keyword">extends</span>: <span class="hljs-string">'react-app'</span>,
+};
+appPackage.browserslist = defaultBrowsers;
+<span class="hljs-comment">// ...</span>
+<span class="hljs-comment">// 再次更新写入文件</span>
+fs.writeFileSync(
+  path.join(appPath, <span class="hljs-string">'package.json'</span>),
+  <span class="hljs-built_in">JSON</span>.stringify(appPackage, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>) + os.EOL
+);</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ol start="2">
+<li>复制<code>cra-template/template</code>文件到新建项目目录：</li>
+</ol>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// Copy the files for the user</span>
+<span class="hljs-keyword">const</span> templateDir = path.join(templatePath, <span class="hljs-string">'template'</span>);
+<span class="hljs-keyword">if</span> (fs.existsSync(templateDir)) {
+  fs.copySync(templateDir, appPath);
+} <span class="hljs-keyword">else</span> {
+  <span class="hljs-built_in">console</span>.error(
+    <span class="hljs-string">`Could not locate supplied template: <span class="hljs-subst">${chalk.green(templateDir)}</span>`</span>
+  );
+  <span class="hljs-keyword">return</span>;
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ol start="3">
+<li>安装额外依赖<code>cra-template/template.json</code></li>
+</ol>
+<p><code>template.json</code>内容为：</p>
+
+      <div class="hljs json">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+</pre>
+              </td>
+              <td class="code"><pre>{
+  <span class="hljs-attr">"dependencies"</span>: {
+    <span class="hljs-attr">"@testing-library/react"</span>: <span class="hljs-string">"^9.3.2"</span>,
+    <span class="hljs-attr">"@testing-library/jest-dom"</span>: <span class="hljs-string">"^4.2.4"</span>,
+    <span class="hljs-attr">"@testing-library/user-event"</span>: <span class="hljs-string">"^7.1.2"</span>
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>由于这些依赖没有在<code>react-scripts</code>中，因为需要在这里需要再次安装该部分依赖。</p>
+<ol start="4">
+<li>移除<code>cra-template</code></li>
+</ol>
+<p>前面可以知道我们安装的时候会包含这个<code>cra-template</code>的依赖，而这个依赖的作用是提供模版文件，现在已经复制到目标文件夹了，因此可以执行命令删除：</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre>$ yarn <span class="hljs-built_in">remove</span> cra-<span class="hljs-keyword">template</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ol start="5">
+<li>初始化为git项目
+主动把项目执行<code>git init</code>初始化新建项目文件夹为git仓库，并把初始化的文件加入到commit<code>Initial commit from Create React App</code></li>
+</ol>
+<p>至此整个流程已经安装完毕</p>
+<h2 id="小结">小结</h2><p>安装的过程梳理为以下几点：</p>
+<ol>
+<li>对输入的命令处理，配置新建项目的类型，例如使用<code>typescript</code>等</li>
+<li>检查环境是否符合要求</li>
+<li>新建目标文件夹与<code>package.json</code></li>
+<li>安装<code>react</code>,<code>react-dom</code>,<code>react-scripts</code>,<code>cra-template</code></li>
+<li>拷贝<code>cra-template</code>到目标文件夹，更改<code>package.json</code>内容</li>
+<li>安装<code>cra-template</code>指定额外依赖</li>
+<li>初始化git仓库并提交<code>commit</code></li>
+</ol>
+<p>上述过程实现起来并不困难，但是需要兼顾到非常多的环境问题与版本处理等比较零碎的边界值等。需要对文件系统的操作了解很多，对于优化用户提示与用户交互所用到工具也要较为熟悉。整体流程需要十分严谨，才能在各种环境中处理正常。</p>
+<p><code>react-scripts</code>是项目的核心处理，包括<code>npm script</code>命令，还有项目的依赖。还有一些该项目的其他问题要处理，例如：</p>
+<ol>
+<li><code>cra-template</code>项目如何维护？</li>
+<li><code>yarn.lock.cached</code>如何更新处理？</li>
+<li>发布项目流程如何处理项目之间的依赖关系等</li>
+</ol>
+<p>这些问题解决方式都可以从<code>create-react-app</code>根目录的<code>tasks</code>文件夹与根目录的<code>package.json</code>中找到。</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
