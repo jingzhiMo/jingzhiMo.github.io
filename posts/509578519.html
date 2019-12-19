@@ -391,23 +391,23 @@ let microTaskQueue = []
 <span>19</span>
 </pre>
               </td>
-              <td class="code"><pre>// 0. 点击inner
-macroTaskQueue = ['click(inner)', 'click(outer)']
+              <td class="code"><pre>// <span class="hljs-number">0.</span> 点击inner
+macroTaskQueue = [<span class="hljs-string">'click(inner)'</span>, <span class="hljs-string">'click(outer)'</span>]
 microTaskQueue = []
 
-// 1. inner的回调函数处理完毕，并出队
-macroTaskQueue = ['click(outer)']
-microTaskQueue = ['promise(inner)']
+// <span class="hljs-number">1.</span> inner的回调函数处理完毕，并出队
+macroTaskQueue = [<span class="hljs-string">'click(outer)'</span>]
+microTaskQueue = [<span class="hljs-string">'promise(inner)'</span>]
 
-// 2. 微任务先执行，并出队
-macroTaskQueue = ['click(outer)']
+// <span class="hljs-number">2.</span> 微任务先执行，并出队
+macroTaskQueue = [<span class="hljs-string">'click(outer)'</span>]
 microTaskQueue = []
 
-// 3. 再执行剩下outer，并出队
+// <span class="hljs-number">3.</span> 再执行剩下outer，并出队
 macroTaskQueue = []
-microTaskQueue = ['promise(outer)']
+microTaskQueue = [<span class="hljs-string">'promise(outer)'</span>]
 
-// 4. 执行微任务
+// <span class="hljs-number">4.</span> 执行微任务
 macroTaskQueue = []
 micoTaskQueue = []</pre></td>
             </tr>

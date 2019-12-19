@@ -1,0 +1,411 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+记一次gitlab-ci的优化过程 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">December 19, 2019</p>
+  <h1 class="title">记一次gitlab-ci的优化过程</h1>
+  <div class="content"><p>最近在开发的过程中，发现部署的过程非常非常的慢，可能一个跑完完整的任务理想情况下都需要10分钟左右，如果同时任务多一点，甚至到20分钟，非常影响工作效率；尽管可以在部署任务的时候玩一下手机，当然这个时候可以切换去做其他任～但是长此下去不行鸭。</p>
+<h2 id="分析">分析</h2><p>ci/cd中有很多job，得分析这些job的过程，卡在哪一步，才能针对过程进行优化。通常来说，一个job的“主任务”，也就是任务的核心过程，例如通过webpack构建网站资源，连接到服务器，发送文件等；这部分处理本身“主任务”之外，可能还跟对应服务器硬件资源较大关联，暂时这些就不列在这次的优化方向。</p>
+<p>那么除了这些主任务之外，还涉及一些通用的，例如<code>cache</code>与<code>artifacts</code>，这些也是比较影响job的速度，所以这次处理方向也是这个。</p>
+<h2 id="优化结果">优化结果</h2><p>提前说一下优化的结果：</p>
+<p>优化前，job数量2-3个的时候，大概10-20分钟；job数量在5-6的时候，需要25分钟左右；</p>
+<p>优化后，job数量2-3个的时候，大概2-3分钟；job数量在5-6个的时候，大概5分钟左右；</p>
+<p>可以对比，大概下降的达到<strong>70%到90%</strong>左右，极大提高开发效率。</p>
+<h2 id="优化手段">优化手段</h2><h3 id="更改cache影响范围">更改<code>cache</code>影响范围</h3><p>这个其中一个原因是原有的<code>cache</code>策略设置不好，设置了全局的<code>cache</code>策略：</p>
+
+      <div class="hljs yml">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-meta"># .gitlab-ci.yml</span>
+<span class="hljs-symbol">cache:</span>
+<span class="hljs-symbol">  key:</span> xx
+<span class="hljs-symbol">  path:</span>
+    - node_modules
+
+<span class="hljs-meta"># job1    </span>
+<span class="hljs-symbol">job1:</span>
+
+<span class="hljs-meta"># job2</span>
+<span class="hljs-symbol">job2:</span>
+
+<span class="hljs-meta"># job3</span>
+<span class="hljs-symbol">job3:</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>因为设置了全局的<code>cache</code>，这个<code>cache</code>的内容是<code>node_modules</code>, 而且job之间并没有对策略(<code>policy</code>)进行更改，所以每个job执行的时候，开始都拉取cache(<code>pull cache</code>)，然后提取<code>node_modules</code>；然后开始执行“主任务”，执行完任务之后，再把<code>node_modules</code>打包压缩为<code>cache.zip</code>，再进行上传：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>download cache.zip
+extract node_modules
+&#x2F;&#x2F; ...
+tar node_modules
+upload cache.zip</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>所以每个job都至少执行了“下载-上传”的过程；但是有些任务可能并不需要<code>node_modules</code>；所以整个<code>node_modules</code>连下载都没必要，通常下载是从docker对应的云盘进行下载；这些io也会很耗费时间，所以这个时候就需要看任务对<code>cache</code>的使用情况；</p>
+<ol>
+<li>若大部分job都是需要<code>node_modules</code>缓存，只有少部分job不需要，则可以仍然设置全局<code>cache</code>，对部分job显式更改策略：</li>
+</ol>
+
+      <div class="hljs yml">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-symbol">job1:</span>
+  <span class="hljs-meta"># 不需要cache</span>
+<span class="hljs-symbol">  cache:</span> {}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ol start="2">
+<li>若只有一部分的job使用<code>cache</code>，那么则不设置全局<code>cache</code>，只对job进行设定<code>cache</code>：</li>
+</ol>
+
+      <div class="hljs yml">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-symbol">job1:</span>
+<span class="hljs-symbol">  cache:</span>
+<span class="hljs-symbol">    key:</span> <span class="hljs-string">"node_modules"</span>
+<span class="hljs-symbol">    path:</span>
+      - node_modules/
+<span class="hljs-symbol">job2:</span>
+<span class="hljs-symbol">  script:</span>
+    - echo <span class="hljs-string">"this is job2"</span>
+<span class="hljs-symbol">job3:</span>
+<span class="hljs-symbol">  script:</span>
+    - echo <span class="hljs-string">"this is job3"</span>
+<span class="hljs-symbol">job4:</span>
+<span class="hljs-symbol">  cache:</span>
+<span class="hljs-symbol">    key:</span> <span class="hljs-string">"node_modules"</span>
+<span class="hljs-symbol">    path:</span>
+      - node_modules/</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>不同的job可以使用相同的缓存，通过<code>key</code>值来确定，例如上面的设置<code>node_modules</code>为<code>cache</code>的id值，<code>job1</code>与<code>job4</code>都会使用并且更新同一份<code>cache</code>。</p>
+<h3 id="减少cache的上传次数">减少cache的上传次数</h3><p>通过上面第一点的优化，可以把不需要<code>cache</code>的任务过滤掉；但是有些地方还是会有重复，例如上面例子的<code>job1</code>与<code>job4</code>，两个job都对<code>cache</code>进行下载与更新，但是是否需要更新这么频繁呢？是否另外的任务是不需要对<code>cahce</code>进行更新，只需要获取就ok了？</p>
+<p>对于这种情况，可以设置一个任务需要“下载-上传”cache，而其他需要到相同的cache，只进行下载，那么就可以省了“上传”的步骤；可以通过设置<code>policy: pull</code>配置该策略；<code>policy</code>的值有三个：</p>
+<ul>
+<li><code>pull</code>只下载</li>
+<li><code>push</code>只上传，不下载</li>
+<li><code>pull-push</code>下载-上传（不设置的默认值）</li>
+</ul>
+<p>假设上面提到<code>job1</code>总是比<code>job4</code>要先，所以<code>job4</code>的策略可以做更改，<strong>删除job4的 <code>npm install</code>过程</strong></p>
+
+      <div class="hljs yml">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-symbol">job4:</span>
+<span class="hljs-symbol">  cache:</span>
+<span class="hljs-symbol">    key:</span> <span class="hljs-string">"node_modules"</span>
+<span class="hljs-symbol">    path:</span>
+      - node_modules/
+<span class="hljs-symbol">    policy:</span> pull</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>而为了保证这种顺序，<code>job1</code>我们可以设置为一个独立的<code>stage</code>，在执行<code>job4</code>的之前，必须执行：</p>
+
+      <div class="hljs yml">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-symbol">stage:</span>
+  - first
+  - second
+<span class="hljs-symbol">job1:</span>
+<span class="hljs-symbol">  stage:</span> first
+<span class="hljs-symbol">  cache:</span>
+<span class="hljs-symbol">    key:</span> <span class="hljs-string">"node_modules"</span>
+<span class="hljs-symbol">    path:</span>
+      - node_modules/
+<span class="hljs-symbol">job2:</span>
+<span class="hljs-symbol">
+job3:</span>
+<span class="hljs-symbol">
+job4:</span>
+<span class="hljs-symbol">  cache:</span>
+<span class="hljs-symbol">    key:</span> <span class="hljs-string">"node_modules"</span>
+<span class="hljs-symbol">    path:</span>
+      - node_modules/
+<span class="hljs-symbol">    policy:</span> pull</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>所以我们可以把<code>stage: first</code>的过程定义为获取<code>node_modules</code>，也就是<code>npm install</code>的过程，作为其他依赖<code>node_modules</code>最基础的一个<code>job</code>。这就完了？还有优化方向吗？</p>
+<p>通常来说，<code>node_modules</code>的变化次数不会特别多，所以尽管把<code>npm install</code>的过程抽离出来，但是每次提交都执行<code>npm install</code>，还要把巨大的<code>cache.zip</code>上传一遍；耗费的时间也是不少。所以我们可以设置当<code>npm</code>包发生更改的时候再执行<code>npm install</code>的job；也就是<code>package.json</code>发生改变，所以job1可以更改为：</p>
+
+      <div class="hljs yml">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-attr">job1:</span>
+  <span class="hljs-attr">stage:</span> <span class="hljs-string">first</span>
+  <span class="hljs-attr">cache:</span>
+    <span class="hljs-attr">key:</span> <span class="hljs-string">"node_modules"</span>
+    <span class="hljs-attr">path:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">node_modules/</span>
+  <span class="hljs-attr">rules:</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">changes:</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">package.json</span>
+      <span class="hljs-bullet">-</span> <span class="hljs-string">yarn.lock</span> <span class="hljs-comment"># 或者 package-lock.json 等</span>
+      <span class="hljs-attr">when:</span> <span class="hljs-string">always</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">if:</span> <span class="hljs-string">$YOUR_CUSTOME_VARIABLE</span>
+      <span class="hljs-attr">when:</span> <span class="hljs-string">always</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>上面的<code>changes</code>数组表示，如果<code>package.json</code>或者<code>yarn.lock</code>发生改变之后，再运行job1；细心的朋友可能发现<code>rules</code>的数组还有一个规则，<code>if: $YOUR_CUSTOME_VARIABLE</code>，这个规则作用是啥？</p>
+<p>因为<code>cache</code>是不稳定的，有可能被删除；这个时候<code>package.json</code>并没有更新，<code>job4</code>就不能够获取<code>cache</code>，job4就不能跑起来（上面提到，job4去掉<code>npm install</code>过程）；而这个<code>if: $YOUR_CUSTOME_VARIABLE</code>规则就是加入可以人为主动控制触发<code>job1</code>，用于下载<code>npm install</code>；而这个变量是存在于gitlab仓库的<code>ci variable</code>，或者主动触发<code>pipeline</code>的时候加入。这样子整个流程就能完整保证运行起来。</p>
+<h2 id="小结">小结</h2><p>实际上运用起来更改比较简单，但是效果确实非常明显，对于上面的方法，小结如下：</p>
+<ol>
+<li>更改<code>cache</code>影响范围，不适用的选择跳过</li>
+<li>减少<code>cache</code>的更新次数，通常<code>node_modules</code>不需要多个任务更新，独立到一个任务即可</li>
+<li>按需触发<code>cache</code>的更新策略，并有人工干预手段进行处理，保证程序可用性</li>
+</ol>
+<h2 id="番外篇">番外篇</h2><p>实际上，之前旧的规则每次耗费这么多的时间，除了<code>cache</code>控制不好之外，也有另外一个非常重要的原因。从上面可以知道，在没优化<code>cache</code>策略之前，每个job都有对cache进行<code>pull-push</code>的过程；在<code>push</code>之前，ci会显示打包涉及的文件数量：<code>node_modules/: found ${xxx} matching files</code>，其中<code>${xxx}</code>为需要压缩为<code>cache.zip</code>的文件数量；通过观察发现，跑的pipeline越多，打包的文件数量越来越多；最终导致<code>cache.zip</code>体积也越来越大；甚至已经达到了<code>30w+</code>的文件数量，这是非常恐怖的数字。要知道，项目初始化安装完<code>node_modules</code>的时候，文件数量才<code>3w+</code>，为什么文件数量的数量级会直接加了一个数量级？</p>
+<p>因为npm安装的文件也不会每次更改，已经有<code>lock</code>的相关文件，所以剔除涉及的npm包问题；那么<code>node_modules</code>除了npm包之外还有什么哪些文件？<code>.bin</code>与<code>.cache</code>。<code>.bin</code>的数量也是不变的；所以只能落到<code>.cache</code>文件夹变化了。</p>
+<p><code>node_modules/.cache</code>文件夹内容通常是<code>cache-loader</code>存储缓存文件的地方，通过统计开发机的该文件夹的文件数量，惊人的发现，居然也有将近<code>20w</code>的文件。其中<code>.cache/vue-loader</code>的最多，达到10几w，其次是<code>.cache/babel-loader</code>。</p>
+<p>那么为啥<code>.cache</code>文件夹的数量，因为我们在开发或者部署过程中，更改文件之后，就会生成新的一些<code>cache</code>，逐渐逐渐的，<code>.cahce</code>文件就越来越多。而优化前的<code>cache</code>规则，是全局的，而且每次都会<code>push</code>，所以就每次跑完<code>pipeline</code>都会把该次所更新的<code>.cache</code>增加文件，最后就导致文件非常庞大.....</p>
+<h2 id="测试篇">测试篇</h2><p><code>cache-loader</code>的目标是为了加快构建速度，下面做了一个测试，大家可以观察一下：</p>
+<table>
+<thead>
+<tr>
+<th align="left">#</th>
+<th align="left">cache</th>
+<th align="left">no-cache</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">first run dev-serve</td>
+<td align="left">40s</td>
+<td align="left">38s</td>
+</tr>
+<tr>
+<td align="left">second run dev-serve</td>
+<td align="left">20s</td>
+<td align="left">29s</td>
+</tr>
+<tr>
+<td align="left">third run dev-serve</td>
+<td align="left">20s</td>
+<td align="left">28s</td>
+</tr>
+<tr>
+<td align="left">add line</td>
+<td align="left">5s</td>
+<td align="left">5s</td>
+</tr>
+<tr>
+<td align="left">trigger eslint error</td>
+<td align="left">3s</td>
+<td align="left">3.1s</td>
+</tr>
+<tr>
+<td align="left">stop &amp; restart dev-serve</td>
+<td align="left">21s</td>
+<td align="left">29s</td>
+</tr>
+<tr>
+<td align="left">stop &amp; update element &amp; restart dev-serve</td>
+<td align="left">25s</td>
+<td align="left">30s</td>
+</tr>
+<tr>
+<td align="left">first build</td>
+<td align="left">62s</td>
+<td align="left">60s</td>
+</tr>
+<tr>
+<td align="left">second build</td>
+<td align="left">23s</td>
+<td align="left">30s</td>
+</tr>
+<tr>
+<td align="left">update element &amp; build</td>
+<td align="left">30s</td>
+<td align="left">33s</td>
+</tr>
+</tbody></table>
+<p>测试顺序从上到下,<code>cache</code>为使用<code>cache-loader</code>，<code>no-cache</code>没有使用，测试流程解析如下：</p>
+<ol>
+<li><code>first run dev-serve</code>首次启动本地开发，通常是<code>npm run serve</code></li>
+<li><code>second run dev-serve</code>文件没有更改，再次启动本地开发</li>
+<li><code>third run dev-serve</code>与上一步一致</li>
+<li><code>add line</code>添加一行代码，添加的这行代码一致</li>
+<li><code>trigger eslint error</code>，这里也是添加一行代码，但是这行代码会触发<code>eslint</code>的报错，例如执行一个不存在的函数</li>
+<li><code>stop &amp;&amp; restart dev-serve</code>，关掉本地开发的<code>serve</code>，然后再次启动</li>
+<li><code>stop &amp;&amp; update element &amp; restart  dev-serve</code>，关掉<code>serve</code>，然后更新部分元素，两次更新一致；然后再次启动<code>serve</code></li>
+<li><code>first build</code>，第一次执行<code>build</code>任务，生产环境构建</li>
+<li><code>second build</code>，没有更改文件，再次执行<code>build</code>任务</li>
+<li><code>update element &amp; build</code>，更改部分元素，再次执行构建</li>
+</ol>
+<p>从上面可以发现，<code>cache-loader</code>没有什么优势；只在两次构建文件没变化的时候，有一定的提升；但是这种情况比较少，所以是否利用也是值得商榷。当然也有可能测试不够严谨，大家也可以测试过程。</p>
+<p>End.</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
