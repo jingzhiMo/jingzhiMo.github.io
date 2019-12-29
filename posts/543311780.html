@@ -1,0 +1,457 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+
+  <title>
+探索performance.timing与首页性能参数上报 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">December 29, 2019</p>
+  <h1 class="title">探索performance.timing与首页性能参数上报</h1>
+  <div class="content"><p>最近打算给WEB应用收集一些打开的相关数据，所以需要对<code>performance</code>的api进行熟悉。收集完数据之后，后续有什么故障或者优化的手段，就可以使用数据说话，而不是说，“加入了XX的优化，快了很多”，“服务器负载过高，影响了XX的部分的解析时间”。</p>
+<p>接下来主要分析<code>performance.timing</code>对象所在属性，对于<code>performance</code>对象的其他属性不做详细处理。这篇文章的也没什么特别的地方，只是在面向谷歌研究的时候，发现很多关于<code>performance.timing</code>的描述都很模棱两可，而且比较简单，对于实际情况应用与影响因素不明确，所以做了部分测试。</p>
+<h2 id="performancetiming基础介绍">performance.timing 基础介绍</h2><p><code>performance.timing</code>对象的数据是什么？该对象下包含页面打开的各种的时间戳，例如：DNS 耗费时间，TCP 连接时间等；这些时间不通过<code>performance</code>的api，暂时无法获取这些相对底层的时间。这个包含以下字段：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+</pre>
+              </td>
+              <td class="code"><pre>navigationStart
+unloadEventStart
+unloadEventEnd
+redirectStart
+redirectEnd
+fetchStart
+domainLookupStart
+domainLookupEnd
+connectStart
+connectEnd
+secureConnectionStart
+requestStart
+responseStart
+responseEnd
+domLoading
+domInteractive
+domContentLoadedEventStart
+domContentLoadedEventEnd
+domComplete
+loadEventStart
+loadEventEnd</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这些字段顺序触发是怎样的？参考alloyteam抄回来的这张图：
+<img src="http://www.alloyteam.com/wp-content/uploads/auto_save_image/2015/09/072455NuJ.png" alt="image"></p>
+<p>所以调整以下，整体顺序是这样子的：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+</pre>
+              </td>
+              <td class="code"><pre>{
+  <span class="hljs-string">//</span> unload 事件触发的开始与结束时间
+  <span class="hljs-string">//</span> unload 事件指的是上一个页面<span class="hljs-params">(跳转到当前页面)</span>或者当前页面<span class="hljs-params">(刷新页面)</span>监听的事件: window.addEventListener<span class="hljs-params">('unload', ()</span> =&gt; {})
+  <span class="hljs-string">//</span> 这个通常是这个事件的回调函数所耗费的事件，感觉不太重要？
+  unloadEventStart,
+  unloadEventEnd,
+  <span class="hljs-string">//</span> 比较好理解，重定向所花的时间，若中途包含多次重定向才能确定最终的地址，则耗费的时间随之上升
+  redirectStart,
+  redirectEnd,
+  <span class="hljs-string">//</span> alloyteam描述：在同一个浏览器上下文中，前一个网页（与当前页面不一定同域）unload 的时间戳，如果无前一个网页 unload ，则与 fetchStart 值相等
+  <span class="hljs-string">//</span> 个人理解，当有 unload 事件的时候，与unloadEventStart时间一致，否则与 fetchStart 时间一致
+  navigationStart,
+  <span class="hljs-string">//</span> 已找到目标地址，开始获取文档
+  fetchStart,
+  <span class="hljs-string">//</span> DNS 解析时间
+  domainLookupStart,
+  domainLookupEnd,
+  <span class="hljs-string">//</span> DNS 解析到对应的ip，开始建立TCP
+  <span class="hljs-keyword">connect</span>Start,
+  <span class="hljs-string">//</span> 如果是加密https，则TCP加密有这一步，如果是http协议，则这个值为0
+  secureConnectionStart,
+  <span class="hljs-keyword">connect</span>End,
+  <span class="hljs-string">//</span> TCP 已建立，准备发出http请求
+  requestStart
+  <span class="hljs-string">//</span> 接收文档数据
+  responseStart
+  responseEnd
+  <span class="hljs-string">//</span> dom 解析
+  domLoading
+  <span class="hljs-string">//</span> dom 解析完毕
+  domInteractive
+  <span class="hljs-string">//</span> 触发 DOMConctentLoaded 事件
+  domContentLoadedEventStart
+  domContentLoadedEventEnd
+  <span class="hljs-string">//</span> dom 已准备好，对应的资源也已经ok
+  domComplete
+  <span class="hljs-string">//</span> 触发 load 事件
+  loadEventStart
+  loadEventEnd
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h2 id="影响不同事件的因素">影响不同事件的因素</h2><h3 id="unload相关">unload 相关</h3><p>对应<code>unloadEventStart</code>,<code>unloadEventEnd</code>, 这个是<code>unload</code>时间的执行整个时间；有时候从别的页面跳转过来，控制权不在自己所在应用，通常来说意义不是很大。</p>
+<p>影响因素：上一次<code>unload</code>事件处理任务</p>
+<h3 id="redirect相关">redirect 相关</h3><p>对应<code>redirectStart</code>,<code>redirectEnd</code>, 这个比较明显，在达到最终域名之前，重定向所花的时间；通常重定向收集部分数据或者链接更改。</p>
+<p>影响因素：redirect 次数</p>
+<h3 id="dns相关">DNS 相关</h3><p>对应<code>domainLookupStart</code>,<code>domainLookupEnd</code>, 这个通常是指该链接文档对应的<code>&#39;index.html&#39;</code>所在链接的<code>DNS</code>解析时间，不是页面所有链接的DNS所花时间</p>
+<p>影响因素：域名供应商？[狗头]</p>
+<h3 id="tcp相关">TCP 相关</h3><p>对应<code>connectStart</code>,<code>connectEnd</code>,<code>secureConnectionStart</code>事件，建立<code>TCP</code>链接所耗费时间</p>
+<p>影响因素：服务器对请求响应速度</p>
+<h3 id="文档接收发出与收到时间">文档接收发出与收到时间</h3><p>对应<code>requestStart</code>,<code>responseStart</code>,<code>responseEnd</code>事件；从<code>requestStart</code>到<code>responseStart</code>这段时间，是服务器处理生成文档的过程；而<code>responseStart</code>到<code>responseEnd</code>的时间，是客户端下载整个文档所花的时间；</p>
+<p>影响因素：1. 确认文档：服务器处理文档的时间；2. 下载过程：客户端与服务端的网络速度；</p>
+<p><em>以上几个因素对于基础网络研究不深入，所以只能点一些皮毛，比较浅显的影响因素</em></p>
+<h3 id="dom树解析过程">DOM 树解析过程</h3><p>对应<code>domLoading</code>, <code>domInteractive</code>；从dom开始解析到dom解析完毕；这里的<code>domInteractive</code>响应，已经包含了对应的静态资源；这里的静态资源指的是<code>index.html</code>所在的包含的<strong>同步</strong><code>css</code>,<code>js</code>等。不包含图片。同步<code>js</code>文件发出新的请求加入的js文件，这些文件加载不影响这个过程的时间</p>
+
+      <div class="hljs html">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- 同步 css 加载时间影响 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">link</span> <span class="hljs-attr">rel</span>=<span class="hljs-string">"stylesheet"</span> <span class="hljs-attr">href</span>=<span class="hljs-string">"index.css"</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- 图片加载时间不影响 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">img</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"/big.jpg"</span> /&gt;</span>
+
+  <span class="hljs-comment">&lt;!-- 同步js影响 domInteractive 时间 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"index.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+  <span class="hljs-comment">&lt;!-- 异步 js 文件加载时间不影响 --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"defer.js"</span> <span class="hljs-attr">defer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"async.js"</span> <span class="hljs-attr">async</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// index.js</span>
+<span class="hljs-keyword">var</span> script = <span class="hljs-built_in">document</span>.createElement(<span class="hljs-string">'script'</span>)
+<span class="hljs-comment">// 后续加入的js文件加载时间不影响这个过程</span>
+script.src = <span class="hljs-string">'/append-by-index.js'</span>
+<span class="hljs-built_in">document</span>.head.appendChild(script)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>影响因素：</p>
+<ol>
+<li>dom 树的节点数量</li>
+<li>文档包含的同步<code>css</code>, <code>js</code>文件的大小与加载时间；</li>
+</ol>
+<h3 id="dom解析完毕到触发domcontentloaded事件">DOM 解析完毕到触发 DOMContentLoaded 事件</h3><p>对应<code>domInteractive</code>, <code>domContentLoadedEventStart</code>；这个时候dom已经解析完毕，按道理来说应该马上进入<code>domContentLoadedEventStart</code>事件，还有其他影响吗？也是我们上面提到的，标识为<code>defer</code>的<code>script</code>标签如果在<code>domInteractive</code>触发后还没加载好，那么这个时候就会影响到。</p>
+<p>这是因为<code>defer</code>的特性，<code>defer</code>的js文件会在<code>DOMContentLoaded</code>事件触发前执行，执行完毕再触发<code>DOMContentLoaded</code>事件。</p>
+<p>与<code>defer</code>类似的<code>async</code>异步<code>script</code>，<code>async</code>的js文件没有这个限制，而是在下载完毕后，马上执行，与<code>DOMContentLoaded</code>事件没有关系。</p>
+<p>影响因素：</p>
+<ol>
+<li>设置<code>defer</code>的js文件加载速度</li>
+</ol>
+<h3 id="domcontentloaded事件执行时间">DOMContentLoaded 事件执行时间</h3><p>对应<code>domContentLoadedEventStart</code>与<code>domContentLoadedEventEnd</code>，这个比较简单，就是<code>DOMContentLoaded</code>回调事件函数执行的时长。</p>
+<p>影响因素：</p>
+<ol>
+<li><code>DOMContentLoaded</code>事件回调函数执行时间</li>
+</ol>
+<h3 id="dom最终完成">DOM 最终完成</h3><p>对应<code>domComplete</code>事件；这里有点疑惑，dom在上面不是已经完成了，这里怎么还有一个<code>domComplete</code>事件。因为这个<code>domComplete</code>事件是应用中所有的资源，包括图片等都已经加载完了，才会触发<code>domComplete</code>事件</p>
+<p>影响因素：</p>
+<ol>
+<li>页面所有资源的加载速度</li>
+</ol>
+<h3 id="loaded执行时间">loaded执行时间</h3><p>这个与<code>DOMContentLoaded</code>类似，是<code>load</code>事件的执行时间：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-built_in">window</span>.addEventListener(<span class="hljs-string">'load'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>影响因素：</p>
+<ol>
+<li><code>load</code>回调函数的执行时长</li>
+</ol>
+<h2 id="收集指标">收集指标</h2><p>通过上面可以知道哪些因素影响哪一部分的效果，通常来说，收集的指标有以下几种：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+</pre>
+              </td>
+              <td class="code"><pre>// 后续的performance.<span class="hljs-keyword">timing</span>都是使用这个变量代替
+var <span class="hljs-keyword">timing</span> = performance.<span class="hljs-keyword">timing</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <ol>
+<li>DNS 解析时间：<code>timing.domainLookupEnd - timing.domainLookupStart</code></li>
+<li>TCP 建立时间：<code>timing.connectEnd - timing.connectStart</code></li>
+<li>redirect 时间： <code>timing.redirectEnd - timing.redirectStart</code></li>
+<li>ttfb: <code>timing.responseStart - timing.requestStart</code> 有些统计会把DNS解析或者TCP连接都归类到ttfb的时间，但是从chrome开发者工具看到，ttfb只包含从请求发起到收到的时间，所以这里也是选用了这种 <em>ttfb <a href="https://en.wikipedia.org/wiki/Time_to_first_byte">wiki</a></em></li>
+<li>文档下载时间：<code>timing.responseEnd - timing.responseStart</code> ,反映该请求文档的下载时间，服务器是否处理过长</li>
+<li>DOM 解析与基础静态文件下载时间：<code>timing.domInteractive - timing.domLoading</code>；若时间过长，则考虑 DOM 节点的问题与基础静态文件体积大小，是否对入口文件进行拆分，使用懒加载功能；是否对静态文件加入到CDN，是否改成http2等</li>
+<li>所有资源加载速度：<code>timing.domComplete - timing.domContentLoadedEventEnd</code>；图片资源是否过大，非必要进页面展现的图片使用懒加载占位等，图片资源是否也加入cdn,http2等.....</li>
+</ol>
+<h2 id="思考">思考</h2><p>在<code>domLoading</code>事件之前的指标都是只与html文档有关系。对于SPA应用来说，实际上DOM元素没多少个，大部分元素都是后面进行渲染，所以是否需要对后续渲染的过程再做一层处理，收集app启动的时间？收集的启动时间没有对应在<code>timing</code>对象，需要通过<code>performance.measure</code>来处理，下面以vue与react为例子进行一个简单例子：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// vue main.js</span>
+<span class="hljs-keyword">import</span> xx <span class="hljs-keyword">from</span> <span class="hljs-string">'xx'</span>
+<span class="hljs-comment">// ...</span>
+performance.mark(<span class="hljs-string">'appBootStart'</span>)
+
+<span class="hljs-keyword">new</span> Vue({
+  <span class="hljs-attr">el</span>: <span class="hljs-string">'#app'</span>,
+  mounted() {
+    <span class="hljs-comment">// 使用 setTimeout 是使用宏任务保证可交互状态</span>
+    setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+      performance.mark(<span class="hljs-string">'appBootEnd'</span>)
+
+      performance.measure(<span class="hljs-string">'bootDuration'</span>, <span class="hljs-string">'appBootStart'</span>, <span class="hljs-string">'appBootEnd'</span>)
+
+      <span class="hljs-keyword">const</span> { duration } = performance.getEntriesByName(<span class="hljs-string">'bootDuration'</span>)[<span class="hljs-number">0</span>]
+      <span class="hljs-comment">// upload duration time</span>
+    })
+  }
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// react main.js</span>
+<span class="hljs-keyword">import</span> xx <span class="hljs-keyword">from</span> <span class="hljs-string">'xx'</span>
+<span class="hljs-comment">// ...</span>
+performance.mark(<span class="hljs-string">'appBootStart'</span>)
+
+<span class="hljs-keyword">const</span> app = <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+  <span class="hljs-comment">// componentDidMounted hook</span>
+  useEffect(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    setTimeout(<span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+      performance.mark(<span class="hljs-string">'appBootEnd'</span>)
+
+      performance.measure(<span class="hljs-string">'bootDuration'</span>, <span class="hljs-string">'appBootStart'</span>, <span class="hljs-string">'appBootEnd'</span>)
+
+      <span class="hljs-keyword">const</span> { duration } = performance.getEntriesByName(<span class="hljs-string">'bootDuration'</span>)[<span class="hljs-number">0</span>]
+      <span class="hljs-comment">// upload duration time</span>
+    })
+  }, [])
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>如果根节点的<code>mount</code>事件并不能充分展现应用的实际情况，那么需要更改到其他组件下进行处理，才能记录真实应用的情况；反馈有内容的第一次可交互时间。</p>
+<p>参考文章：</p>
+<ul>
+<li><a href="http://www.alloyteam.com/2015/09/explore-performance/">初探performance</a></li>
+</ul>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
