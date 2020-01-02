@@ -18,8 +18,9 @@ jobs:
       - run: acyort init
       - run: cp config.bak.yml config.yml
       - run: git clone https://github.com/acyortjs/theme-donob.git themes/donob # 这个是博客主题，如果使用默认主题是不需要这段的
-      - run: echo '<script>console.log("test log")</script>' >> themes/donob/layout/partials/head.html
+      - run: echo '<script>console.log("test log v2")</script>' >> themes/donob/layout/partials/head.html
       - run: cat baidu_tongji.config >> themes/donob/layout/partials/head.html
+      - run: cat themes/donob/layout/partials/head.html
       - run: acyort build
       - run: git checkout .
       - run: git checkout master # 这个分支是存放博客静态文件分支，不要写错
