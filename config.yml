@@ -49,6 +49,7 @@ repository: jingzhiMo.github.io # 项目名
 # scripts
 # script file name
 scripts:
+  - log.js
   # - hexo.js
 
 # html output directory or child directory e.g. 'child'
