@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+<script>console.log("test log v2")</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?b386bfee3dce0803dd0e04e8215bc685";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+  <title>
+（译）为什么React的`setState`是异步？ - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">March 04, 2020</p>
+  <h1 class="title">（译）为什么React的`setState`是异步？</h1>
+  <div class="content"><h2 id="前言">前言</h2><p>这篇文章是Dan Abramov 在github上面的一个issue的讨论回答，虽然并不是一个正式发的文章，但是我觉得对于理解也是很重要，能够了解到设计的原因，这样子比大部分搜索到的“复制-粘贴”资料更深入。</p>
+<p>原文链接<a href="https://github.com/facebook/react/issues/11527#issuecomment-360199710">在这里</a>，大家有兴趣可以去看一下原版，以下是我渣渣英语的翻译：</p>
+<h2 id="正文">正文</h2><p>这里有几个想法，在某种意义上，这不是一个完整的回答，但仍然比不回答任何东西有帮助。</p>
+<p>第一点，我认为我们为了批量更新而延迟调度(reconciliation)是很有利的。我们认同<code>setState</code>触发同步重新渲染在很多情况下是低效的，如果我们知道我们将要执行几个任务，那么批量更新是一个更好的选择。</p>
+<p>举个例子，如果我们在浏览器点击的回调方法中，子组件(Child)与父组件(Parent)都调用了<code>setState</code>，我们不想去重新渲染两次子组件(Child)，而是去标识这两个组件都是脏的(dirty)，然后在退出浏览器事件(click)之前，把父子组件都重新渲染。</p>
+<p>你提出一个问题：为什么我们不能够做同样的事情（批量更新），而是在调度(reconciliation)的最后来通过<code>setState</code>来马上更新<code>this.state</code>.我想目前没有一个明确的答案（两种解决方法（指同步和异步）都有权衡），但是下面是我想到的几个原因：</p>
+<h3 id="保证内部一致性guaranteeinginternalconsistency">保证内部一致性(Guaranteeing Internal Consistency)</h3><p>尽管<code>state</code>的更新是同步的，但是<code>props</code>不是（你不知道<code>props</code>值，除非你重新渲染父组件；如果使用同步的方法更新这些数据(译注：<code>props</code>和<code>state</code>)，批量更新就会超出处理窗口(batching goes out of the window)）。</p>
+<p>现在React提供的对象<code>props</code>,<code>state</code>,<code>refs</code>,在它们互相看到是内部一致的。这样子就意味着，如果你只使用这些对象，这些对象数据能够根据调度树来保证互相对比（尽管这是一个旧版本的调度树）。为什么这样子做很重要？</p>
+<p>当你使用以下的<code>state</code>，如果它同步更新（正如你所想），这种模式是可行的：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>console.<span class="hljs-keyword">log</span>(this.<span class="hljs-keyword">state</span>.value) // <span class="hljs-number">0</span>
+this.<span class="hljs-built_in">set</span>State({ value: this.<span class="hljs-keyword">state</span>.value + <span class="hljs-number">1</span> });
+console.<span class="hljs-keyword">log</span>(this.<span class="hljs-keyword">state</span>.value) // <span class="hljs-number">1</span>
+this.<span class="hljs-built_in">set</span>State({ value: this.<span class="hljs-keyword">state</span>.value + <span class="hljs-number">1</span> });
+console.<span class="hljs-keyword">log</span>(this.<span class="hljs-keyword">state</span>.value) // <span class="hljs-number">2</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>然而，假设需要提升数据状态来给到几个组件之间进行共享，你需要把该操作移动到父组件：</p>
+
+      <div class="hljs diff">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+</pre>
+              </td>
+              <td class="code"><pre>-<span class="hljs-keyword">this</span>.setState({ value: <span class="hljs-keyword">this</span>.state.value + <span class="hljs-number">1</span> });
++<span class="hljs-keyword">this</span>.props.onIncrement(); <span class="hljs-comment">// Does the same thing in a parent</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>我想强调的是，<strong>在React app中，app依赖的<code>setState()</code>是React最通用的设计标准类型；在平常中你能够经常调用它</strong>。</p>
+<p>然而，这让我们的代码无法正确运行：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>console.log(<span class="hljs-keyword">this</span>.props.value) <span class="hljs-comment">// 0</span>
+<span class="hljs-keyword">this</span>.props.onIncrement();
+console.log(<span class="hljs-keyword">this</span>.props.value) <span class="hljs-comment">// 0</span>
+<span class="hljs-keyword">this</span>.props.onIncrement();
+console.log(<span class="hljs-keyword">this</span>.props.value) <span class="hljs-comment">// 0</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这是因为，在你提出的代码中（指上面同步的操作），<code>this.state</code>应该是马上刷新（更新数据），但是<code>this.props</code>不会。我们在没有重新渲染父组件的时候，不能够马上更新<code>this.props</code>，因为这样子（同步）就意味着我们我们就要放弃批量更新（对于一些情况来说，会明显降低表现性能）。</p>
+<p>这里也有一些小的例子，说明同步是不能够正常运行。例如，如果你把<code>this.props</code>（还没更新）与<code>this.state</code>（提议马上更新）混合一起，创建一个新的<code>state</code>：<a href="https://github.com/facebook/react/issues/122#issuecomment-81856416">#122(comment)</a>，使用<code>Refs</code>也会有这个问题：<a href="https://github.com/facebook/react/issues/122#issuecomment-22659651">#122(comment)</a>。</p>
+<p><strong>上面这些例子不是所有的理论假设。</strong>事实上，<code>React Redux</code>的绑定通常明确会有这些问题，因为他们把React props与不是React的state数据混合在一起：<a href="https://github.com/reduxjs/react-redux/issues/86"> reduxjs/react-redux#86</a>, <a href="https://github.com/reduxjs/react-redux/pull/99">reduxjs/react-redux#99</a>, <a href="https://github.com/reduxjs/react-redux/issues/292">reduxjs/react-redux#292</a>, <a href="https://github.com/reduxjs/redux/issues/1415">reduxjs/redux#1415</a>, <a href="https://github.com/reduxjs/react-redux/issues/525">reduxjs/react-redux#525</a>。</p>
+<p>我不知道为什么Mobx的使用者们没有碰到这个问题，但是我的直觉是，他们可能在某些情景遇到这个问题，但是他们认为是他们自己的错。或者有可能他们没有直接从<code>props</code>读取数据，而是直接读取MobX变化的数据。</p>
+<p>所以现在React是怎么解决的？<strong>在React中，<code>this.state</code>与<code>this.props</code>只在调度与刷新完成后才更新。所以你将会看到，在重构完的例子中，执行前后都是打印出0。这样子可以让状态提升的state变得安全。</strong></p>
+<p>是的，这样子的调用可能会在某些情况不方便。特别是对于人们以 <code>OO</code> 为背景，仅想通过更改几次<code>state</code>，而不是思考怎样在一处地方去完整更新<code>state</code>。我对这种处理也有同感，但我认为保持集中更新<code>state</code>对于调试debugger过程是非常清晰的。</p>
+<p>你仍然有其他一些方法来更改state，通过一些有副作用的可变的对象(mutable object)，为了马上能够读取到state。特别是当你不想使用该数据作为渲染的源数据的时候。就如MobX让你做的那样。🙂</p>
+<p>如果你知道你所做的目的，你也可以有方法去更新整棵树。这个API为<code>ReactDOM.flushSync(fn)</code>。我认为我们还没有相关的文档关于它，但我们肯定会在16.x的release中加入这个文档。需要注意的是，这个API实际上被调用的时候，在数据更改后强制重新渲染，所以你需要很谨慎的使用它。这种方法不会打破<code>props</code>,<code>state</code>,<code>refs</code>之间内部数据的一致性。</p>
+<p>总结一下，<strong>React这种模式不能够总是让代码变得简洁，但是是为了在React内部保持数据一致性，还有保证状态提升变得安全。</strong></p>
+<h3 id="启用并发更新enablingconcurrentupdates">启用并发更新(Enabling Concurrent Updates)</h3><p>从概念上面讲，React的行为就好像在每个组件中有一个单一的更新队列。这就是为什么这个讨论是有意义的：我们讨论是否应该马上更新<code>this.state</code>，因为我们对这些更新的应用顺序毫无疑问。然而，事实上并不是这样。<a href="https://mobile.twitter.com/dan_abramov/status/956180994591285249">haha</a>。</p>
+<p>最近我们经常讨论“异步渲染”。我认为我们在沟通这方便做得不是很好，但这是技术(R&amp;D)的本质：你在追求一个似乎很有希望的概念，但是你只有花很多时间下去，才能够真正的了解到它的含义。</p>
+<p>其中一个解释“异步渲染”的是：<strong>React 会在<code>set
+State()</code>的时候，根据它们的数据来源分配不同的优先级，这些数据来源有：时间回调句柄，网络相应，动画效果等。</strong></p>
+<p>例如，如果你在输入一个信息，<code>setState</code>在<code>TextBox</code>组件被调用的时候需要马上刷新。然而，如果你在输入的时候，在接收一个新的信息，这样子可能更好的做法是：一定程度的延迟渲染新的信息冒泡更新，而不是因为进程的阻塞导致这个输入过程变得卡顿。</p>
+<p>如果我们让某些更新变得“低优先级”，我们可以把这些渲染分割几个小的任务，在几毫秒内执行；这样子就不会让用户察觉到。</p>
+<p>我知道像这样子的性能优化听起来很激动人心或有说服力。你可能会说：“我们在使用MobX不需要性能优化，我们更新跟踪是能够足够快仅为了避免重新渲染”。我认为这个说法不是在所有的情况都是对的（例如：无论 MobX 有多块，你仍然需要创建DOM节点并且在一个新的视图中挂载渲染）。尽管，假设这种情况是对的，并且如果你决定，总是使用一个特殊的JavaScript库包裹着对象是没问题的，用来跟踪数据读取与写入，可能你在这些优化中没有获得收益。</p>
+<p><strong>但是异步渲染不只为了性能优化。我们认为这是React组件的模式能做到的根本性转变。</strong></p>
+<p>例如，考虑这种情景，当你从一个页面跳转到另外一个。通常是你会在新个页面中显示一个spinner。</p>
+<p>然而，如果这个跳转是足够快的（在一秒钟左右），刷新与马上隐藏一个spinner会导致用户体验的下降。更糟糕的事，如果你有多个组件层级，这些组件有不同的异步依赖（数据，代码，图片），最终你会在很短时间内，spinner一个一个地闪烁。这种情况会让app在视觉效果变得不好，让app实际上运行变慢，因为所有的DOM都重排了(reflow)。这也会出现在很多模版代码中。</p>
+<p>如果当你执行一个简单的<code>setState</code>来渲染一个不同的视图，这不是很好吗，我们能够&quot;开始&quot;渲染更新视图的时候是在“后台”执行？想象一下<strong>你自己没有编写任何协调(coordination)的代码，就能够选择展示一个spinner，如果这次更新需要超过了某个阈值(例如：一秒)，否则当异步依赖在整个子树中已完成，React会呈现无缝的过度</strong>。而且，当我们在“等待”，旧页面还保持可响应（例如：所以你能够选择另外一个不同的元素(item)去过度），如果这次更新耗费时间很长，React强制让你显示一个spinner。</p>
+<p>结果发现，通过现在React的模式还有一个生命周期的调整，我们实际上能够实现（上面说的更新过度）。<strong>@acdlite</strong> 在过去几周内研究这个功能，也快要发一个RFC。</p>
+<p>需要注意的是，这是唯一的可能，因为<code>this.state</code>不是马上更新。如果<code>this.state</code>是马上更新，当目前“旧版本”也能够看到和响应的时候，我们就没有办法在后台去开始渲染一个“新版本”视图。他们那些独立的状态更新就会崩溃。</p>
+<p>我不想从 @acdlite 中抢先发布这个内容，但是我希望这听起来有点激动。我想这仍然像蒸汽那样去不断了解这想法。或者像我们不能够真的认识到我们所做的事情。我希望我们能够在接下来几个月说服你，并且你会欣赏React这种灵活的模式。据我所知，由于不是马上刷新<code>state</code>，至少在某种程度上，这种灵活性是可行的。</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
