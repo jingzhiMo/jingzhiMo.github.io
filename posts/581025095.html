@@ -501,6 +501,8 @@ const state = {
 <span>52</span>
 <span>53</span>
 <span>54</span>
+<span>55</span>
+<span>56</span>
 </pre>
               </td>
               <td class="code"><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">combineReducers</span>(<span class="hljs-params">reducers</span>) </span>{
@@ -525,10 +527,12 @@ const state = {
   <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">combination</span>(<span class="hljs-params">state = {}, action</span>) </span>{
     <span class="hljs-comment">// 这里有个判断，如果错误A存在，则抛出异常</span>
 
-    <span class="hljs-comment">// 这里有个判断(getUnexpectedStateShapeWarningMessage)，会对数据进行多重判断，判断有错，则抛出异常，判断的规则有：</span>
+    <span class="hljs-comment">// 这里有个判断(getUnexpectedStateShapeWarningMessage)，会对数据进行多重判断，</span>
+    <span class="hljs-comment">// 判断有错，则抛出异常，判断的规则有：</span>
     <span class="hljs-comment">// 1. reducers的数量是否为0</span>
     <span class="hljs-comment">// 2. 对每次执行reducer传入的state（state的来源后面讲到）是否是“纯对象”（上面有提到）</span>
-    <span class="hljs-comment">// 3. 对每次执行reducer传入的state对象判断，是否该对象所有的字段都是“自己的”(hasOwnProperty)，也就是没有一些从父对象继承，toString ?</span>
+    <span class="hljs-comment">// 3. 对每次执行reducer传入的state对象判断，是否该对象所有的字段都是“自己的”(hasOwnProperty)，</span>
+    <span class="hljs-comment">// 也就是没有一些从父对象继承，toString ?</span>
     <span class="hljs-comment">// 第三点其实有点不太了解，因为第二步纯对象已经过滤了？</span>
 
     <span class="hljs-comment">// 下面这个就是 combineReducers 的核心代码</span>
