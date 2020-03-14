@@ -283,12 +283,22 @@ export <span class="hljs-keyword">default</span> connect(state =&gt; ({ todo: st
 <span>2</span>
 <span>3</span>
 <span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
 </pre>
               </td>
-              <td class="code"><pre>import <span class="hljs-keyword">Add</span><span class="bash"> from <span class="hljs-string">'./actions.js'</span></span>
+              <td class="code"><pre><span class="hljs-comment">// Container.jsx</span>
+<span class="hljs-keyword">import</span> <span class="hljs-type">Add</span> from './actions.js'
 
-// Container.jsx 某个节点触发更新
-dispatch(<span class="hljs-keyword">Add</span><span class="bash">(1))</span></pre></td>
+<span class="hljs-comment">// Container.jsx 某个事件触发触发更新</span>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Container</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">React</span>.<span class="hljs-title">Component</span> </span>{
+    onClick() {
+        dispatch(<span class="hljs-type">Add</span>(<span class="hljs-number">1</span>))
+     }
+}</pre></td>
             </tr>
           </tbody>
         </table>
@@ -394,7 +404,7 @@ dispatch(<span class="hljs-keyword">Add</span><span class="bash">(1))</span></pr
   <span class="hljs-keyword">const</span> boundActionCreators = {}
   <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> key <span class="hljs-keyword">in</span> actionCreators) {
     <span class="hljs-keyword">const</span> actionCreator = actionCreators[key]
-    <span class="hljs-comment">// 只对 { key: actionCreator } 中的函数处理；actionActors 中的其他数据类型被忽略</span>
+    <span class="hljs-comment">// 只对 { key: actionCreator } 中的函数处理；actionCreators 中的其他数据类型被忽略</span>
     <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> actionCreator === <span class="hljs-string">'function'</span>) {
       boundActionCreators[key] = bindActionCreator(actionCreator, dispatch)
     }
@@ -500,7 +510,7 @@ const state = {
   <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; reducerKeys.length; i++) {
     <span class="hljs-keyword">const</span> key = reducerKeys[i]
 
-    <span class="hljs-comment">// 这里有个判断，如果 reducers对象的某个key值的value为undefined，则报错</span>
+    <span class="hljs-comment">// 这里有个判断，如果reducers对象的某个key值的value为undefined，则报错</span>
 
     <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> reducers[key] === <span class="hljs-string">'function'</span>) {
       finalReducers[key] = reducers[key]
@@ -929,7 +939,7 @@ subscribe(() &#x3D;&gt; {
 <span class="hljs-comment">// 等同于 </span>
 compose(f, g, h)(...args)
 
-<span class="hljs-comment">// 例如</span>
+<span class="hljs-comment">// compose使用例子</span>
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">foo</span> <span class="hljs-params">(str)</span> </span>{
     <span class="hljs-keyword">return</span> str + <span class="hljs-string">'_foo'</span>
 }
