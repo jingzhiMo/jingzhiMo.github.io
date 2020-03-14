@@ -1,0 +1,1189 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+<script>console.log("test log v2")</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?b386bfee3dce0803dd0e04e8215bc685";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+  <title>
+一篇带有“思考”的redux源码阅读 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">March 14, 2020</p>
+  <h1 class="title">一篇带有“思考”的redux源码阅读</h1>
+  <div class="content"><p>这次阅读的redux的版本是<code>4.x</code>的<a href="https://github.com/reduxjs/redux/tree/4.x">版本</a>，为啥不是最新的呢？因为最新的redux使用typescript来重写了，变化不是特别大，而typescript会有很多的函数类型定义；另一方面，对js的熟练度肯定比ts要好，理解起来也会相对容易一点，还有这次阅读源码的目的是为了了解整个redux的工作流程。redux的源码非常精简，很适合源码的阅读与学习。在阅读之前，对redux有一定的使用会带来更好的效果，一边看一边反思平常所写的内容。下面就开始吧：</p>
+<h2 id="目录">目录</h2><p>下面的内容是项目的src目录结构</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre># src
+-- utils&#x2F;
+  -- actionTypes.js
+  -- isPlainObject.js
+  -- warning.js
+-- applyMiddleware.js
+-- bindActionCreators.js
+-- combineReducers.js
+-- compose.js
+-- createStore.js
+-- index.js</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>项目的文件非常的少，主要逻辑也是在<code>src</code>直接目录下的文件，先做个热身，对简单的<code>utils</code>文件夹入手，这是一些通用的工具方法：</p>
+<h3 id="utils">utils</h3><p>在看源码的过程中，对一些工具方法的使用效果保持一定的记忆，对流程的理解上挺有帮助</p>
+<h4 id="actiontypesjs">actionTypes.js</h4>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">const</span> ActionTypes = {
+  <span class="hljs-attr">INIT</span>: <span class="hljs-string">`@@redux/INIT<span class="hljs-subst">${randomString()}</span>`</span>,
+  <span class="hljs-attr">REPLACE</span>: <span class="hljs-string">`@@redux/REPLACE<span class="hljs-subst">${randomString()}</span>`</span>,
+  <span class="hljs-attr">PROBE_UNKNOWN_ACTION</span>: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> <span class="hljs-string">`@@redux/PROBE_UNKNOWN_ACTION<span class="hljs-subst">${randomString()}</span>`</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>actionTypes.js</code>主要定义一些redux内部使用的<code>action</code>，<code>randomString</code>函数是生成一些随机字符串，保证内部使用的<code>action</code>不会冲突</p>
+<h4 id="isplaginobjectjs">isPlaginObject.js</h4>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+</pre>
+              </td>
+              <td class="code"><pre>export default <span class="hljs-keyword">function</span> is<span class="hljs-constructor">PlainObject(<span class="hljs-params">obj</span>)</span> {
+  <span class="hljs-keyword">if</span> (typeof obj !== 'object'<span class="hljs-operator"> || </span>obj<span class="hljs-operator"> === </span>null) return <span class="hljs-literal">false</span>
+
+  <span class="hljs-keyword">let</span> proto = obj
+  <span class="hljs-keyword">while</span> (<span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Object</span>.</span></span>get<span class="hljs-constructor">PrototypeOf(<span class="hljs-params">proto</span>)</span> !== null) {
+    proto = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Object</span>.</span></span>get<span class="hljs-constructor">PrototypeOf(<span class="hljs-params">proto</span>)</span>
+  }
+
+  return <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Object</span>.</span></span>get<span class="hljs-constructor">PrototypeOf(<span class="hljs-params">obj</span>)</span><span class="hljs-operator"> === </span>proto
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>该方法用于判断参数是否是一个“纯对象”。什么是“纯对象”，就是直接继承<code>Object.prototype</code>的对象，例如直接声明的对象：<code>const obj = {}</code>；如果<code>const objSub = Object.create(obj)</code>，那么<code>objSub</code>就不是这里说的“纯对象”。</p>
+<h4 id="warningjs">warning.js</h4>
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">warning</span>(<span class="hljs-params">message</span>) </span>{
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> <span class="hljs-built_in">console</span> !== <span class="hljs-string">'undefined'</span> &amp;&amp; <span class="hljs-keyword">typeof</span> <span class="hljs-built_in">console</span>.error === <span class="hljs-string">'function'</span>) {
+    <span class="hljs-built_in">console</span>.error(message)
+  }
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(message)
+  } <span class="hljs-keyword">catch</span> (e) {} <span class="hljs-comment">// eslint-disable-line no-empty</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>warning.js逻辑比较简单：先把错误的详细信息打印出来，再抛出错误。</p>
+<h2 id="核心">核心</h2><p>热身完之后，我们来看一下redux的核心，入口在：<code>src/index.js</code>:</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+</pre>
+              </td>
+              <td class="code"><pre>export {
+<span class="hljs-built_in">  createStore,</span>
+<span class="hljs-built_in">  combineReducers,</span>
+<span class="hljs-built_in">  bindActionCreators,</span>
+<span class="hljs-built_in">  applyMiddleware,</span>
+<span class="hljs-built_in">  compose,</span>
+  __DO_NOT_USE__ActionTypes
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这个是<code>index.js</code>的暴露对象，都是从外部引入；除此之外，还有一个叫空函数<code>isCrushed</code>：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">isCrushed</span><span class="hljs-params">()</span> </span>{}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这个空函数的作用是啥？因为在代码压缩的时候，会对该函数进行重命名，变成<code>function a(){}</code>，这样子的函数；这个函数的作用就是，判断如果redux代码被压缩了，而且redux不是运行在<code>production</code>环境，就会报错，提示使用开发版本。</p>
+<p>redux 的核心是<code>createStore</code>，这个核心我们先放一下，后面再处理，先了解一些辅助该核心的方法：</p>
+<h3 id="bindactioncreators">bindActionCreators</h3><p>这个方法出场率有时候不是很高，那么它的作用是啥？</p>
+<p>首先我们知道一个词汇<code>actionCreator</code>，这个<code>actionCreator</code>就如命名那样，是用于创建<code>action</code>类型的函数。那<code>bindActionCreators</code>的目的又是什么？这里可能要结合<code>react-redux</code>的<code>connect</code>方法与“容器组件”、“展示组件”(<a href="https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0">容器组件 vs 展示组件</a>)来说明会更好。</p>
+<p>通常情况下，如果要让当前组件是用redux，我们会使用<code>react-redux</code>的<code>connect</code>方法，把我们的组件通过<code>connect</code>包裹为一个高级组件，而包裹的过程拿到<code>dispatch</code>与我们指定的<code>store</code>数据：</p>
+
+      <div class="hljs jsx">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// Container.jsx</span>
+<span class="hljs-keyword">import</span> { connect } from <span class="hljs-symbol">'react</span>-redux'
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Container</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">React</span>.<span class="hljs-title">Component</span> </span>{
+    <span class="hljs-comment">// ...</span>
+    render () {
+        <span class="hljs-keyword">return</span> &lt;<span class="hljs-type">SimpleComponent</span> /&gt;
+    }
+}
+
+export <span class="hljs-keyword">default</span> connect(state =&gt; ({ todo: state.todo }))(<span class="hljs-type">Container</span>)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>而这个<code>Container</code>组件我们可以称之为“容器组件”，因为里面包含了一些复杂的处理逻辑，例如与redux的连接；而如果<code>SimpleComponent</code>组件也有一些操作，这些操作需要更改到<code>redux</code>的内容，这样子的话，处理方法有两个：</p>
+<ol>
+<li><code>SimpleComponent</code>也使用<code>connect</code>处理为高级组件</li>
+<li><code>Container</code>把<code>redux</code>的<code>dispatch</code>方法显示传递到<code>SimpleComponent</code></li>
+</ol>
+<p>这两个方法都不是很好，第一方法会让组件更加复杂，可能与我们的容器组件-展示组件的姿势有点不同；第二种方法也可以，但是会让组件变得耦合度高。那能不能让<code>SimpleComponent</code>组件给<code>Container</code>的反馈也通过平常<code>props-event</code>的形式来处理呢，让<code>SimpleComponent</code>感知不到<code>redux</code>的存在？</p>
+<p>这个时候就可以使用<code>bindActionCreators</code>了；例如有一个<code>action</code>为：<code>{ type: &#39;increment&#39;, value: 1}</code>，通常如果<code>Container</code>组件触发可以通过：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// actions.js</span>
+<span class="hljs-keyword">const</span> Add = <span class="hljs-function">(<span class="hljs-params">value</span>) =&gt;</span> { <span class="hljs-keyword">type</span>: <span class="hljs-string">'increment'</span>, value }</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="hljs jsx">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre>import <span class="hljs-keyword">Add</span><span class="bash"> from <span class="hljs-string">'./actions.js'</span></span>
+
+// Container.jsx 某个节点触发更新
+dispatch(<span class="hljs-keyword">Add</span><span class="bash">(1))</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>利用<code>bindActionCreators</code>处理后，给到<code>SimpleComponent</code>使用则可以这样：</p>
+
+      <div class="hljs jsx">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// Container.jsx</span>
+<span class="hljs-keyword">import</span> Add <span class="hljs-keyword">from</span> <span class="hljs-string">'./actions.js'</span>
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Container</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">React</span>.<span class="hljs-title">Component</span> </span>{
+    render () {
+        <span class="hljs-keyword">const</span> { dispatch } = <span class="hljs-keyword">this</span>.props <span class="hljs-comment">// 通过 react-redux 的 connect 方法组件可以获取到</span>
+        <span class="hljs-keyword">const</span> actions = bindActionCreator({
+            <span class="hljs-attr">add</span>: Add
+        }, dispatch)
+
+        <span class="hljs-keyword">return</span> <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">SimpleComponent</span> {<span class="hljs-attr">...actions</span>} /&gt;</span></span>
+    }
+}
+
+<span class="hljs-comment">// SimpleComponent.jsx</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">SimpleComponent</span>(<span class="hljs-params">{ add }</span>) </span>{
+    <span class="hljs-keyword">return</span> <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">onClick</span>=<span class="hljs-string">{()</span> =&gt;</span> add(1)}&gt;click<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>通过<code>bindActionCreators</code>处理后的函数，<code>add</code>，直接调用，就可以触发<code>dispatch</code>来更新，而这个时候<code>SimpleComponent</code>并没有感知到有<code>redux</code>，只是当是一个事件函数那样子调用。</p>
+<p><img src="https://i.loli.net/2020/03/11/NcVdPx2fRvhWmsk.png" alt="image.png"></p>
+<p>了解到<code>bindActionCreators</code>的作用之后，我们再来看一下源码就很好理解了：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">bindActionCreator</span>(<span class="hljs-params">actionCreator, dispatch</span>) </span>{
+  <span class="hljs-comment">// 使用闭包来屏蔽 dispatch 与 actionCreator</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">return</span> dispatch(actionCreator.apply(<span class="hljs-keyword">this</span>, <span class="hljs-built_in">arguments</span>))
+  }
+}
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">bindActionCreators</span>(<span class="hljs-params">actionCreators, dispatch</span>) </span>{
+  <span class="hljs-comment">// 当 actionCreators 只有一个的时候，直接返回该函数的打包结果</span>
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> actionCreators === <span class="hljs-string">'function'</span>) {
+    <span class="hljs-keyword">return</span> bindActionCreator(actionCreators, dispatch)
+  }
+
+  <span class="hljs-comment">// 省略参数类型判断</span>
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-keyword">const</span> boundActionCreators = {}
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> key <span class="hljs-keyword">in</span> actionCreators) {
+    <span class="hljs-keyword">const</span> actionCreator = actionCreators[key]
+    <span class="hljs-comment">// 只对 { key: actionCreator } 中的函数处理；actionActors 中的其他数据类型被忽略</span>
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> actionCreator === <span class="hljs-string">'function'</span>) {
+      boundActionCreators[key] = bindActionCreator(actionCreator, dispatch)
+    }
+  }
+  <span class="hljs-keyword">return</span> boundActionCreators
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="combinereducers">combineReducers</h3><p>接下来说一下<code>combineReducers</code>，这个方法理解起来比较简单，就是把多个<code>reducer</code>合并到一起，因为在开发过程中，大多数的数据不会只有一个reducer这么简单，需要多个联合起来，组成复杂的数据。</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-regexp">//</span> () =&gt; {} 为每个对应的reducer
+const state = {
+    count: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {},
+    userData: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {},
+    oeherData: <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {}
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>通常使用<code>compineReducer</code>可以让我们规避一些问题，例如对reducer的传入参数的判断等，保证<code>reduce</code>流程的运转，简化核心代码如下，去掉一部分开发代码，但是会注释作用：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+<span>44</span>
+<span>45</span>
+<span>46</span>
+<span>47</span>
+<span>48</span>
+<span>49</span>
+<span>50</span>
+<span>51</span>
+<span>52</span>
+<span>53</span>
+<span>54</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">combineReducers</span>(<span class="hljs-params">reducers</span>) </span>{
+  <span class="hljs-keyword">const</span> reducerKeys = <span class="hljs-built_in">Object</span>.keys(reducers)
+  <span class="hljs-keyword">const</span> finalReducers = {}
+  <span class="hljs-comment">// 检查所有reducer的key值是否合法，reducer是一个函数，则加入到finalReducers</span>
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; reducerKeys.length; i++) {
+    <span class="hljs-keyword">const</span> key = reducerKeys[i]
+
+    <span class="hljs-comment">// 这里有个判断，如果 reducers对象的某个key值的value为undefined，则报错</span>
+
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> reducers[key] === <span class="hljs-string">'function'</span>) {
+      finalReducers[key] = reducers[key]
+    }
+  }
+  <span class="hljs-keyword">const</span> finalReducerKeys = <span class="hljs-built_in">Object</span>.keys(finalReducers)
+
+  <span class="hljs-comment">// 这里有个判断(assertReducerShape)，判断是否有 reducer 返回是 undefined</span>
+  <span class="hljs-comment">// 如果有，则先保留这个错误，我们定义为错误 A</span>
+
+  <span class="hljs-comment">// 这个 combination 函数，每次dispatch都会执行一次</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">combination</span>(<span class="hljs-params">state = {}, action</span>) </span>{
+    <span class="hljs-comment">// 这里有个判断，如果错误A存在，则抛出异常</span>
+
+    <span class="hljs-comment">// 这里有个判断(getUnexpectedStateShapeWarningMessage)，会对数据进行多重判断，判断有错，则抛出异常，判断的规则有：</span>
+    <span class="hljs-comment">// 1. reducers的数量是否为0</span>
+    <span class="hljs-comment">// 2. 对每次执行reducer传入的state（state的来源后面讲到）是否是“纯对象”（上面有提到）</span>
+    <span class="hljs-comment">// 3. 对每次执行reducer传入的state对象判断，是否该对象所有的字段都是“自己的”(hasOwnProperty)，也就是没有一些从父对象继承，toString ?</span>
+    <span class="hljs-comment">// 第三点其实有点不太了解，因为第二步纯对象已经过滤了？</span>
+
+    <span class="hljs-comment">// 下面这个就是 combineReducers 的核心代码</span>
+    <span class="hljs-keyword">let</span> hasChanged = <span class="hljs-literal">false</span>
+    <span class="hljs-keyword">const</span> nextState = {}
+
+    <span class="hljs-comment">// 遍历所有的函数reducer，获取返回值，通过判断前后值的不同，判断是否发生了变化，有变化，则返回新的state</span>
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; finalReducerKeys.length; i++) {
+      <span class="hljs-keyword">const</span> key = finalReducerKeys[i]
+      <span class="hljs-keyword">const</span> reducer = finalReducers[key]
+      <span class="hljs-keyword">const</span> previousStateForKey = state[key]
+      <span class="hljs-keyword">const</span> nextStateForKey = reducer(previousStateForKey, action)
+
+      <span class="hljs-comment">// 不允许 reducer 返回的值为 undefined，否则报错</span>
+      <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> nextStateForKey === <span class="hljs-string">'undefined'</span>) {
+        <span class="hljs-keyword">const</span> errorMessage = getUndefinedStateErrorMessage(key, action)
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(errorMessage)
+      }
+      nextState[key] = nextStateForKey
+      <span class="hljs-comment">// 这里判断是否改变，是通过判断 reducer 返回的值与之前的值是否一致</span>
+      <span class="hljs-comment">// 所以就突出了“不可变对象”的重要性</span>
+      <span class="hljs-comment">// 如果reducer每次返回的对象是在旧对象上面更改数据</span>
+      <span class="hljs-comment">// 而对象地址没改变，那么 redux 就认为，这次改变是无效的</span>
+      hasChanged = hasChanged || nextStateForKey !== previousStateForKey
+    }
+    <span class="hljs-keyword">return</span> hasChanged ? nextState : state
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <h3 id="createstore">createStore</h3><p>讲完上面两个辅助方法之后，来讲一下创建store的核心<code>createStore</code>的方法；因为<code>createStore</code>方法比较长，下面先看一下概览：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+<span>31</span>
+<span>32</span>
+<span>33</span>
+<span>34</span>
+<span>35</span>
+<span>36</span>
+<span>37</span>
+<span>38</span>
+<span>39</span>
+<span>40</span>
+<span>41</span>
+<span>42</span>
+<span>43</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createStore</span>(<span class="hljs-params">reducer, preloadState, enhancer</span>) </span>{
+    <span class="hljs-comment">// 判断是否传入各种参数是否符合要求</span>
+    <span class="hljs-comment">// 对于增强器（enhancer）的调用会提前返回</span>
+    <span class="hljs-comment">// 创建store的过程被延后到增强器中</span>
+    <span class="hljs-comment">// ...</span>
+
+    <span class="hljs-comment">// 当前最新的 reducer 与 state</span>
+    <span class="hljs-comment">// listeners 是通过 store实例subscribe的函数数组</span>
+    <span class="hljs-keyword">let</span> currentReducer = reducer
+    <span class="hljs-keyword">let</span> currentState = preloadedState
+    <span class="hljs-keyword">let</span> currentListeners = []
+    <span class="hljs-keyword">let</span> nextListeners = currentListeners
+    <span class="hljs-comment">// 当前的reducer是否在执行当中</span>
+    <span class="hljs-keyword">let</span> isDispatching = <span class="hljs-literal">false</span>
+
+    <span class="hljs-comment">// 用于防止 listeners 数组出错，后面讲到</span>
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">ensureCanMutateNextListeners</span>(<span class="hljs-params"></span>) </span>{}
+    <span class="hljs-comment">// 返回当前最新的 state，给外部函数调用获取内部数据</span>
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getState</span>(<span class="hljs-params"></span>) </span>{
+        <span class="hljs-keyword">return</span> currentState
+    }
+
+    <span class="hljs-comment">// store.subscribe的方法，用于添加 listener，后面有详细讲解</span>
+    <span class="hljs-comment">// 监听 state 的变化</span>
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">subscribe</span>(<span class="hljs-params">listener</span>) </span>{}
+
+    <span class="hljs-comment">// 触发 reducer 执行，返回新的 state</span>
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">dispatch</span>(<span class="hljs-params">action</span>) </span>{}
+
+    <span class="hljs-comment">// 使用新的 reducer 替换当前的 currentReducer</span>
+    <span class="hljs-comment">// 通常在两种情况下使用：</span>
+    <span class="hljs-comment">// 1. 部分 reducer 异步加载，加载完毕后添加</span>
+    <span class="hljs-comment">// 2. 用于开发时候用，热更新</span>
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">replaceReducer</span>(<span class="hljs-params">nextReducer</span>) </span>{
+        currentReducer = nextReducer
+    }
+
+    <span class="hljs-comment">// TODO 这个了解不多</span>
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">observable</span> (<span class="hljs-params"></span>) </span>{}
+
+    <span class="hljs-comment">// 触发第一个更新。拿到第一次初始化的 state</span>
+    dispatch({ <span class="hljs-attr">type</span>: ActionTypes.INIT })
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在没有enhancer处理的过程，<code>createStore</code>的过程，都是一些声明的函数与变量，唯一开始执行的是<code>dispatch</code>，现在就从这个<code>dispatch</code>开始讲解：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">dispatch</span> (<span class="hljs-params">action</span>) </span>{
+    <span class="hljs-comment">// 判断 action 是否是“纯”函数</span>
+    <span class="hljs-comment">// 判断 action.type 是否存在</span>
+    <span class="hljs-comment">// ...</span>
+
+    <span class="hljs-comment">// 判断当前的dispatch是否在执行中，多次触发，则报错</span>
+    <span class="hljs-keyword">if</span> (isDispatching) { <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>() }
+
+    <span class="hljs-keyword">try</span> {
+      isDispatching = <span class="hljs-literal">true</span>
+      <span class="hljs-comment">// 尝试去执行 reducer，把返回的 state 作为最新的 state</span>
+      <span class="hljs-comment">// 如果 我们的 reducer 是使用 combineReducers 方法包裹的话</span>
+      <span class="hljs-comment">// 这里的 currentReducer 为 comineReducer的combination方法</span>
+      <span class="hljs-comment">// 这里回答了之前所说的 combination 方法拿到的第一个参数 state</span>
+      currentState = currentReducer(currentState, action)
+    } <span class="hljs-keyword">finally</span> {
+      isDispatching = <span class="hljs-literal">false</span>
+    }
+
+    <span class="hljs-comment">// 更新完 state 之后，就会把监听的函数全都执行一遍</span>
+    <span class="hljs-comment">// 注意这里的 currentListeners 被赋值为 nextListeners</span>
+    <span class="hljs-keyword">const</span> listeners = (currentListeners = nextListeners)
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; listeners.length; i++) {
+      <span class="hljs-keyword">const</span> listener = listeners[i]
+      listener()
+    }
+
+    <span class="hljs-keyword">return</span> action
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>整个 dispatch 就结束了，很简单，就是把所有reducer都执行一遍，返回最新的 reducer；如果使用<code>combineReducer</code>来联合所有的reducer的话，相当于执行<code>combination</code>方法，该方法会把被联合的所有reducer都执行一遍，<strong>所以这里能解释说，为什么在reducer方法的时候，在<code>switch...case</code>要保留一个<code>default</code>选项，因为有可能执行当前reducer的action，是用于触发其他reducer的；这种情况就把当前reducer对应的state返回即可</strong></p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">reducer</span><span class="hljs-params">(state, action)</span> </span>{
+    <span class="hljs-keyword">switch</span> (action.type) {
+    <span class="hljs-keyword">case</span> <span class="hljs-string">''</span>:
+        <span class="hljs-comment">// ...</span>
+        <span class="hljs-keyword">break</span>
+    <span class="hljs-keyword">case</span> <span class="hljs-string">''</span>:
+        <span class="hljs-comment">// ...</span>
+        <span class="hljs-keyword">break</span>
+    <span class="hljs-keyword">default</span>:
+        <span class="hljs-keyword">return</span> state
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>当state通过reducer更新之后，就会把加入监听的<code>listener</code>逐个执行；循环的<code>listeners</code>是<code>currentListeners</code>，这里要圆一下之前说的<code>ensureCanMutateNextListeners</code>函数与<code>subscribe</code>的行为，函数代码为：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">ensureCanMutateNextListeners</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">if</span> (nextListeners === currentListeners) {
+        nextListeners = currentListeners.slice()
+    }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">subscribe</span>(<span class="hljs-params">listener</span>) </span>{
+    <span class="hljs-comment">// 省略部分参数与进程判断</span>
+    <span class="hljs-keyword">let</span> isSubscribed = <span class="hljs-literal">true</span>
+
+    ensureCanMutateNextListeners()
+    nextListeners.push(listener)
+
+    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">unsubscribe</span>(<span class="hljs-params"></span>) </span>{
+        <span class="hljs-keyword">if</span> (!isSubscribed) {
+            <span class="hljs-keyword">return</span>
+        }
+
+        <span class="hljs-comment">// 省略部分进程可行性判断</span>
+
+        isSubscribed = <span class="hljs-literal">false</span>
+
+        ensureCanMutateNextListeners()
+        <span class="hljs-keyword">const</span> index = nextListeners.indexOf(listener)
+        nextListeners.splice(index, <span class="hljs-number">1</span>)
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>我们看到<code>subscribe</code>与<code>unsubscribe</code>的过程，只是一个很简单的数组处理添加与删除<code>listeners</code>的过程，但是这两个过程都有执行<code>ensureCanMutateNextListeners</code>的函数。这个函数的作用是：</p>
+<p><strong>保证当次触发<code>listeners</code>的过程不受影响</strong></p>
+<p>这句话怎么理解呢？可以看到触发<code>listeners</code>也只是把<code>listeners</code>的函数循环执行一遍。但如果<code>listeners</code>由此至终都只是一个数组，那么如果某个<code>listeners</code>执行的内容，再次添加/删除<code>listener</code>，那么这个循环过程就有可能出现问题：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre>const { dispatch, subscribe } &#x3D; createStore(&#x2F;* ... *&#x2F;)
+
+subscribe(() &#x3D;&gt; {
+    log(&#39;state change&#39;)
+    &#x2F;&#x2F; 在 listeners 添加监听方法
+    subscribe(() &#x3D;&gt; {
+
+    })
+    &#x2F;&#x2F; 或者 移除之前监听的部分方法
+    unsubscribe(&#x2F;* ... *&#x2F;)
+})</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>所以<code>ensureCanMutateNextListeners</code>把<code>listeners</code>区分为两个数组，一个是当前循环的数组，另一个是下次循环的数组。每次触发<code>dispatch</code>都是最近更新的一次<code>listeners</code>快照。</p>
+<h3 id="compose与applymiddleware">compose 与 applyMiddleware</h3><p>了解完核心<code>createStore</code>之后，我们再了解一下增强核心功能的函数：<code>applyMiddleware</code>，因为<code>applyMiddleware</code>与<code>compose</code>关联很密切，<code>applyMiddleware</code>的实现依赖<code>compose</code>。</p>
+<h4 id="compose">compose</h4><p><code>compose</code>是一个函数，先看一下<code>compose</code>的代码：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre>export <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">compose</span><span class="hljs-params">(<span class="hljs-rest_arg">...funcs</span>)</span> </span>{
+  <span class="hljs-keyword">if</span> (funcs.length === <span class="hljs-number">0</span>) {
+    <span class="hljs-keyword">return</span> arg =&gt; arg
+  }
+
+  <span class="hljs-keyword">if</span> (funcs.length === <span class="hljs-number">1</span>) {
+    <span class="hljs-keyword">return</span> funcs[<span class="hljs-number">0</span>]
+  }
+
+  <span class="hljs-keyword">return</span> funcs.reduce((a, b) =&gt; (...args) =&gt; a(b(...args)))
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>非常的精简；<code>compose</code>的代码的作用是简化代码:</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+</pre>
+              </td>
+              <td class="code"><pre>(...args) =&gt; f(g(h(...args)))
+
+<span class="hljs-comment">// 等同于 </span>
+compose(f, g, h)(...args)
+
+<span class="hljs-comment">// 例如</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">foo</span> <span class="hljs-params">(str)</span> </span>{
+    <span class="hljs-keyword">return</span> str + <span class="hljs-string">'_foo'</span>
+}
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">bar</span> <span class="hljs-params">(str)</span> </span>{
+    <span class="hljs-keyword">return</span> str + <span class="hljs-string">'_bar'</span>
+}
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">baz</span> <span class="hljs-params">(str)</span> </span>{
+    <span class="hljs-keyword">return</span> str + <span class="hljs-string">'_baz'</span>
+}
+compose(baz, bar, foo)(<span class="hljs-string">'base'</span>) <span class="hljs-comment">// "base_foo_bar_baz"</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><strong><code>compose</code>方法就是把上一个函数执行的结果作为下一个函数执行的参数</strong>，执行顺序从后往前，传入参数的最后一个函数先被执行。</p>
+<h4 id="applymiddleware">applyMiddleware</h4><p>middleware就是一个中间件的概念，简化如下：</p>
+<p><img src="https://i.loli.net/2020/03/14/xcnl2gqUHEhapoj.png" alt="image.png"></p>
+<p>数据经过每个中间件的处理，会对数据，或者保留一些数据的痕迹，例如写入日志等</p>
+<p><code>applyMiddleware</code>的用法也是类似：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre>const store = create<span class="hljs-constructor">Store(<span class="hljs-params">rootReducer</span>, {}, <span class="hljs-params">applyMiddleware</span>(<span class="hljs-params">middleware1</span>, <span class="hljs-params">middleware2</span>)</span>)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+<span>30</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// applyMiddleware 源码</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">applyMiddleware</span>(<span class="hljs-params">...middlewares</span>) </span>{
+    <span class="hljs-comment">// createStore方法作为参数传入</span>
+    <span class="hljs-comment">// 相当于延迟一步初始化 store</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">createStore</span> =&gt;</span> <span class="hljs-function">(<span class="hljs-params">...args</span>) =&gt;</span> {
+        <span class="hljs-keyword">const</span> store = createStore(...args)
+        <span class="hljs-keyword">let</span> dispatch = <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {<span class="hljs-comment">/* ... */</span>}
+
+        <span class="hljs-keyword">const</span> middlewareAPI = {
+            <span class="hljs-attr">getState</span>: store.getState,
+            <span class="hljs-attr">dispatch</span>: <span class="hljs-function">(<span class="hljs-params">...args</span>) =&gt;</span> dispatch(...args)
+        }
+
+        <span class="hljs-comment">// 把传入的 middleware 先执行了一遍</span>
+        <span class="hljs-comment">// 把 getState 与 dispatch 方法传入</span>
+        <span class="hljs-comment">// 让 middleware 能够获取到当前 store 的 state与有触发新的 dispatch 能力</span>
+        <span class="hljs-keyword">const</span> chain = middlewares.map(<span class="hljs-function"><span class="hljs-params">middleware</span> =&gt;</span> middleware(middlewareAPI))
+
+        <span class="hljs-comment">// 这个时候的 dispatch 不是原有的 createStore 函数中的方法</span>
+        <span class="hljs-comment">// 而是一个经过 middleware 集成的新方法</span>
+        <span class="hljs-comment">// 而原有的 dispatch 方法作为参数，传入到不同的middleware</span>
+        dispatch = compose(...chain)(store.dispatch)
+
+        <span class="hljs-keyword">return</span> {
+            ...store,
+            <span class="hljs-comment">// 使用当前的 dispatch 覆盖 createStore 的 dispatch 方法</span>
+            dispatch
+        }
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>redux-thunk</code>是一个对于了解<code>middleware</code>很好的例子，下面参照<code>redux-thunk</code>弄一个自定义的middleware, 源码如下：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">customeMiddleware</span>(<span class="hljs-params">{ dispatch, getState }</span>) </span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">next</span> =&gt;</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-params">action</span> =&gt;</span> {
+            <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> action === <span class="hljs-string">'function'</span>) {
+                <span class="hljs-keyword">return</span> action(dispatch, getState)
+            }
+
+            <span class="hljs-keyword">return</span> next(action)
+        }
+    }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>为什么会函数嵌套那么多层呢？其实每一层都是有原因的；第一层：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">customeMiddleware</span> <span class="hljs-params">({dispatch, getState})</span> </span>{
+    <span class="hljs-comment">// ...</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>dispatch</code>是能够触发一个完整流程更改state的方法，<code>getState</code>方法用于获取整个reducer的<code>state</code>数据；这两个方法都是给到<code>middleware</code>需要获取完整<code>state</code>的方法。从上面<code>applyMiddleware</code>的方法可以知道，<code>applyMiddleware</code>执行的时候，就先把<code>middleware</code>函数都执行了一遍，返回<code>chains</code>数组：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-variable">const</span> <span class="hljs-variable">chain</span> = <span class="hljs-variable">middlewares.map</span>(<span class="hljs-variable">middleware</span> =&gt; <span class="hljs-function"><span class="hljs-title">middleware</span>(<span class="hljs-variable">middlewareAPI</span>))</span>
+<span class="hljs-variable">dispatch</span> = <span class="hljs-function"><span class="hljs-title">compose</span>(...chain)(<span class="hljs-variable">store.dispatch</span>)</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>看到这里，会有一个疑问<code>compose</code>执行的顺序是从后面往前执行，但是我们定义<code>middleware</code>是从前往后的。</p>
+<p><code>chains</code>数组的方法相当于<code>middleware</code>的<code>next</code>方法（接收参数为<code>next</code>函数，暂时这样子命名）,compose执行的时候，相当于<code>next</code>已经执行，并且返回一个新的函数，这个函数是接收一个叫<code>action</code>的函数（暂命名为action函数）；因为每个<code>middleware</code>的接收<code>next</code>函数执行后都是<code>action</code>函数；<code>next</code>函数的<code>next</code>参数就是上一个函数的返回值。执行到最后，<code>dispatch = compose(...)(store.dispatch)</code>,<code>dispatch</code>函数其实是第一个<code>middleware</code>的<code>action</code>函数</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// chain0 表示 chain 数组中的第一个函数，chain1表示第二个，以此类推</span>
+<span class="hljs-comment">// compose 执行顺序为倒序</span>
+<span class="hljs-keyword">const</span> action2 = chain2(store.dispatch) <span class="hljs-comment">// store.dispatch的值是compose()(store.dispatch)传入的</span>
+<span class="hljs-keyword">const</span> action1 = chain1(action2)
+<span class="hljs-keyword">const</span> action0 = chain0(action1)</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p><code>action0</code>就是最终返回到<code>dispatch</code>函数；当我们在组件中执行<code>dispatch()</code>的时候，实际上是调用<code>action0</code>函数，<code>action0</code>函数可以通过<code>next</code>调用下一个<code>middleware</code></p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-regexp">//</span> action0
+action0(action)
+const result = <span class="hljs-keyword">next</span>(action) <span class="hljs-regexp">//</span> 这个 <span class="hljs-keyword">next</span> 的函数为 action1
+    <span class="hljs-regexp">//</span> action1
+    action1(action)
+    const result = <span class="hljs-keyword">next</span>(action) <span class="hljs-regexp">//</span> 这个 <span class="hljs-keyword">next</span> 的函数为action2
+        <span class="hljs-regexp">//</span> action2
+        action2(action)
+        const result = <span class="hljs-keyword">next</span>(action) <span class="hljs-regexp">//</span> 这个 <span class="hljs-keyword">next</span> 的函数为 store.dispatch</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>就这样子层层嵌套，把每个<code>middleware</code>都执行完，最终去到<code>store.dispatch</code>，最终更改好reducer，返回一个全新的state；而这个state也层层冒泡传到最顶层的<code>middleware</code>；<code>middleware</code>执行顺序的疑问由此解开。</p>
+<h2 id="小结">小结</h2><p><code>redux</code>的源码不多，使用起来也很简单，但是里面运用的知识不少，特别是在<code>middleware</code>的时候，需要很细心的看且有较好的基础，不然看起来还是有点吃力的。另外一些用闭包来缓存变量、保存函数执行状态等，用得很精妙。Get.~</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
