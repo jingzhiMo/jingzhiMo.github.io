@@ -4,7 +4,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: node:12.14.1
+      - image: node:latest
 
     working_directory: ~/acyort
 
