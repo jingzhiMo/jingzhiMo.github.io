@@ -8,9 +8,10 @@ jobs:
 
     working_directory: ~/acyort
 
-    branches:
-      only:
-        - master # 这个是配置文件的分支名，注意不要写错分支
+    filters:
+      branches:
+        only:
+          - master # 这个是配置文件的分支名，注意不要写错分支
 
     steps:
       - checkout
