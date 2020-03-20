@@ -1,10 +1,10 @@
 # 注意这个文件名为 config.yml，在 .circleci 目录下
-version: 2.1
+version: 2
 jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: node:latest
+      - image: node:12.14.1
 
     working_directory: ~/acyort
 
