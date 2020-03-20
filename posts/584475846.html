@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+<script>console.log("test log v2")</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?b386bfee3dce0803dd0e04e8215bc685";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+  <title>
+react-router结构图解析 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">March 19, 2020</p>
+  <h1 class="title">react-router结构图解析</h1>
+  <div class="content"><h2 id="前言">前言</h2><p>最近在看一下<code>react-router</code>的源码，看到<code>react-rouer</code>的功能分散到几个<code>packages</code>，也依赖基础包<code>hisotry</code>，如果完整才源码分析，可能会有点多，所以这次就弄一个张图来说明一下<code>react-router</code>的使用。估计再过一阵子，<code>v6</code>版本就要发了，这个图是<code>v5.x</code>版本的，有点悲催。下面直接上图，主要说是在浏览器端运行的<code>react-router</code>：</p>
+<p><img src="https://i.loli.net/2020/03/19/EBinQTSbNKYp69w.png" alt="react-router结构图形 _1_.jpg"></p>
+<p>图有点点长，先来简单说一下不同颜色的区域表示什么：</p>
+<ul>
+<li>蓝色：使用的用户，也就是开发者</li>
+<li>绿色：不同的组件</li>
+<li>黄色：通常是指一些方法</li>
+<li>橙色：创建对象的函数</li>
+<li>白色：浏览器基础对象</li>
+</ul>
+<p>左边纵向的一列：
+<code>react-router</code>,<code>react-router-dom</code>,<code>history</code>表示不同的库，而<code>window</code>就是浏览器。</p>
+<p>下面就从对底层说起，捋一下这张图。</p>
+<h2 id="window">window</h2><p>通常来说，路由库大部分基于两种：</p>
+<p>一种是<code>window.history</code>对象来控制url的改变</p>
+<p>另外一种是通过<code>location.hash</code>值来控制url的改变；</p>
+<p>现在应该大部分都是用<code>window.history</code>，如果要兼容部分低版本浏览器，可能就需要到<code>location.hash</code>。而这两者都需要到<code>location</code>的支持，才能获取更详细的信息。</p>
+<h2 id="history">history</h2><p>需要注意的是，这是一个库，并不是<code>window.history</code>的对象。</p>
+<p>这个库是对页面路径的操作进行封装，目前是独立一个仓库，<a href="https://github.com/ReactTraining/history">github 地址</a>，支持上面所说的<code>window.history</code>与<code>location.hash</code>的两种路由情况；</p>
+<p>分别对应<code>BrowserHistory</code>与<code>HashHistory</code>的创建函数，通过这两个创建函数创建出来的对象，都具有相同的API调用，因为<code>history</code>这个库对这两种情况的路由进行了适配。通常这些通用的方法包含：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">history</span>.push<span class="hljs-params">()</span>
+<span class="hljs-keyword">history</span>.replace<span class="hljs-params">()</span>
+<span class="hljs-keyword">history</span>.go<span class="hljs-params">()</span>
+<span class="hljs-keyword">history</span>.back<span class="hljs-params">()</span>
+<span class="hljs-string">//</span> <span class="hljs-string">...</span> 等等
+
+除此之外，还有定义一些路由过度的`promot`的逻辑等。</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>除此之外，还有还封装了<code>MemoryHistory</code>的创建方法，看起来，是给到<code>react-router-native</code>与部分测试的时候使用的。</p>
+<h2 id="reactrouterdom">react-router-dom</h2><p>这个是<code>react-router</code>的仓库其中一个package，是专门针对浏览器处理的路由封装。</p>
+<p>通常我们是在这个库里面指定使用哪一种路由方式，<code>BrowserHistory</code> or <code>hashHistory</code>:</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">import</span> { BrowserRouter <span class="hljs-keyword">as</span> Router } <span class="hljs-keyword">from</span> <span class="hljs-string">'react-router-dom'</span>
+
+<span class="hljs-comment">// or</span>
+<span class="hljs-keyword">import</span> { HashRouter <span class="hljs-keyword">as</span> Router } <span class="hljs-keyword">from</span> <span class="hljs-string">'react-router-dom'</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>而指定路由方式的时候，则调用<code>hisotry</code>的两种不同<code>createHistory</code>方法；获取创建的<code>hisotry</code>返回对象。</p>
+<p><code>react-router-dom</code>处理指定路由方式之外，还提供<code>Link</code>与<code>NavLink</code>的组件；通常来说；这两个组件用于跳转到不同的路由，这个时候跳转也是调用<code>createHistory</code>返回对象的API，<code>push</code>或者<code>replace</code></p>
+<h2 id="reactrouter">react-router</h2><p><code>react-router</code>通常是开发者直接调用的入口，例如路由组件的分发，当前参数获取等。</p>
+<p>我们知道，从<code>react-router-dom</code>引入<code>BrowserRouter</code>或者<code>HashRouter</code>来指定路由方式；其实这个时候，也返回一个<code>Router</code>的组件，用于渲染页面路由的根组件。</p>
+<p><code>Router</code>的根组件是后面所有组件的基础；后续所有组件，必须在这个根组件下。<code>Router</code>,<code>Switch</code>等组件层层嵌套。在这个过程中，<code>RouterContext</code>是在整个组件过程中存在，这个<code>context</code>就是用于不同组件间的数据共享；通常这个<code>context</code>的数据为：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre>{
+    history, <span class="hljs-comment">// createHistory 返回的对象</span>
+    location, <span class="hljs-comment">// 当前路径的信息</span>
+    <span class="hljs-keyword">match</span> <span class="hljs-comment">// 当前路由匹配的信息</span>
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>嵌套路由之间也是共用这个<code>context</code>，从而达到路由数据之间的传递；而<code>hooks</code>的调用也是基于<code>useContext</code>来演变成不同的<code>hooks</code>，例如<code>useHistory</code>,<code>useLocation</code>等。</p>
+<p>那<code>react-router-dom</code>的<code>Link</code>更改的路由，怎么通知到<code>context</code>更改呢？</p>
+<p>在<code>createHistory</code>的时候，返回的<code>history</code>对象️监听方法<code>listen</code>；而根组件<code>Router</code>监听该方法，若发生改变，则更改<code>RouterContext</code>的内容；从而做到不同组件间的数据通信。</p>
+<h2 id="小结">小结</h2><p>这篇文章对代码描述的不多，主要是对流程的处理进行梳理；了解到不同库之间的协作，与数据通信的技巧。具体实现还是得看源码。希望能够一图胜千言！！！喜欢给个star~</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
