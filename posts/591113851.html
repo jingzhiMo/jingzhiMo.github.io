@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+<script>console.log("test log v2")</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?b386bfee3dce0803dd0e04e8215bc685";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+  <title>
+我的 react 学习计划 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">March 31, 2020</p>
+  <h1 class="title">我的 react 学习计划</h1>
+  <div class="content"><p>在之前一段时间中，我这边在补充 React 的技术栈（不会 React 都不好意思说自己搞前端了？）。下面分享一下我这边的学习的过程，还有一些学习过程中觉得不错的学习文章。主要是 React 技术栈与 Typescript 的应用。</p>
+<h2 id="背景">背景</h2><p>在决定系统学习 React 的技术栈之前，其实对 React 的使用也有比较一些低层级的使用，所以是有一些比较浅的认识。因为也工作了不短时间了，在工作的工程中，在前端框架方面使用，前期是<code>ng1.x</code>，后面主用<code>vue</code>了。所以对前端框架的使用也是有一定经验。而对 Typescript 的使用，之前也有完整学习了一遍并做了一些简要的学习笔记。所以基于之前零散的学习，现在就开始系统学习一波吧，整理之前的知识。</p>
+<h2 id="计划">计划</h2><p>先定个小目标，这次学习的目的是：系统整合 React 技术栈与 Typescript 的使用。</p>
+<p>学习的载体：选一个自己熟悉项目，用这个项目来重构；或者选一个需求明确的产品。我觉得这个挺重要的，如果在开发过程中还要纠结各种需求问题，就与我们目标有偏移。我是选择了一个熟悉的产品并重构部分，一来可以反思之前的问题，二来因为熟悉需求，减少在上面耗费的其他精力。</p>
+<p>开始需要列一下学习路线图<code>roadmap</code>，可能不需要很精确，主线清晰就ok了，学习的过程中有时候需要不断调整。下面是我这边前期的学习路线：</p>
+<ul>
+<li><input disabled="" type="checkbox"> <ol>
+<li>使用<code>create-react-app --typescript</code> 创建项目</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="2">
+<li>实现页面基本框架组件</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="3">
+<li>选择组件接入redux</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="4">
+<li>加入不同的页面组件</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="5">
+<li>页面接入react-router</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="6">
+<li>接入mock数据</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="7">
+<li>请求逻辑接入，深入了解redux，涉及异步请求与中间件等</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="8">
+<li>编写公共的hook, 了解hook原理</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="9">
+<li>接入部分请求逻辑</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="10">
+<li>接入路由</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="11">
+<li>接入复杂条件，熟悉父子组件通信形式</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="12">
+<li>展现数据，结合实际情况，把核心页面还原逻辑</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="13">
+<li>接入用户状态设置</li>
+</ol>
+</li>
+<li><input disabled="" type="checkbox"> <ol start="14">
+<li>尝试扩展页面，复用代码</li>
+</ol>
+</li>
+</ul>
+<p>这里列的都是一些基本点，每一个基本点展开都是非常多的。所以在这个过程中，<strong>建议多阅读 React 官方文档</strong>，通常开始会对一些方法与使用姿势不对。通过多阅读文档，可以在涉猎对应场景之前，就能够提前有个认知；<strong>因为长时间使用其他的框架，容易造成把不同框架的使用姿势强行结合，导致使用不当</strong>，<em>先忘记之前所学的</em>。</p>
+<p>如果完成上述的基本路线图，就基本把 React 的常见使用入门了。这就完了？不不</p>
+<p>通常你在上面每个阶段都会遇到各种问题；而且需要对每一步的处理进行反思，记录下来之后，需要进一步深入。</p>
+<h2 id="参考与反思">参考与反思</h2><ol>
+<li><p>例如在第一步进行创建的时候，使用<code>create-react-app</code>的时候，可能会想到，这个工具是怎么实现的，怎么做到开箱即用，具体原理可以看文章<a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues/15">create-react-app原理</a>。还有结合第 6 步，如果加入<code>mockServer</code>的话，增加配置不容易，那么通过<code>eject</code>命令把配置都导出，自己重新去更改？还是通过<a href="https://github.com/timarney/react-app-rewired"><code>react-app-rewired</code></a>工具去更改<code>cra</code>的流程呢？这些在实际项目中可能得根据具体情况进行不同处理。</p>
+</li>
+<li><p>在使用<code>redux</code>的时候，是否有思考内部是怎样实现的，还有与<code>vuex</code>进行区别。如果仅使用<code>redux</code>，不使用辅助工具的话，项目会很困难，所以又有了<code>react-redux</code>的官方工具库，用于把 <code>React</code> 与 <code>redux</code> 连结起来。并内置部分优化，那是否也看一下<code>react-redux</code>内置的优化是什么呢？</p>
+</li>
+<li><p>在接入<code>react-router</code>的时候，通常会涉及一些懒加载的处理，除了路由层面对页面懒加载，是否也有一些对组件进行懒加载？另外，对路由的实现是否也需要看一下呢？对于<code>history</code>与<code>hash</code>的兼容是怎样的？不同路由组件间怎么同步相同的路由数据？</p>
+</li>
+<li><p>hook的使用相对会与之前的生命周期钩子有点不太一样，当尝试复用自己写的hook的时候，你可能会发现，一个名为<a href="https://github.com/streamich/react-use"><code>react-use</code></a>的工具库非常实用，里面涵盖了非常的常见工具hook，当没有思路编写自己的业务hook，不妨上去找一下代码与灵感。可能不写过几个死循环，都很难把hook使用到点，对于掌握hook，可能真的需要“把之前学到的都忘掉”。才能发挥更好的效果。</p>
+</li>
+<li><p>结合 Typescript 来使用，把两个不太熟练的东西一起使用也会大大增大难度；可能会发现，使用 js 就搞定了，但是使用 ts 的时候，在类型定义，还有引用第三方库会非常难理解，在这里有可能浪费挺多时间。这通常源于对 ts 的类型系统与部分默认定义类型的不熟悉；解决几个相似的提示之后，到后面解决起来就会很快了。</p>
+</li>
+</ol>
+<h2 id="文章推荐">文章推荐</h2><p>下面是一些解决部分问题比较不错的文章与回答，在这个学习过程所记录：</p>
+<ul>
+<li><a href="https://goshakkk.name/controlled-vs-uncontrolled-inputs-react/">受控与非受控组件的区别</a></li>
+<li><a href="https://stackoverflow.com/a/43936258/5348985">PureComponent vs Component</a></li>
+<li><a href="https://medium.com/hackernoon/lazy-loading-and-preloading-components-in-react-16-6-804de091c82d">了解React.lazy与React.Suspense的使用懒加载处理</a></li>
+<li><a href="https://stackoverflow.com/questions/48563650/does-react-keep-the-order-for-state-updates/48610973#48610973">setState 是否保持state更新顺序</a></li>
+<li><a href="https://daveceddia.com/useeffect-vs-uselayouteffect/">useEffect与useLayoutEffect的区别</a></li>
+<li><a href="https://medium.com/crowdbotics/how-to-use-usereducer-in-react-hooks-for-performance-optimization-ecafca9e7bf5">6 种提高 useReducer 性能的方法</a></li>
+<li><a href="https://www.freecodecamp.org/news/react-context-in-5-minutes/">context 的使用</a></li>
+<li><a href="https://blog.francium.tech/vue-lazy-routes-loading-chunk-failed-9ee407bbd58">深入useCallback与useMemo的使用时间节点</a></li>
+<li><a href="https://overreacted.io/zh-hans/a-complete-guide-to-useeffect/"><code>useEffect</code>完整指南</a></li>
+<li><a href="https://medium.com/@martin_hotell/react-refs-with-typescript-a32d56c4d315"><code>useRef</code>与<code>typescript</code>的使用</a></li>
+<li><a href="https://medium.com/javascript-scene/do-react-hooks-replace-redux-210bab340672">React hook 是否能代替 redux?</a></li>
+<li><a href="https://indepth.dev/inside-fiber-in-depth-overview-of-the-new-reconciliation-algorithm-in-react/">深度解析 React 协调算法</a></li>
+<li><a href="https://indepth.dev/in-depth-explanation-of-state-and-props-update-in-react/">深度解析 React 的 state 与 props 更新</a></li>
+<li><a href="https://indepth.dev/the-how-and-why-on-reacts-usage-of-linked-list-in-fiber-to-walk-the-components-tree/">为什么 React 在 Fiber 中使用链表数据结构</a></li>
+</ul>
+<p>例子代码：</p>
+<ul>
+<li><a href="https://codesandbox.io/s/w02m7jm3q7">redux 结合 typescript 的例子</a></li>
+<li><a href="https://codesandbox.io/s/w02m7jm3q7">react-redux 结合 typescript 的例子</a></li>
+</ul>
+<p>个人部分写的文章，见笑了：</p>
+<ul>
+<li><a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues/19">（译）setState为什么是&quot;异步&quot;</a></li>
+<li><a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues/21">react router结构图解析</a></li>
+<li><a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues/20">一篇带有“思考”的redux源码阅读</a></li>
+<li><a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues/15">create-react-app使用工具与过程分析</a></li>
+<li><a href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues/6">ts 学习笔记</a></li>
+</ul>
+<h2 id="小结">小结</h2><p>这次的文章比较短，大多数是在描述一些在学习过程产生的一些疑问，与带入的一些解决方法。这些疑问是我们在学习的时候深究的来源。最开始的时候我也尝试过直接去阅读源码，但是发现 React 的源码实在太多了，如果没有一定的使用基础还有对一些常见概念熟悉的话，根本看不下去；为了看源码而看源码得不偿失。当在开发过程遇到部分问题之后，带着这些小问题，再去局部局部的深入；然后对之前所学的知识点作归纳，知识梳理起来就会有条理。那样子解决问题起来才能够得心应手。完！</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
