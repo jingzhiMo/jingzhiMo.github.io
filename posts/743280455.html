@@ -1,0 +1,372 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="All about Recordum" />
+<link rel="stylesheet" href="/css/style.css" />
+<script>console.log("test log v2")</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?b386bfee3dce0803dd0e04e8215bc685";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+  <title>
+使用egg搭建微信公众号开发，转发流量到本地服务 - jingzhiMo
+</title>
+</head>
+
+<body>
+
+<div class="main">
+
+<div class="header">
+    <a class="logo" href="/">jingzhiMo</a><!--
+
+ --><div class="menu">
+        <a href="/archives/">Archives</a><a href="/about/">About</a>
+    </div>
+
+    <div class="social">
+        <a target="_blank" href="https://github.com/jingzhiMo/jingzhiMo.github.io/issues"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"></path>
+</svg></a>
+    </div>
+</div>
+
+
+<div id="post" class="center">
+  <p class="time">November 15, 2020</p>
+  <h1 class="title">使用egg搭建微信公众号开发，转发流量到本地服务</h1>
+  <div class="content"><p>最近在折腾一下微信公众号的开发，在这个过程中还是遇到挺多麻烦的事，当然，每一件麻烦的事情，在 goole 下都能找到对应的解决方案，这次是把整个过程记录一下，从开始到放弃。</p>
+<p>这次文章的目标是，<strong>在本地能够启动 node.js 服务，并能够接收用户发送给公众号的消息，进行响应处理。</strong></p>
+<h2 id="1申请公众号">1. 申请公众号</h2><p>(废话，下一个)</p>
+<h2 id="2搭建本地nodejs开发">2. 搭建本地 node.js 开发</h2><p>最开始的时候，是选中 koa 来作为本地开发的，因为研发手写的代码简单，就那么几行，就可以在一个完全空白的项目跑起来了。但是后面发现，koa虽简单，但是功能也比较简单，如果要进行完整的服务端开发，还需自己搭建非常多的内容。于是选中 egg 作为开发的框架。</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-meta">#</span><span class="bash"> 下面命令是初始化 egg 相关项目，并启动</span>
+<span class="hljs-meta">$</span><span class="bash"> mkdir egg-example &amp;&amp; <span class="hljs-built_in">cd</span> egg-example</span>
+<span class="hljs-meta">$</span><span class="bash"> npm init egg --<span class="hljs-built_in">type</span>=simple</span>
+<span class="hljs-meta">$</span><span class="bash"> npm i</span>
+<span class="hljs-meta">$</span><span class="bash"> npm run dev</span></pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>运行完上面的命令之后，打开本地链接 <code>http://localhost:7001</code> 即可看到 egg 启动的界面了。</p>
+<p>要让微信公众号的信息正确发到本地服务，这些东西还不够，要暴露一个外部的 ip，让微信把公众号接收到的消息发送到这个 <strong>外部 ip</strong>。这个时候需要一个代理工具：<a href="https://github.com/localtunnel/localtunnel">localtunnel</a></p>
+<h2 id="3使用localtunnel代理请求">3. 使用 localtunnel 代理请求</h2><p>localtunnel 可以把本地的接口，生成一个暴露对外的域名地址；当外部进行发送消息的时候，把发送到该域名的地址，转发到本地的服务。简单如图：</p>
+<p><img src="https://i.loli.net/2020/11/15/f8djKugiLTCkMey.png" alt="image.png"></p>
+<p>下面是安装的简单过程</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment"># 也可以使用 npx localtunnel --port 7001，不过通常后续会多次执行，还是全局安装之后，后面执行起来比较快</span>
+$ npm <span class="hljs-keyword">install</span> -g localtunnel
+<span class="hljs-comment"># 7001 这个端口就是使用 egg 启动占用的端口</span>
+$ lt <span class="hljs-comment">--port 7001</span>
+<span class="hljs-comment"># 执行完命令，会返回url，例如下面的地址。如果处理出错，重复多两次一般就可以</span>
+your <span class="hljs-keyword">url</span> <span class="hljs-keyword">is</span>: https://rude-robin<span class="hljs-number">-7.</span>loca.lt</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>拿到这个url之后，就需要复制到浏览器打开，通常会出现下面的界面：</p>
+<p><img src="https://i.loli.net/2020/11/15/guTsodjiR1Ke27Z.png" alt="image.png"></p>
+<p>然后点击按钮，就能看到访问<code>http://localhost:7001</code>内容一致。后续刷新，就不会出现以上界面，而是直接返回本地服务的内容。</p>
+<h2 id="4公众号后台配置localtunnel域名">4. 公众号后台配置localtunnel域名</h2><p>执行完上一步之后，本地开发的服务，就可以通过域名访问了。然后去到微信公众号后台修改配置，没有开启，则需要开启：开发 =&gt; 基本配置 =&gt; 服务器配置。</p>
+<p><img src="https://i.loli.net/2020/11/15/8f35wsypXoqDiY6.png" alt="image.png"></p>
+<p>URL 那一栏就填写通过 localtunnel 获取的域名；Token 那一栏现在可以随便填一下，具体后面的使用待会说到。然后点击，提交，会发现，出错。因为我们的服务还没有按照微信的要求，对请求进行验证。</p>
+<h2 id="5对公众号后台配置的服务进行验证">5. 对公众号后台配置的服务进行验证</h2><p>微信要求设定的URL需要进行验证，否则不能作为公众号接收的服务，简要的验证逻辑如下。官方对于验证的文档<a href="https://developers.weixin.qq.com/doc/offiaccount/Getting_Started/Getting_Started_Guide.html">在这里</a>。</p>
+<p><img src="https://i.loli.net/2020/11/15/tOpMEABJHcgVinU.png" alt="image.png"></p>
+<p>知道验证的方法之后，就可以着手进行处理，就按照初始化的 egg 文件内容来处理，修改 <code>app/controller/home.js</code> 的 <code>index()</code> 方法：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// 需要依赖该加密工具</span>
+<span class="hljs-keyword">const</span> sha1 = <span class="hljs-built_in">require</span>(<span class="hljs-string">'sha1'</span>)
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HomeController</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Controller</span> </span>{
+  <span class="hljs-keyword">async</span> index() {
+    <span class="hljs-keyword">const</span> { ctx } = <span class="hljs-keyword">this</span>;
+    <span class="hljs-keyword">const</span> { query } = ctx
+    <span class="hljs-comment">// 在微信公众号后台的配置</span>
+    <span class="hljs-keyword">const</span> token = <span class="hljs-string">'testtoken'</span>
+    <span class="hljs-keyword">const</span> { signature, echostr, timestamp, nonce } = query
+
+    <span class="hljs-keyword">if</span> (!echostr) <span class="hljs-keyword">return</span>
+
+    <span class="hljs-keyword">const</span> newSignature = sha1([token, timestamp, nonce].sort().join(<span class="hljs-string">''</span>))
+
+    ctx.body = newSignature === signature
+      ? echostr
+      : <span class="hljs-string">'error'</span>
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>确认服务重启之后，回去到公众号后台配置的地方，再次点击“提交”。什么？还是出错，那大概率是 localtunnel 的问题，因为这个服务不太稳定，导致微信那边访问也会有波动。点多两次提交就可以了。</p>
+<h2 id="6接收微信公众号的信息">6. 接收微信公众号的信息</h2><p>当我们发送消息到公众号的时候，公众号后台会对信息进行处理，然后以一个 post 方法的 http 请求，发送到刚才在公众号后台配置的链接中，请求的内容是以 xml 为格式的内容。官方关于接收消息文档<a href="https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Receiving_standard_messages.html">如下</a>。</p>
+<p>上面我们的 egg 应用只是对 <code>GET</code> 请求进行处理，还没有对 <code>POST</code> 请求进行响应，所以做了以下两步处理：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// app/router.js 新增处理</span>
+<span class="hljs-keyword">module</span>.exports = app =&gt; {
+  <span class="hljs-keyword">const</span> { router, controller } = app;
+  router.<span class="hljs-built_in">get</span>(<span class="hljs-string">'/'</span>, controller.<span class="hljs-built_in">home</span>.index);
+  <span class="hljs-comment">// 下面这一行为新增</span>
+  router.post(<span class="hljs-string">'/'</span>, controller.<span class="hljs-built_in">home</span>.post);
+};</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>在官方文档中可以知道，需要对 XML 的文件格式进行处理，而 <code>POST</code> 请求是基于事件，类似流式接收二进制数据；且针对 XML，需要 <code>xml2js</code> 的工具，进行转换为常用的 js 对象。</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+<span>15</span>
+<span>16</span>
+<span>17</span>
+<span>18</span>
+<span>19</span>
+<span>20</span>
+<span>21</span>
+<span>22</span>
+<span>23</span>
+<span>24</span>
+<span>25</span>
+<span>26</span>
+<span>27</span>
+<span>28</span>
+<span>29</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-keyword">const</span> xml2js = <span class="hljs-built_in">require</span>(<span class="hljs-string">'xml2js'</span>);
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">HomeController</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Controller</span> </span>{
+  <span class="hljs-comment">// 为之前处理 GET 请求的方法</span>
+  <span class="hljs-keyword">async</span> index() {}
+
+  <span class="hljs-keyword">async</span> post() {
+    <span class="hljs-keyword">let</span> data = <span class="hljs-string">''</span>;
+    <span class="hljs-keyword">const</span> { req } = <span class="hljs-keyword">this</span>.ctx;
+
+    <span class="hljs-comment">// 马上对响应进行返回，让公众号后台能够收到请求已收到，避免公众号后台进行重试</span>
+    <span class="hljs-keyword">this</span>.ctx.body = <span class="hljs-string">'success'</span>;
+
+    req.setEncoding(<span class="hljs-string">'utf8'</span>);
+    req.on(<span class="hljs-string">'data'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">chunk</span>) </span>{
+      data += chunk;
+    });
+    req.on(<span class="hljs-string">'end'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+      xml2js.parseString(data, { <span class="hljs-attr">explicitArray</span>: <span class="hljs-literal">false</span> }, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, json</span>) </span>{
+        <span class="hljs-keyword">if</span> (err) {
+          <span class="hljs-comment">// TODO</span>
+          <span class="hljs-keyword">return</span>
+        }
+        <span class="hljs-comment">// 拿到后台发送过来的数据</span>
+        <span class="hljs-built_in">console</span>.log(json.xml)
+      });
+    });
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>以上的两个文件更改，即可接收 <code>POST</code> 请求了；但是 egg 默认对 <code>POST</code> 请求做了 csrf 防御的处理，如果需要快速解决这个问题，可以先把配置关掉：</p>
+
+      <div class="hljs javascript">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+</pre>
+              </td>
+              <td class="code"><pre><span class="hljs-comment">// /config/config.default.js</span>
+<span class="hljs-keyword">const</span> <span class="hljs-built_in">config</span> = exports = {
+  <span class="hljs-comment">// ...</span>
+  security: {
+    csrf: <span class="hljs-literal">false</span>
+  },
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>完成以上步骤之后，用户发送到微信公众号的数据，本地服务基本就可以接收到了。</p>
+<h2 id="优化版">优化版</h2><p>为什么会有优化版？因为 <code>localtunnel</code> 实在太不稳定了，经常会掉线；掉线之后，重新获取域名之后，域名再次发生更改，还需要在公众号后台更改对应的域名。</p>
+<p>所以优化版是针对有远端服务器进行处理，代理部分，从 <code>localtunnel</code> 改为 <code>云服务器</code>。</p>
+<p><img src="https://i.loli.net/2020/11/15/OYHxNkvp7Z5XeKj.png" alt="image.png"></p>
+<p>接下来，需要对原来 <code>localtunnel</code> 实现转发这一步，改为我们手动来实现。而有一个需要注意的是，微信后台配置的链接，只能配置 <code>http/https</code>，分别对应 <code>80/443</code> 端口。因为没有证书，所以只能够在 80 端口下手了。而 80 端口，第一时间想到 nginx。通常来说，使用 nginx 进行反向代理，通过一定的规则，把访问 80 端口的一部分流量代理到其他端口。</p>
+<p>另外，为了把线上的流量代理到本地，可以使用 <code>ssh</code> 的功能进行转发。<code>ssh</code> 命令为：</p>
+
+      <div class="hljs bash">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+</pre>
+              </td>
+              <td class="code"><pre>$ ssh -NfR <span class="hljs-number">8080</span>:localhost:<span class="hljs-number">7001</span> <span class="hljs-symbol">username@</span><span class="hljs-number">48.50</span><span class="hljs-number">.50</span><span class="hljs-number">.50</span> -i ./my.pem</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>上面这句命令的意思是，把服务器端口为 <code>8080</code> 的流量代理到本地 <code>7001</code> 端口，<code>i- ./my.pem</code> 是使用对应的密钥进行登录；如果没有，则使用密码进行处理。</p>
+<p>为什么是 <code>8080</code> 端口，而不是 <code>80</code> 端口呢。因为 <code>80</code> 端口已经被 nginx 占用了。会提示出错。所以，还需要配合ngxin，把针对微信的流量进行转发，更改配置如下：</p>
+
+      <div class="hljs">
+        <table>
+          <tbody>
+            <tr>
+              <td class="line">
+                <pre><span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+</pre>
+              </td>
+              <td class="code"><pre># &#x2F;etc&#x2F;nginx&#x2F;sites-enabled&#x2F;default
+server {
+  # 其他配置...
+
+  # 把微信的请求，代理到 8080 端口
+  location &#x2F;wxapi&#x2F; {
+    proxy_pass http:&#x2F;&#x2F;127.0.0.1:8080&#x2F;;
+  }
+}</pre></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    <p>这个时候，就需要更改公众号后台的开发者接口配置</p>
+<p><img src="https://i.loli.net/2020/11/15/HqBoVvefTskChU4.png" alt="image.png"></p>
+<p>上面填写的 URL 的ip地址就是云服务器的地址，<code>/wxapi/</code> 就是 ngxin 设置的地址。</p>
+<p>所以总体来说，自己搭建代理的方式如下：</p>
+<p><img src="https://i.loli.net/2020/11/15/i3KFOE6WSGrI2bs.png" alt="image.png"></p>
+<p>通过这个优化之后，后续只需要本地启动 egg 服务，然后至少上述 <code>ssh</code> 的命令即可；<code>ssh</code> 代理命令也可以设置为开机启动，那样子就可以再继续减少一步。</p>
+<h1 id="结尾">结尾</h1><p>整体流程其实并不复杂，但是需要把各个知识点都串联起来，各种工具、配置的简要知识都需要了解一下。完。</p>
+</div>
+  <div class="comments"><div id="disqus_thread"></div></div>
+</div>
+
+
+</div>
+
+<div class="footer">
+    <div class="center">
+      jingzhiMo / Powered by
+      <a target="_blank" href="https://github.com/acyortjs/acyort">AcyOrt</a> /
+      Theme
+      <a target="_blank" href="https://github.com/acyortjs/theme-donob">donob</a>
+    </div>
+</div>
+
+
+
+
+
+
+
+</body>
+</html>
